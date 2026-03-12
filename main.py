@@ -37,6 +37,13 @@ app = FastAPI(title="RegBot", lifespan=lifespan)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
+BUILD_VERSION = "tiktoken-v2"
+
+
+@app.get("/api/version")
+async def get_version():
+    return {"version": BUILD_VERSION}
+
 
 # --- Chat API ---
 
