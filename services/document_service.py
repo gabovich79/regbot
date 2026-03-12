@@ -10,7 +10,8 @@ os.makedirs(DOCUMENTS_DIR, exist_ok=True)
 
 
 def estimate_tokens(text: str) -> int:
-    return int(len(text.split()) * 1.3)
+    """Conservative token estimate for Hebrew/mixed text."""
+    return max(len(text) // 3, len(text.split()) * 2)
 
 
 def clean_text(text: str) -> str:

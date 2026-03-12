@@ -39,8 +39,10 @@ def _tokenize(text: str) -> list[str]:
 
 
 def _estimate_tokens(text: str) -> int:
-    """Quick token estimate: ~1.3 tokens per word for Hebrew/mixed text."""
-    return int(len(text.split()) * 1.3)
+    """Conservative token estimate for Hebrew/mixed text.
+    Hebrew uses ~1 token per 2-3 characters in Claude's tokenizer.
+    We use len/3 as a safe estimate to avoid exceeding API limits."""
+    return max(len(text) // 3, len(text.split()) * 2)
 
 
 def score_document(question_tokens: list[str], doc_text: str) -> float:
@@ -119,7 +121,7 @@ def retrieve_relevant_documents(
             remaining = max_tokens - used_tokens
             if remaining > 3000 and doc["score"] > 0:
                 # Truncate to fit — ~4 chars per token for Hebrew
-                max_chars = remaining * 4
+                max_chars = remaining * 3  # ~3 chars per token for Hebrew
                 selected.append({
                     "title": doc["title"] + " (קטוע)",
                     "text": doc["text"][:max_chars] + "\n[... המסמך נחתך עקב מגבלת גודל ...]",

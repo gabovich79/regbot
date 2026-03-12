@@ -9,8 +9,10 @@ client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
 def _estimate_tokens(text: str) -> int:
-    """Quick token estimate: ~1.3 tokens per word for Hebrew/mixed text."""
-    return int(len(text.split()) * 1.3)
+    """Conservative token estimate for Hebrew/mixed text.
+    Hebrew uses ~1 token per 2-3 characters in Claude's tokenizer.
+    We use len/3 as a safe estimate to avoid exceeding API limits."""
+    return max(len(text) // 3, len(text.split()) * 2)
 
 
 def _get_available_doc_tokens() -> int:
