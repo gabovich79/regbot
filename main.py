@@ -143,18 +143,6 @@ async def upload_document(file: UploadFile = File(...)):
         raise HTTPException(400, "לא ניתן לחלץ טקסט מהקובץ")
 
     token_count = estimate_tokens(text)
-
-    # Check if adding this document would exceed the prompt token limit
-    current_total = await get_total_tokens()
-    if current_total + token_count > MAX_PROMPT_TOKENS:
-        raise HTTPException(
-            400,
-            f"המסמך גדול מדי ({token_count:,} טוקנים). "
-            f"סה\"כ עם מסמכים קיימים: {current_total + token_count:,} טוקנים. "
-            f"מגבלת הפרומפט: {MAX_PROMPT_TOKENS:,} טוקנים. "
-            f"הסר מסמכים ישנים ונסה שוב."
-        )
-
     doc_id = await add_document(filename, source_type, filename, "", token_count)
     text_path = save_document_text(doc_id, text)
 
@@ -168,8 +156,13 @@ async def upload_document(file: UploadFile = File(...)):
 
     total = await get_total_tokens()
     warning = None
-    if total > MAX_TOKENS_WARNING:
-        warning = "המסמכים קרובים לגבול ה-cache. שקול להסיר מסמכים ישנים."
+    if total > MAX_PROMPT_TOKENS:
+        warning = (
+            f"סה\"כ טוקנים ({total:,}) חורג ממגבלת ה-API ({MAX_PROMPT_TOKENS:,}). "
+            f"המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר לכל שאלה."
+        )
+    elif total > MAX_TOKENS_WARNING:
+        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר."
 
     return {
         "id": doc_id,
@@ -199,18 +192,6 @@ async def add_document_url(url: str = Form(...), title: str = Form(None)):
 
     doc_title = title or url[:80]
     token_count = estimate_tokens(text)
-
-    # Check if adding this document would exceed the prompt token limit
-    current_total = await get_total_tokens()
-    if current_total + token_count > MAX_PROMPT_TOKENS:
-        raise HTTPException(
-            400,
-            f"המסמך גדול מדי ({token_count:,} טוקנים). "
-            f"סה\"כ עם מסמכים קיימים: {current_total + token_count:,} טוקנים. "
-            f"מגבלת הפרומפט: {MAX_PROMPT_TOKENS:,} טוקנים. "
-            f"הסר מסמכים ישנים ונסה שוב."
-        )
-
     doc_id = await add_document(doc_title, source_type, url, "", token_count)
     text_path = save_document_text(doc_id, text)
 
@@ -224,8 +205,13 @@ async def add_document_url(url: str = Form(...), title: str = Form(None)):
 
     total = await get_total_tokens()
     warning = None
-    if total > MAX_TOKENS_WARNING:
-        warning = "המסמכים קרובים לגבול ה-cache. שקול להסיר מסמכים ישנים."
+    if total > MAX_PROMPT_TOKENS:
+        warning = (
+            f"סה\"כ טוקנים ({total:,}) חורג ממגבלת ה-API ({MAX_PROMPT_TOKENS:,}). "
+            f"המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר לכל שאלה."
+        )
+    elif total > MAX_TOKENS_WARNING:
+        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר."
 
     return {
         "id": doc_id,
