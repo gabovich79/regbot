@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-3-5-sonnet-20241022")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-sonnet-4-6")
 MAX_TOKENS_WARNING = int(os.getenv("MAX_TOKENS_WARNING", "150000"))
 CACHE_TTL_MINUTES = int(os.getenv("CACHE_TTL_MINUTES", "5"))
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "2000"))
@@ -14,7 +14,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 DOCUMENTS_DIR = os.path.join(DATA_DIR, "documents")
 DB_PATH = os.path.join(DATA_DIR, "regbot.db")
 
-# Anthropic pricing per 1M tokens (claude-sonnet-4-5)
+# Anthropic pricing per 1M tokens (claude-sonnet-4-6)
 PRICING = {
     "input": 3.0,
     "output": 15.0,
