@@ -1,29 +1,49 @@
 """
-Accurate token estimation using tiktoken.
+Accurate token estimation for Hebrew/mixed text.
 
 Hebrew text is extremely expensive in BPE tokenizers — each Hebrew character
 can consume 2-4 tokens (vs ~0.25 tokens per English character). Using
 character-length heuristics like `len(text)//3` massively underestimates
 Hebrew token counts.
 
-This module uses tiktoken's cl100k_base encoding (closest to Claude's tokenizer)
-with a 20% safety margin to account for differences between OpenAI and Anthropic
-tokenizers.
+Primary method: tiktoken cl100k_base with 20% safety margin.
+Fallback (if tiktoken unavailable): conservative heuristic using UTF-8 byte length.
 """
 
-import tiktoken
+try:
+    import tiktoken
+    _enc = tiktoken.get_encoding("cl100k_base")
+    _USE_TIKTOKEN = True
+except Exception:
+    _enc = None
+    _USE_TIKTOKEN = False
 
-_enc = tiktoken.get_encoding("cl100k_base")
+
+def _heuristic_estimate(text: str) -> int:
+    """Conservative fallback when tiktoken is unavailable.
+
+    Hebrew UTF-8 bytes are 2 bytes each, and each Hebrew char typically
+    maps to 2-4 BPE tokens. Using byte_length * 0.7 gives a safe estimate
+    that accounts for Hebrew's high token cost while not over-counting
+    ASCII text.
+    """
+    byte_len = len(text.encode("utf-8"))
+    # For pure Hebrew: 2 bytes/char * 0.7 ≈ 1.4 tokens/byte ≈ 2.8 tokens/char (conservative)
+    # For pure English: 1 byte/char * 0.7 ≈ 0.7 tokens/byte ≈ 0.7 tokens/char (slightly over)
+    return max(int(byte_len * 0.7), 1)
 
 
 def estimate_tokens(text: str) -> int:
-    """Estimate token count using tiktoken with 20% safety margin.
+    """Estimate token count accurately for Hebrew/English/mixed text.
 
-    This provides accurate counts for Hebrew, English, and mixed text.
-    The 20% margin accounts for differences between cl100k_base and
-    Claude's actual tokenizer.
+    Uses tiktoken cl100k_base when available (with 20% safety margin),
+    falls back to a conservative byte-length heuristic.
     """
     if not text:
         return 0
-    count = len(_enc.encode(text))
-    return int(count * 1.2)  # 20% safety margin
+
+    if _USE_TIKTOKEN:
+        count = len(_enc.encode(text))
+        return int(count * 1.2)  # 20% safety margin for Anthropic vs OpenAI tokenizer
+    else:
+        return _heuristic_estimate(text)

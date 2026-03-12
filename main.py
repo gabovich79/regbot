@@ -37,12 +37,21 @@ app = FastAPI(title="RegBot", lifespan=lifespan)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
-BUILD_VERSION = "tiktoken-v2"
+BUILD_VERSION = "tiktoken-v3"
 
 
 @app.get("/api/version")
 async def get_version():
-    return {"version": BUILD_VERSION}
+    from services.token_utils import _USE_TIKTOKEN, estimate_tokens
+    # Quick diagnostic: show token count for a Hebrew test string
+    test_text = "קופת גמל"  # "provident fund" in Hebrew
+    test_tokens = estimate_tokens(test_text)
+    return {
+        "version": BUILD_VERSION,
+        "tiktoken_available": _USE_TIKTOKEN,
+        "test_hebrew_tokens": test_tokens,
+        "test_text": test_text,
+    }
 
 
 # --- Chat API ---
