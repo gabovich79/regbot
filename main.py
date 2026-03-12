@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING
+from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING, MAX_PROMPT_TOKENS
 from models.database import (
     init_db, get_all_documents, add_document, delete_document, get_document,
     get_total_tokens, create_conversation, get_conversations,
@@ -143,6 +143,18 @@ async def upload_document(file: UploadFile = File(...)):
         raise HTTPException(400, "לא ניתן לחלץ טקסט מהקובץ")
 
     token_count = estimate_tokens(text)
+
+    # Check if adding this document would exceed the prompt token limit
+    current_total = await get_total_tokens()
+    if current_total + token_count > MAX_PROMPT_TOKENS:
+        raise HTTPException(
+            400,
+            f"המסמך גדול מדי ({token_count:,} טוקנים). "
+            f"סה\"כ עם מסמכים קיימים: {current_total + token_count:,} טוקנים. "
+            f"מגבלת הפרומפט: {MAX_PROMPT_TOKENS:,} טוקנים. "
+            f"הסר מסמכים ישנים ונסה שוב."
+        )
+
     doc_id = await add_document(filename, source_type, filename, "", token_count)
     text_path = save_document_text(doc_id, text)
 
@@ -187,6 +199,18 @@ async def add_document_url(url: str = Form(...), title: str = Form(None)):
 
     doc_title = title or url[:80]
     token_count = estimate_tokens(text)
+
+    # Check if adding this document would exceed the prompt token limit
+    current_total = await get_total_tokens()
+    if current_total + token_count > MAX_PROMPT_TOKENS:
+        raise HTTPException(
+            400,
+            f"המסמך גדול מדי ({token_count:,} טוקנים). "
+            f"סה\"כ עם מסמכים קיימים: {current_total + token_count:,} טוקנים. "
+            f"מגבלת הפרומפט: {MAX_PROMPT_TOKENS:,} טוקנים. "
+            f"הסר מסמכים ישנים ונסה שוב."
+        )
+
     doc_id = await add_document(doc_title, source_type, url, "", token_count)
     text_path = save_document_text(doc_id, text)
 

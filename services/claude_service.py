@@ -1,16 +1,59 @@
 import anthropic
 import time
 import re
-from config import ANTHROPIC_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING
+from config import ANTHROPIC_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, MAX_PROMPT_TOKENS, PRICING
 
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 
+def _estimate_tokens(text: str) -> int:
+    """Quick token estimate: ~1.3 tokens per word for Hebrew/mixed text."""
+    return int(len(text.split()) * 1.3)
+
+
 def _build_documents_text(documents_texts: list[dict]) -> str:
+    """Build concatenated documents text, truncating if total exceeds MAX_PROMPT_TOKENS."""
+    # Reserve tokens for system prompt, user question, and output
+    system_tokens = _estimate_tokens(SYSTEM_PROMPT)
+    reserved = system_tokens + MAX_OUTPUT_TOKENS + 5000  # 5K buffer for question + history
+    available_tokens = MAX_PROMPT_TOKENS - reserved
+
     parts = []
+    used_tokens = 0
+    skipped = []
+
     for doc in documents_texts:
-        parts.append(f"=== מסמך: {doc['title']} ===\n{doc['text']}\n{'='*50}")
+        doc_text = f"=== מסמך: {doc['title']} ===\n{doc['text']}\n{'='*50}"
+        doc_tokens = _estimate_tokens(doc_text)
+
+        if used_tokens + doc_tokens > available_tokens:
+            # Try to include a truncated version
+            remaining_tokens = available_tokens - used_tokens
+            if remaining_tokens > 2000:  # Worth including partial
+                # Rough char estimate: ~4 chars per token for Hebrew
+                max_chars = remaining_tokens * 4
+                truncated_text = doc['text'][:max_chars]
+                parts.append(
+                    f"=== מסמך: {doc['title']} (קטוע — המסמך גדול מדי) ===\n"
+                    f"{truncated_text}\n[... המסמך נחתך עקב מגבלת גודל ...]\n{'='*50}"
+                )
+                used_tokens += remaining_tokens
+            else:
+                skipped.append(doc['title'])
+            break  # No room for more documents
+        else:
+            parts.append(doc_text)
+            used_tokens += doc_tokens
+
+    # Note skipped documents
+    remaining_docs = documents_texts[len(parts) + (1 if skipped else 0):]
+    for doc in remaining_docs:
+        skipped.append(doc['title'])
+
+    if skipped:
+        parts.append(f"\n⚠️ המסמכים הבאים לא נכללו עקב מגבלת גודל: {', '.join(skipped)}")
+
     return "\n\n".join(parts)
 
 

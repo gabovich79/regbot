@@ -4,10 +4,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-sonnet-4-6")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-3-5-sonnet-20241022")
 MAX_TOKENS_WARNING = int(os.getenv("MAX_TOKENS_WARNING", "150000"))
 CACHE_TTL_MINUTES = int(os.getenv("CACHE_TTL_MINUTES", "5"))
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "2000"))
+MAX_PROMPT_TOKENS = int(os.getenv("MAX_PROMPT_TOKENS", "180000"))
 MAX_UPLOAD_SIZE_MB = 50
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
