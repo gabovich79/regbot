@@ -1,0 +1,121 @@
+/* RegBot Custom Styles */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Chat bubbles */
+.msg-user {
+    background: #2563eb;
+    color: white;
+    border-radius: 1rem 1rem 0.25rem 1rem;
+    max-width: 75%;
+    margin-right: auto;
+    margin-left: 0;
+}
+
+.msg-assistant {
+    background: white;
+    color: #1f2937;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem 1rem 1rem 0.25rem;
+    max-width: 85%;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* RTL adjustments for chat */
+[dir="rtl"] .msg-user {
+    margin-left: auto;
+    margin-right: 0;
+    border-radius: 1rem 1rem 1rem 0.25rem;
+}
+
+[dir="rtl"] .msg-assistant {
+    margin-right: auto;
+    margin-left: 0;
+    border-radius: 1rem 1rem 0.25rem 1rem;
+}
+
+/* Confidence badges */
+.badge-high { background: #dcfce7; color: #166534; }
+.badge-medium { background: #fef3c7; color: #92400e; }
+.badge-low { background: #fee2e2; color: #991b1b; }
+
+/* Streaming cursor */
+.streaming-cursor::after {
+    content: '▊';
+    animation: blink 0.7s infinite;
+    color: #2563eb;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Textarea auto-resize */
+#question-input {
+    overflow-y: hidden;
+}
+
+/* Upload zone drag hover */
+.drag-over {
+    border-color: #2563eb !important;
+    background: #eff6ff !important;
+}
+
+/* Conversation list item */
+.conv-item {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.conv-item:hover {
+    background: #f3f4f6;
+}
+.conv-item.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Markdown in responses */
+.msg-assistant h1, .msg-assistant h2, .msg-assistant h3 {
+    font-weight: 700;
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+.msg-assistant ul, .msg-assistant ol {
+    padding-right: 1.5rem;
+    margin: 0.5rem 0;
+}
+.msg-assistant li {
+    margin-bottom: 0.25rem;
+}
+.msg-assistant strong {
+    font-weight: 700;
+}
+.msg-assistant hr {
+    border-top: 1px solid #e5e7eb;
+    margin: 0.75rem 0;
+}
+.msg-assistant code {
+    background: #f3f4f6;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    font-size: 0.85em;
+}

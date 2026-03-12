@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RegBot — לוג שאלות</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">← חזרה לצ'אט</a>
+            <h1 class="text-xl font-bold text-gray-800">📊 לוג שאלות ותשובות</h1>
+        </div>
+        <div class="flex gap-3">
+            <a href="/admin" class="text-sm text-gray-600 hover:text-blue-600">⚙️ ניהול</a>
+            <button onclick="exportCSV()" class="bg-green-600 text-white rounded-lg px-4 py-2 text-sm hover:bg-green-700 transition">
+                📥 Export CSV
+            </button>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto p-6">
+
+        <!-- Filters -->
+        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6 flex gap-4 items-end">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">מתאריך</label>
+                <input type="date" id="filter-from" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">עד תאריך</label>
+                <input type="date" id="filter-to" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            </div>
+            <button onclick="loadLogs(1)" class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-700">
+                סנן
+            </button>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="text-right px-4 py-3 font-medium text-gray-600">תאריך</th>
+                        <th class="text-right px-4 py-3 font-medium text-gray-600">שאלה</th>
+                        <th class="text-right px-4 py-3 font-medium text-gray-600">Confidence</th>
+                        <th class="text-right px-4 py-3 font-medium text-gray-600">זמן תגובה</th>
+                        <th class="text-right px-4 py-3 font-medium text-gray-600">עלות</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-table">
+                </tbody>
+            </table>
+            <div id="no-logs" class="hidden text-center py-8 text-gray-400">
+                אין רשומות עדיין
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="flex justify-center gap-2 mt-4">
+        </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div id="message-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50" onclick="closeModal(event)">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto mx-4" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-gray-800">שיחה מלאה</h3>
+                <button onclick="document.getElementById('message-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+            <div id="modal-content" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => loadLogs(1));
+    </script>
+</body>
+</html>

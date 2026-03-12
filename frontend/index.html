@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RegBot — יועץ רגולטורי</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-gray-50 h-screen flex">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 bg-white border-l border-gray-200 flex flex-col h-full">
+        <div class="p-4 border-b border-gray-200">
+            <h1 class="text-xl font-bold text-blue-700">🏛️ RegBot</h1>
+            <p class="text-xs text-gray-500 mt-1">יועץ רגולטורי — קופות גמל ופנסיה</p>
+        </div>
+        <div class="p-3">
+            <button id="new-chat-btn" class="w-full bg-blue-600 text-white rounded-lg py-2 px-4 text-sm hover:bg-blue-700 transition">
+                + שיחה חדשה
+            </button>
+        </div>
+        <div id="conversations-list" class="flex-1 overflow-y-auto px-3 space-y-1">
+        </div>
+        <nav class="p-3 border-t border-gray-200 space-y-1">
+            <a href="/admin" class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">⚙️ ניהול מסמכים</a>
+            <a href="/logs" class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">📊 לוג שאלות</a>
+        </nav>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col h-full">
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <div id="welcome-message" class="text-center text-gray-400 mt-20">
+                <div class="text-5xl mb-4">🏛️</div>
+                <h2 class="text-xl font-semibold text-gray-600">ברוכים הבאים ל-RegBot</h2>
+                <p class="mt-2">שאלו כל שאלה בנושא קופות גמל, קרנות השתלמות ורגולציה פנסיונית</p>
+                <div class="mt-6 flex flex-wrap justify-center gap-2">
+                    <button onclick="askSuggestion(this)" class="suggestion-btn bg-white border border-gray-300 rounded-full px-4 py-2 text-sm hover:bg-blue-50 hover:border-blue-300 transition">
+                        מהם שיעורי ההפרשה לקופת גמל?
+                    </button>
+                    <button onclick="askSuggestion(this)" class="suggestion-btn bg-white border border-gray-300 rounded-full px-4 py-2 text-sm hover:bg-blue-50 hover:border-blue-300 transition">
+                        מהם תנאי המשיכה מקרן השתלמות?
+                    </button>
+                    <button onclick="askSuggestion(this)" class="suggestion-btn bg-white border border-gray-300 rounded-full px-4 py-2 text-sm hover:bg-blue-50 hover:border-blue-300 transition">
+                        מהו חוזר ביטוח 2017-1-6?
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="border-t border-gray-200 bg-white p-4">
+            <form id="chat-form" class="flex items-end gap-3 max-w-4xl mx-auto">
+                <div class="flex-1 relative">
+                    <textarea id="question-input" rows="1"
+                        class="w-full border border-gray-300 rounded-xl px-4 py-3 pr-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        placeholder="הקלידו שאלה רגולטורית..."
+                        style="max-height: 120px;"></textarea>
+                </div>
+                <button type="submit" id="send-btn"
+                    class="bg-blue-600 text-white rounded-xl px-5 py-3 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+                    שלח
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
