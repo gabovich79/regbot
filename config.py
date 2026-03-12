@@ -15,7 +15,7 @@ RAG_TOP_K = int(os.getenv("RAG_TOP_K", "20"))
 RAG_CONTEXT_WINDOW = int(os.getenv("RAG_CONTEXT_WINDOW", "1"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
 DOCUMENTS_DIR = os.path.join(DATA_DIR, "documents")
 DB_PATH = os.path.join(DATA_DIR, "regbot.db")
 
