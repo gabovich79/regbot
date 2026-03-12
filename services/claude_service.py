@@ -3,16 +3,10 @@ import time
 import re
 from config import ANTHROPIC_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, MAX_PROMPT_TOKENS, PRICING
 from services.retrieval_service import retrieve_relevant_documents
+from services.token_utils import estimate_tokens as _estimate_tokens
 
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-
-def _estimate_tokens(text: str) -> int:
-    """Conservative token estimate for Hebrew/mixed text.
-    Hebrew uses ~1 token per 2-3 characters in Claude's tokenizer.
-    We use len/3 as a safe estimate to avoid exceeding API limits."""
-    return max(len(text) // 3, len(text.split()) * 2)
 
 
 def _get_available_doc_tokens() -> int:

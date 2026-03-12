@@ -9,9 +9,7 @@ from config import DOCUMENTS_DIR
 os.makedirs(DOCUMENTS_DIR, exist_ok=True)
 
 
-def estimate_tokens(text: str) -> int:
-    """Conservative token estimate for Hebrew/mixed text."""
-    return max(len(text) // 3, len(text.split()) * 2)
+from services.token_utils import estimate_tokens
 
 
 def clean_text(text: str) -> str:

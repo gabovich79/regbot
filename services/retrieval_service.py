@@ -5,7 +5,6 @@ then returns the most relevant documents that fit within the token budget.
 """
 
 import re
-import math
 from collections import Counter
 
 
@@ -38,11 +37,7 @@ def _tokenize(text: str) -> list[str]:
     return [w for w in words if w not in ALL_STOP_WORDS and len(w) > 1]
 
 
-def _estimate_tokens(text: str) -> int:
-    """Conservative token estimate for Hebrew/mixed text.
-    Hebrew uses ~1 token per 2-3 characters in Claude's tokenizer.
-    We use len/3 as a safe estimate to avoid exceeding API limits."""
-    return max(len(text) // 3, len(text.split()) * 2)
+from services.token_utils import estimate_tokens as _estimate_tokens
 
 
 def score_document(question_tokens: list[str], doc_text: str) -> float:
@@ -120,13 +115,25 @@ def retrieve_relevant_documents(
             # Try truncation for partially fitting high-relevance documents
             remaining = max_tokens - used_tokens
             if remaining > 3000 and doc["score"] > 0:
-                # Truncate to fit — ~4 chars per token for Hebrew
-                max_chars = remaining * 3  # ~3 chars per token for Hebrew
-                selected.append({
-                    "title": doc["title"] + " (קטוע)",
-                    "text": doc["text"][:max_chars] + "\n[... המסמך נחתך עקב מגבלת גודל ...]",
-                })
-                used_tokens += remaining
+                # Binary search for the right truncation point
+                # Start with a conservative estimate, then verify with tiktoken
+                ratio = remaining / doc["tokens"]  # fraction of doc that fits
+                max_chars = int(len(doc["text"]) * ratio * 0.8)  # 80% to be safe
+                truncated = doc["text"][:max_chars]
+                actual_tokens = _estimate_tokens(truncated)
+                # Shrink if still too big
+                while actual_tokens > remaining and max_chars > 500:
+                    max_chars = int(max_chars * 0.8)
+                    truncated = doc["text"][:max_chars]
+                    actual_tokens = _estimate_tokens(truncated)
+                if max_chars > 500:
+                    selected.append({
+                        "title": doc["title"] + " (קטוע)",
+                        "text": truncated + "\n[... המסמך נחתך עקב מגבלת גודל ...]",
+                    })
+                    used_tokens += actual_tokens
+                else:
+                    skipped.append(doc["title"])
             else:
                 skipped.append(doc["title"])
 
