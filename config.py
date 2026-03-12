@@ -4,12 +4,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-3-5-sonnet-20241022")
 MAX_TOKENS_WARNING = int(os.getenv("MAX_TOKENS_WARNING", "150000"))
 CACHE_TTL_MINUTES = int(os.getenv("CACHE_TTL_MINUTES", "5"))
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "2000"))
 MAX_PROMPT_TOKENS = int(os.getenv("MAX_PROMPT_TOKENS", "160000"))
 MAX_UPLOAD_SIZE_MB = 50
+RAG_TOP_K = int(os.getenv("RAG_TOP_K", "20"))
+RAG_CONTEXT_WINDOW = int(os.getenv("RAG_CONTEXT_WINDOW", "1"))
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 DOCUMENTS_DIR = os.path.join(DATA_DIR, "documents")

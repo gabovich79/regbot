@@ -47,6 +47,22 @@ async def init_db():
                 cost_usd            REAL,
                 created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS document_chunks (
+                id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id    INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+                content        TEXT NOT NULL,
+                section_header TEXT,
+                chunk_index    INTEGER NOT NULL,
+                document_title TEXT,
+                document_ref   TEXT,
+                effective_date TEXT,
+                topic          TEXT,
+                embedding      TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_chunks_doc ON document_chunks(document_id);
+            CREATE INDEX IF NOT EXISTS idx_chunks_active ON document_chunks(document_id, chunk_index);
         """)
         await db.commit()
     finally:

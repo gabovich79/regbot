@@ -1,35 +1,11 @@
 import anthropic
 import time
 import re
-from config import ANTHROPIC_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, MAX_PROMPT_TOKENS, PRICING
-from services.retrieval_service import retrieve_relevant_documents
-from services.token_utils import estimate_tokens as _estimate_tokens
+from config import ANTHROPIC_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING
+from services.rag_service import retrieve_relevant_chunks
 
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-
-def _get_available_doc_tokens() -> int:
-    """Calculate how many tokens are available for documents."""
-    system_tokens = _estimate_tokens(SYSTEM_PROMPT)
-    reserved = system_tokens + MAX_OUTPUT_TOKENS + 5000  # buffer for question + history
-    return MAX_PROMPT_TOKENS - reserved
-
-
-def _build_documents_text(documents_texts: list[dict], skipped_titles: list[str] = None) -> str:
-    """Build concatenated documents text from pre-selected relevant documents."""
-    parts = []
-    for doc in documents_texts:
-        parts.append(f"=== מסמך: {doc['title']} ===\n{doc['text']}\n{'='*50}")
-
-    if skipped_titles:
-        parts.append(
-            f"\n⚠️ מסמכים נוספים קיימים במערכת אך לא נכללו בשל מגבלת גודל: "
-            f"{', '.join(skipped_titles)}. "
-            f"אם השאלה מתייחסת למסמכים אלו, בקש מהמשתמש לשאול שאלה ספציפית יותר."
-        )
-
-    return "\n\n".join(parts)
 
 
 def calculate_cost(usage) -> float:
@@ -56,25 +32,29 @@ def extract_confidence(text: str) -> str | None:
     return match.group(1).upper() if match else None
 
 
-async def stream_chat(user_question: str, documents_texts: list[dict],
-                       conversation_history: list[dict] | None = None):
+async def stream_chat(user_question: str, db,
+                       conversation_history: list[dict] | None = None,
+                       top_k: int = 20, context_window: int = 1):
     """
     Stream a chat response. Yields dicts with type 'text', 'usage', or 'error'.
-    Uses retrieval to select only the most relevant documents that fit the token budget.
+    Uses embedding-based RAG to retrieve only the most relevant chunks.
     """
     if not ANTHROPIC_API_KEY:
         yield {"type": "error", "text": "שגיאה: מפתח API של Anthropic לא הוגדר. הגדר ANTHROPIC_API_KEY."}
         return
 
-    # RAG: Select relevant documents that fit within token budget
-    available_tokens = _get_available_doc_tokens()
-    selected_docs, skipped_titles = retrieve_relevant_documents(
-        question=user_question,
-        documents=documents_texts,
-        max_tokens=available_tokens,
-    )
+    # RAG: Retrieve relevant chunks via embedding similarity
+    try:
+        relevant_context = await retrieve_relevant_chunks(
+            question=user_question,
+            db=db,
+            top_k=top_k,
+            context_window=context_window,
+        )
+    except Exception as e:
+        yield {"type": "error", "text": f"שגיאה בשליפת מסמכים: {str(e)}"}
+        return
 
-    all_docs_text = _build_documents_text(selected_docs, skipped_titles)
     history = conversation_history or []
 
     messages = []
@@ -82,11 +62,10 @@ async def stream_chat(user_question: str, documents_texts: list[dict],
         messages.append({"role": msg["role"], "content": msg["content"]})
 
     user_content = []
-    if all_docs_text:
+    if relevant_context:
         user_content.append({
             "type": "text",
-            "text": f"להלן המסמכים הרגולטוריים הרלוונטיים ({len(selected_docs)} מתוך {len(documents_texts)} מסמכים):\n\n{all_docs_text}",
-            "cache_control": {"type": "ephemeral"},
+            "text": f"להלן קטעים רלוונטיים מהמסמכים הרגולטוריים:\n\n{relevant_context}",
         })
     user_content.append({
         "type": "text",
@@ -135,9 +114,6 @@ async def stream_chat(user_question: str, documents_texts: list[dict],
                 "response_time_ms": elapsed_ms,
                 "confidence": confidence,
                 "full_text": full_text,
-                "docs_used": len(selected_docs),
-                "docs_total": len(documents_texts),
-                "docs_skipped": skipped_titles,
             }
 
     except anthropic.APIError as e:

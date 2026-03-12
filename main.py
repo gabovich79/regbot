@@ -4,6 +4,7 @@ import json
 import uuid
 import csv
 import io
+import logging
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -12,18 +13,21 @@ from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING, MAX_PROMPT_TOKENS
+from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING, MAX_PROMPT_TOKENS, RAG_TOP_K, RAG_CONTEXT_WINDOW
 from models.database import (
     init_db, get_all_documents, add_document, delete_document, get_document,
     get_total_tokens, create_conversation, get_conversations,
     get_conversation_messages, save_message, get_logs, get_costs_daily,
-    get_costs_summary,
+    get_costs_summary, get_db,
 )
 from services.document_service import (
     extract_pdf_bytes, extract_docx_bytes, fetch_url_text, fetch_gdrive_text,
     save_document_text, load_document_text, delete_document_file, estimate_tokens,
 )
 from services.claude_service import stream_chat
+from services.rag_service import chunk_regulatory_document, embed_and_store_chunks
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -37,16 +41,23 @@ app = FastAPI(title="RegBot", lifespan=lifespan)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
-BUILD_VERSION = "bytelen-v1"
+BUILD_VERSION = "rag-embeddings-v1"
 
 
 @app.get("/api/version")
 async def get_version():
-    from services.token_utils import estimate_tokens
-    test_text = "קופת גמל"  # "provident fund" in Hebrew
+    db = await get_db()
+    try:
+        cursor = await db.execute("SELECT COUNT(*) as cnt FROM document_chunks")
+        row = await cursor.fetchone()
+        chunk_count = row["cnt"]
+    except Exception:
+        chunk_count = 0
+    finally:
+        await db.close()
     return {
         "version": BUILD_VERSION,
-        "test_hebrew_tokens": estimate_tokens(test_text),
+        "total_chunks": chunk_count,
     }
 
 
@@ -67,16 +78,6 @@ async def chat(
     # Save user message
     await save_message(conversation_id, "user", question)
 
-    # Load all active documents
-    docs = await get_all_documents(active_only=True)
-    documents_texts = []
-    for doc in docs:
-        try:
-            text = load_document_text(doc["text_path"])
-            documents_texts.append({"title": doc["title"], "text": text})
-        except FileNotFoundError:
-            continue
-
     # Load conversation history
     history_rows = await get_conversation_messages(conversation_id)
     conversation_history = []
@@ -85,14 +86,23 @@ async def chat(
 
     async def generate():
         usage_data = None
-        async for chunk in stream_chat(question, documents_texts, conversation_history):
-            if chunk["type"] == "text":
-                yield f"data: {json.dumps({'type': 'text', 'text': chunk['text']})}\n\n"
-            elif chunk["type"] == "usage":
-                usage_data = chunk
-                yield f"data: {json.dumps({'type': 'usage', 'data': chunk})}\n\n"
-            elif chunk["type"] == "error":
-                yield f"data: {json.dumps({'type': 'error', 'text': chunk['text']})}\n\n"
+        db = await get_db()
+        try:
+            async for chunk in stream_chat(
+                question, db,
+                conversation_history,
+                top_k=RAG_TOP_K,
+                context_window=RAG_CONTEXT_WINDOW,
+            ):
+                if chunk["type"] == "text":
+                    yield f"data: {json.dumps({'type': 'text', 'text': chunk['text']})}\n\n"
+                elif chunk["type"] == "usage":
+                    usage_data = chunk
+                    yield f"data: {json.dumps({'type': 'usage', 'data': chunk})}\n\n"
+                elif chunk["type"] == "error":
+                    yield f"data: {json.dumps({'type': 'error', 'text': chunk['text']})}\n\n"
+        finally:
+            await db.close()
 
         if usage_data:
             await save_message(
@@ -133,6 +143,25 @@ async def list_documents():
     return await get_all_documents(active_only=False)
 
 
+async def _index_document(doc_id: int, title: str, source_ref: str, text: str):
+    """Chunk and embed a document for RAG retrieval."""
+    db = await get_db()
+    try:
+        doc_metadata = {
+            "id": doc_id,
+            "title": title,
+            "source_ref": source_ref,
+            "effective_date": None,
+            "topic": None,
+        }
+        chunks = chunk_regulatory_document(text, doc_metadata)
+        num_chunks = await embed_and_store_chunks(chunks, db)
+        logger.info(f"Document {doc_id} indexed: {num_chunks} chunks")
+        return num_chunks
+    finally:
+        await db.close()
+
+
 @app.post("/api/documents/upload")
 async def upload_document(file: UploadFile = File(...)):
     content = await file.read()
@@ -158,7 +187,6 @@ async def upload_document(file: UploadFile = File(...)):
     doc_id = await add_document(filename, source_type, filename, "", token_count)
     text_path = save_document_text(doc_id, text)
 
-    from models.database import get_db
     db = await get_db()
     try:
         await db.execute("UPDATE documents SET text_path = ? WHERE id = ?", (text_path, doc_id))
@@ -166,23 +194,31 @@ async def upload_document(file: UploadFile = File(...)):
     finally:
         await db.close()
 
+    # RAG indexing
+    try:
+        num_chunks = await _index_document(doc_id, filename, filename, text)
+    except Exception as e:
+        logger.error(f"RAG indexing failed for doc {doc_id}: {e}")
+        num_chunks = 0
+
     total = await get_total_tokens()
     warning = None
     if total > MAX_PROMPT_TOKENS:
         warning = (
             f"סה\"כ טוקנים ({total:,}) חורג ממגבלת ה-API ({MAX_PROMPT_TOKENS:,}). "
-            f"המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר לכל שאלה."
+            f"המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר לכל שאלה."
         )
     elif total > MAX_TOKENS_WARNING:
-        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר."
+        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר."
 
     return {
         "id": doc_id,
         "title": filename,
         "token_count": token_count,
         "total_tokens": total,
+        "num_chunks": num_chunks,
         "warning": warning,
-        "message": f"נוסף בהצלחה — {token_count:,} טוקנים",
+        "message": f"נוסף בהצלחה — {token_count:,} טוקנים, {num_chunks} קטעים",
     }
 
 
@@ -207,7 +243,6 @@ async def add_document_url(url: str = Form(...), title: str = Form(None)):
     doc_id = await add_document(doc_title, source_type, url, "", token_count)
     text_path = save_document_text(doc_id, text)
 
-    from models.database import get_db
     db = await get_db()
     try:
         await db.execute("UPDATE documents SET text_path = ? WHERE id = ?", (text_path, doc_id))
@@ -215,23 +250,31 @@ async def add_document_url(url: str = Form(...), title: str = Form(None)):
     finally:
         await db.close()
 
+    # RAG indexing
+    try:
+        num_chunks = await _index_document(doc_id, doc_title, url, text)
+    except Exception as e:
+        logger.error(f"RAG indexing failed for doc {doc_id}: {e}")
+        num_chunks = 0
+
     total = await get_total_tokens()
     warning = None
     if total > MAX_PROMPT_TOKENS:
         warning = (
             f"סה\"כ טוקנים ({total:,}) חורג ממגבלת ה-API ({MAX_PROMPT_TOKENS:,}). "
-            f"המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר לכל שאלה."
+            f"המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר לכל שאלה."
         )
     elif total > MAX_TOKENS_WARNING:
-        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את המסמכים הרלוונטיים ביותר."
+        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר."
 
     return {
         "id": doc_id,
         "title": doc_title,
         "token_count": token_count,
         "total_tokens": total,
+        "num_chunks": num_chunks,
         "warning": warning,
-        "message": f"נוסף בהצלחה — {token_count:,} טוקנים",
+        "message": f"נוסף בהצלחה — {token_count:,} טוקנים, {num_chunks} קטעים",
     }
 
 
@@ -249,11 +292,40 @@ async def remove_document(doc_id: int):
 async def document_stats():
     docs = await get_all_documents(active_only=True)
     total_tokens = sum(d.get("token_count", 0) or 0 for d in docs)
+    db = await get_db()
+    try:
+        cursor = await db.execute("SELECT COUNT(*) as cnt FROM document_chunks")
+        row = await cursor.fetchone()
+        chunk_count = row["cnt"]
+    except Exception:
+        chunk_count = 0
+    finally:
+        await db.close()
     return {
         "document_count": len(docs),
         "total_tokens": total_tokens,
+        "total_chunks": chunk_count,
         "warning": total_tokens > MAX_TOKENS_WARNING,
     }
+
+
+# --- Reindex API ---
+
+@app.post("/api/documents/reindex")
+async def reindex_all_documents():
+    """Re-chunk and re-embed all active documents."""
+    docs = await get_all_documents(active_only=True)
+    results = []
+    for doc in docs:
+        try:
+            text = load_document_text(doc["text_path"])
+            num_chunks = await _index_document(
+                doc["id"], doc["title"], doc.get("source_ref", ""), text
+            )
+            results.append({"id": doc["id"], "title": doc["title"], "chunks": num_chunks})
+        except Exception as e:
+            results.append({"id": doc["id"], "title": doc["title"], "error": str(e)})
+    return {"results": results, "total_documents": len(docs)}
 
 
 # --- Logs API ---
