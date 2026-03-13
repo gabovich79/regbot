@@ -3,12 +3,16 @@ services:
     name: regbot
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app -w 2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    startCommand: gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120 --preload --log-level info
     envVars:
-      - key: ANTHROPIC_API_KEY
+      - key: GOOGLE_API_KEY
         sync: false
-      - key: DEFAULT_MODEL
-        value: claude-sonnet-4-5-20250514
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATA_DIR
+        value: /opt/render/project/src/data
       - key: MAX_TOKENS_WARNING
         value: "150000"
       - key: CACHE_TTL_MINUTES

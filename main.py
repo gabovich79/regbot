@@ -29,13 +29,23 @@ from services.document_service import (
 from services.claude_service import stream_chat
 from services.rag_service import chunk_regulatory_document, embed_and_store_chunks
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
-    os.makedirs(DOCUMENTS_DIR, exist_ok=True)
+    try:
+        logger.info("RegBot starting up...")
+        await init_db()
+        os.makedirs(DOCUMENTS_DIR, exist_ok=True)
+        logger.info("RegBot startup complete.")
+    except Exception as e:
+        logger.error(f"Startup error: {e}", exc_info=True)
+        raise
     yield
 
 
@@ -112,6 +122,8 @@ async def chat(
             ):
                 if chunk["type"] == "text":
                     yield f"data: {json.dumps({'type': 'text', 'text': chunk['text']})}\n\n"
+                elif chunk["type"] == "thinking":
+                    yield f"data: {json.dumps({'type': 'thinking', 'text': chunk['text']})}\n\n"
                 elif chunk["type"] == "usage":
                     usage_data = chunk
                     yield f"data: {json.dumps({'type': 'usage', 'data': chunk})}\n\n"
