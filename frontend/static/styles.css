@@ -54,6 +54,28 @@ body {
     50% { opacity: 0; }
 }
 
+/* Thinking indicator */
+.thinking-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+.thinking-indicator::before {
+    content: '';
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #d1d5db;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 /* Textarea auto-resize */
 #question-input {
     overflow-y: hidden;

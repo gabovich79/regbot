@@ -15,12 +15,12 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING, MAX_PROMPT_TOKENS, RAG_TOP_K, RAG_CONTEXT_WINDOW, ADMIN_PASSWORD
+from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING, MAX_PROMPT_TOKENS, RAG_TOP_K, RAG_CONTEXT_WINDOW, ADMIN_PASSWORD, SYSTEM_PROMPT
 from models.database import (
     init_db, get_all_documents, add_document, delete_document, get_document,
     get_total_tokens, create_conversation, get_conversations,
     get_conversation_messages, save_message, get_logs, get_costs_daily,
-    get_costs_summary, get_db,
+    get_costs_summary, get_db, get_setting, set_setting,
 )
 from services.document_service import (
     extract_pdf_bytes, extract_docx_bytes, fetch_url_text, fetch_gdrive_text,
@@ -391,6 +391,42 @@ async def get_costs(_=Depends(verify_admin)):
     summary = await get_costs_summary()
     daily = await get_costs_daily(7)
     return {"summary": summary, "daily": daily}
+
+
+# --- Settings API ---
+
+@app.get("/api/settings/instructions")
+async def get_instructions(_=Depends(verify_admin)):
+    custom = await get_setting("system_instructions")
+    return {
+        "instructions": custom or SYSTEM_PROMPT,
+        "is_custom": custom is not None,
+        "default": SYSTEM_PROMPT,
+    }
+
+
+@app.put("/api/settings/instructions")
+async def update_instructions(
+    instructions: str = Form(...),
+    _=Depends(verify_admin),
+):
+    instructions = instructions.strip()
+    if not instructions:
+        raise HTTPException(400, "הוראות לא יכולות להיות ריקות")
+    await set_setting("system_instructions", instructions)
+    return {"message": "ההוראות עודכנו בהצלחה", "instructions": instructions}
+
+
+@app.delete("/api/settings/instructions")
+async def reset_instructions(_=Depends(verify_admin)):
+    """Reset to default system prompt from config.py."""
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM settings WHERE key = 'system_instructions'")
+        await db.commit()
+    finally:
+        await db.close()
+    return {"message": "ההוראות אופסו לברירת מחדל", "instructions": SYSTEM_PROMPT}
 
 
 # --- Static files (frontend) ---

@@ -63,6 +63,12 @@ async def init_db():
 
             CREATE INDEX IF NOT EXISTS idx_chunks_doc ON document_chunks(document_id);
             CREATE INDEX IF NOT EXISTS idx_chunks_active ON document_chunks(document_id, chunk_index);
+
+            CREATE TABLE IF NOT EXISTS settings (
+                key         TEXT PRIMARY KEY,
+                value       TEXT NOT NULL,
+                updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
         """)
         await db.commit()
     finally:
@@ -190,6 +196,31 @@ async def save_message(conversation_id, role, content, confidence=None,
         )
         await db.commit()
         return cursor.lastrowid
+    finally:
+        await db.close()
+
+
+# --- Settings queries ---
+
+async def get_setting(key: str) -> str | None:
+    db = await get_db()
+    try:
+        cursor = await db.execute("SELECT value FROM settings WHERE key = ?", (key,))
+        row = await cursor.fetchone()
+        return row["value"] if row else None
+    finally:
+        await db.close()
+
+
+async def set_setting(key: str, value: str):
+    db = await get_db()
+    try:
+        await db.execute(
+            """INSERT INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+               ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = CURRENT_TIMESTAMP""",
+            (key, value, value),
+        )
+        await db.commit()
     finally:
         await db.close()
 

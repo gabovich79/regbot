@@ -90,7 +90,13 @@ async function sendMessage() {
                 if (!line.startsWith('data: ')) continue;
                 const data = JSON.parse(line.slice(6));
 
-                if (data.type === 'text') {
+                if (data.type === 'thinking') {
+                    contentSpan.innerHTML = `<span class="thinking-indicator">${escapeHtml(data.text)}</span>`;
+                    scrollToBottom();
+                } else if (data.type === 'text') {
+                    if (!fullText) {
+                        contentSpan.innerHTML = ''; // Clear thinking indicator
+                    }
                     fullText += data.text;
                     contentSpan.innerHTML = renderMarkdown(fullText);
                     scrollToBottom();
@@ -360,6 +366,7 @@ async function loadCosts() {
 function switchTab(tab) {
     document.getElementById('panel-docs')?.classList.toggle('hidden', tab !== 'docs');
     document.getElementById('panel-costs')?.classList.toggle('hidden', tab !== 'costs');
+    document.getElementById('panel-instructions')?.classList.toggle('hidden', tab !== 'instructions');
     document.querySelectorAll('.tab-btn').forEach(btn => {
         const isActive = btn.id === `tab-${tab}`;
         btn.classList.toggle('bg-white', isActive);
@@ -367,6 +374,100 @@ function switchTab(tab) {
         btn.classList.toggle('text-blue-700', isActive);
         btn.classList.toggle('text-gray-600', !isActive);
     });
+    if (tab === 'instructions') loadInstructions();
+}
+
+// ==================== Admin - Instructions ====================
+
+async function loadInstructions() {
+    const editor = document.getElementById('instructions-editor');
+    if (!editor) return;
+
+    try {
+        const res = await fetch('/api/settings/instructions');
+        const data = await res.json();
+
+        editor.value = data.instructions;
+        updateInstructionsUI(data.is_custom);
+        updateCharCount();
+    } catch (e) {
+        editor.value = 'שגיאה בטעינת ההוראות';
+    }
+
+    editor.addEventListener('input', updateCharCount);
+}
+
+function updateInstructionsUI(isCustom) {
+    const customBadge = document.getElementById('instructions-custom-badge');
+    const defaultBadge = document.getElementById('instructions-default-badge');
+    if (isCustom) {
+        customBadge?.classList.remove('hidden');
+        defaultBadge?.classList.add('hidden');
+    } else {
+        customBadge?.classList.add('hidden');
+        defaultBadge?.classList.remove('hidden');
+    }
+}
+
+function updateCharCount() {
+    const editor = document.getElementById('instructions-editor');
+    const counter = document.getElementById('instructions-char-count');
+    if (editor && counter) {
+        counter.textContent = `${editor.value.length} תווים`;
+    }
+}
+
+function showInstructionsStatus(message, isError) {
+    const el = document.getElementById('instructions-status');
+    if (!el) return;
+    el.textContent = message;
+    el.className = `mb-3 px-4 py-2 rounded-lg text-sm ${isError ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+async function saveInstructions() {
+    const editor = document.getElementById('instructions-editor');
+    if (!editor) return;
+
+    const instructions = editor.value.trim();
+    if (!instructions) {
+        showInstructionsStatus('ההוראות לא יכולות להיות ריקות', true);
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('instructions', instructions);
+
+        const res = await fetch('/api/settings/instructions', { method: 'PUT', body: formData });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.detail || 'שגיאה');
+
+        showInstructionsStatus('✅ ההוראות נשמרו בהצלחה — ייכנסו לתוקף בשאלה הבאה', false);
+        updateInstructionsUI(true);
+    } catch (e) {
+        showInstructionsStatus('שגיאה בשמירה: ' + e.message, true);
+    }
+}
+
+async function resetInstructions() {
+    if (!confirm('לאפס את ההוראות לברירת המחדל? השינויים שלך יימחקו.')) return;
+
+    try {
+        const res = await fetch('/api/settings/instructions', { method: 'DELETE' });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.detail || 'שגיאה');
+
+        document.getElementById('instructions-editor').value = data.instructions;
+        showInstructionsStatus('↩️ ההוראות אופסו לברירת מחדל', false);
+        updateInstructionsUI(false);
+        updateCharCount();
+    } catch (e) {
+        showInstructionsStatus('שגיאה באיפוס: ' + e.message, true);
+    }
 }
 
 // ==================== Logs ====================

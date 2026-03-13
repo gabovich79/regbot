@@ -30,6 +30,9 @@
             <button id="tab-costs" onclick="switchTab('costs')" class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-800">
                 💰 עלויות
             </button>
+            <button id="tab-instructions" onclick="switchTab('instructions')" class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-800">
+                🧠 הוראות מערכת
+            </button>
         </div>
 
         <!-- Documents Tab -->
@@ -124,6 +127,41 @@
                 </div>
             </div>
         </div>
+        <!-- Instructions Tab -->
+        <div id="panel-instructions" class="hidden">
+            <div class="bg-white rounded-xl border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-gray-700">🧠 הוראות מערכת (System Prompt)</h3>
+                    <div class="flex gap-2">
+                        <button onclick="resetInstructions()" class="text-sm text-gray-500 hover:text-red-600 border border-gray-300 rounded-lg px-3 py-1.5">
+                            ↩️ אפס לברירת מחדל
+                        </button>
+                        <button onclick="saveInstructions()" class="text-sm bg-blue-600 text-white rounded-lg px-4 py-1.5 hover:bg-blue-700 transition">
+                            💾 שמור
+                        </button>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mb-3">
+                    ההוראות האלה קובעות איך הבוט עונה — סגנון, פורמט, מגבלות. שינוי כאן חל מיד על כל שאלה חדשה.
+                </p>
+                <div id="instructions-status" class="hidden mb-3 px-4 py-2 rounded-lg text-sm"></div>
+                <textarea id="instructions-editor"
+                    dir="rtl"
+                    class="w-full border border-gray-300 rounded-lg p-4 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                    rows="20"
+                    placeholder="טוען הוראות..."></textarea>
+                <div class="flex items-center justify-between mt-3">
+                    <span id="instructions-custom-badge" class="hidden text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                        🔧 הוראות מותאמות אישית
+                    </span>
+                    <span id="instructions-default-badge" class="hidden text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded-full">
+                        📋 ברירת מחדל
+                    </span>
+                    <span id="instructions-char-count" class="text-xs text-gray-400"></span>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Upload Progress Modal -->
