@@ -3,6 +3,7 @@ import re
 import asyncio
 import logging
 import google.generativeai as genai
+from google.generativeai.types import Tool as GeminiTool
 from config import GOOGLE_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING
 from services.rag_service import retrieve_relevant_chunks
 
@@ -63,9 +64,13 @@ async def get_system_instructions(db) -> str:
 
 
 def _build_gemini_model(system_instructions: str):
-    """Create a Gemini model instance with given instructions."""
+    """Create a Gemini model instance with given instructions and Google Search grounding."""
+    search_tool = GeminiTool(
+        google_search_retrieval=genai.types.GoogleSearchRetrieval()
+    )
     return genai.GenerativeModel(
         model_name=DEFAULT_MODEL,
+        tools=[search_tool],
         system_instruction=system_instructions,
         generation_config=genai.types.GenerationConfig(
             max_output_tokens=MAX_OUTPUT_TOKENS,
