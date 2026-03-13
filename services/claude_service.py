@@ -2,13 +2,15 @@ import time
 import re
 import asyncio
 import logging
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from config import GOOGLE_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING
 from services.rag_service import retrieve_relevant_chunks
 
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=GOOGLE_API_KEY)
+# Initialize Google GenAI client
+client = genai.Client(api_key=GOOGLE_API_KEY)
 
 # Timeout for Gemini API calls (seconds)
 GEMINI_TIMEOUT = 90
@@ -62,41 +64,43 @@ async def get_system_instructions(db) -> str:
     return SYSTEM_PROMPT
 
 
-def _build_gemini_model(system_instructions: str):
-    """Create a Gemini model instance with given instructions and Google Search grounding."""
-    search_tool = genai.protos.Tool(
-        google_search=genai.protos.GoogleSearch()
-    )
-    return genai.GenerativeModel(
-        model_name=DEFAULT_MODEL,
-        tools=[search_tool],
-        system_instruction=system_instructions,
-        generation_config=genai.types.GenerationConfig(
-            max_output_tokens=MAX_OUTPUT_TOKENS,
-            temperature=0.3,
-        ),
-    )
-
-
-def _sync_send_and_collect(chat, user_message: str) -> tuple[list[str], dict]:
+def _sync_send_and_collect(system_instructions: str, gemini_history: list, user_message: str) -> tuple[list[str], dict]:
     """
     Synchronous helper that sends message and collects all chunks.
     Runs in a thread pool to avoid blocking the event loop.
     Returns (text_chunks, usage_info).
     """
-    chunks = []
-    response = chat.send_message(user_message, stream=True)
+    google_search_tool = types.Tool(google_search=types.GoogleSearch())
 
-    for chunk in response:
+    config = types.GenerateContentConfig(
+        system_instruction=system_instructions,
+        tools=[google_search_tool],
+        temperature=0.3,
+        max_output_tokens=MAX_OUTPUT_TOKENS,
+    )
+
+    # Build full contents: history + new user message
+    contents = list(gemini_history) + [
+        types.Content(role="user", parts=[types.Part(text=user_message)])
+    ]
+
+    chunks = []
+    last_chunk = None
+    for chunk in client.models.generate_content_stream(
+        model=DEFAULT_MODEL,
+        contents=contents,
+        config=config,
+    ):
         if chunk.text:
             chunks.append(chunk.text)
+        last_chunk = chunk
 
-    # Extract usage metadata
+    # Extract usage metadata from the last chunk
     input_tokens = 0
     output_tokens = 0
-    if hasattr(response, 'usage_metadata') and response.usage_metadata:
-        input_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0) or 0
-        output_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0) or 0
+    if last_chunk and hasattr(last_chunk, 'usage_metadata') and last_chunk.usage_metadata:
+        input_tokens = getattr(last_chunk.usage_metadata, 'prompt_token_count', 0) or 0
+        output_tokens = getattr(last_chunk.usage_metadata, 'candidates_token_count', 0) or 0
 
     return chunks, {"input_tokens": input_tokens, "output_tokens": output_tokens}
 
@@ -136,17 +140,13 @@ async def stream_chat(user_question: str, db,
     # Yield thinking indicator so frontend knows we're working
     yield {"type": "thinking", "text": "מעבד את השאלה..."}
 
-    # Build Gemini model
-    model = _build_gemini_model(system_instructions)
-
-    # Convert conversation history to Gemini format
+    # Convert conversation history to Gemini format (google-genai types)
     gemini_history = []
     for msg in history:
         role = "user" if msg["role"] == "user" else "model"
-        gemini_history.append({"role": role, "parts": [msg["content"]]})
-
-    # Start chat with history
-    chat = model.start_chat(history=gemini_history)
+        gemini_history.append(
+            types.Content(role=role, parts=[types.Part(text=msg["content"])])
+        )
 
     # Build user message with RAG context
     if is_followup and relevant_context:
@@ -167,7 +167,7 @@ async def stream_chat(user_question: str, db,
         # Run the blocking Gemini call in a thread pool with timeout
         # This prevents blocking the async event loop
         text_chunks, usage_meta = await asyncio.wait_for(
-            asyncio.to_thread(_sync_send_and_collect, chat, user_message),
+            asyncio.to_thread(_sync_send_and_collect, system_instructions, gemini_history, user_message),
             timeout=GEMINI_TIMEOUT,
         )
 
