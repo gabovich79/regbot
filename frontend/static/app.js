@@ -3,6 +3,25 @@ let currentConversationId = null;
 let currentSessionId = null;
 let isStreaming = false;
 
+// ==================== Sidebar Toggle (Mobile) ====================
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (!sidebar) return;
+
+    const isOpen = sidebar.classList.contains('sidebar-open');
+    if (isOpen) {
+        sidebar.classList.remove('sidebar-open');
+        overlay?.classList.add('hidden');
+        document.body.style.overflow = '';
+    } else {
+        sidebar.classList.add('sidebar-open');
+        overlay?.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
 // ==================== Chat ====================
 
 function initChat() {
@@ -43,6 +62,11 @@ function newChat() {
         messages.innerHTML = document.getElementById('welcome-message')?.outerHTML || '';
     }
     document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+    // Close sidebar on mobile
+    if (window.innerWidth < 1024) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar?.classList.contains('sidebar-open')) toggleSidebar();
+    }
 }
 
 async function sendMessage() {
@@ -193,6 +217,8 @@ async function loadConversation(convId) {
     }
 
     loadConversations();
+    // Close sidebar on mobile after selecting conversation
+    if (window.innerWidth < 1024) toggleSidebar();
 }
 
 function askSuggestion(btn) {
@@ -230,7 +256,7 @@ async function loadDocuments() {
                 <td class="px-4 py-3">${(doc.token_count || 0).toLocaleString()}</td>
                 <td class="px-4 py-3 text-gray-500">${formatDate(doc.added_at)}</td>
                 <td class="px-4 py-3">
-                    <button onclick="deleteDoc(${doc.id})" class="text-red-500 hover:text-red-700 text-xs">🗑 הסר</button>
+                    <button onclick="deleteDoc(${doc.id})" class="text-red-500 hover:text-red-700 text-xs py-2 px-2 min-h-[44px] inline-flex items-center">🗑 הסר</button>
                 </td>
             </tr>
         `).join('');
@@ -519,7 +545,7 @@ async function loadLogs(page) {
             for (let i = 1; i <= totalPages; i++) {
                 const btn = document.createElement('button');
                 btn.textContent = i;
-                btn.className = `px-3 py-1 rounded text-sm ${i === page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-50'}`;
+                btn.className = `px-3 py-2 rounded text-sm min-h-[44px] min-w-[44px] ${i === page ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 hover:bg-gray-50'}`;
                 btn.onclick = () => loadLogs(i);
                 pagination.appendChild(btn);
             }

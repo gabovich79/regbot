@@ -141,3 +141,21 @@ body {
     border-radius: 0.25rem;
     font-size: 0.85em;
 }
+
+/* ==================== Responsive ==================== */
+
+/* Sidebar mobile toggle */
+.sidebar-open {
+    transform: translateX(0) !important;
+}
+
+@media (max-width: 767px) {
+    .msg-user,
+    .msg-assistant {
+        max-width: 92%;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+}

@@ -10,39 +10,39 @@
 <body class="bg-gray-50 min-h-screen">
 
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+    <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
+        <div class="flex items-center gap-2 md:gap-4">
             <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">← חזרה לצ'אט</a>
-            <h1 class="text-xl font-bold text-gray-800">📊 לוג שאלות ותשובות</h1>
+            <h1 class="text-lg md:text-xl font-bold text-gray-800">📊 לוג שאלות ותשובות</h1>
         </div>
-        <div class="flex gap-3">
-            <a href="/admin" class="text-sm text-gray-600 hover:text-blue-600">⚙️ ניהול</a>
-            <button onclick="exportCSV()" class="bg-green-600 text-white rounded-lg px-4 py-2 text-sm hover:bg-green-700 transition">
+        <div class="flex gap-2 md:gap-3">
+            <a href="/admin" class="text-sm text-gray-600 hover:text-blue-600 min-h-[44px] flex items-center">⚙️ ניהול</a>
+            <button onclick="exportCSV()" class="bg-green-600 text-white rounded-lg px-4 py-2.5 text-sm min-h-[44px] hover:bg-green-700 transition">
                 📥 Export CSV
             </button>
         </div>
     </header>
 
-    <div class="max-w-6xl mx-auto p-6">
+    <div class="max-w-6xl mx-auto p-3 md:p-6">
 
         <!-- Filters -->
-        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6 flex gap-4 items-end">
-            <div>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6 flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-end">
+            <div class="flex-1">
                 <label class="block text-xs text-gray-500 mb-1">מתאריך</label>
-                <input type="date" id="filter-from" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="date" id="filter-from" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px]">
             </div>
-            <div>
+            <div class="flex-1">
                 <label class="block text-xs text-gray-500 mb-1">עד תאריך</label>
-                <input type="date" id="filter-to" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <input type="date" id="filter-to" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm min-h-[44px]">
             </div>
-            <button onclick="loadLogs(1)" class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-700">
+            <button onclick="loadLogs(1)" class="bg-blue-600 text-white rounded-lg px-4 py-2.5 text-sm min-h-[44px] hover:bg-blue-700">
                 סנן
             </button>
         </div>
 
         <!-- Logs Table -->
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table class="w-full text-sm">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+            <table class="w-full text-sm min-w-[600px]">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th class="text-right px-4 py-3 font-medium text-gray-600">תאריך</th>
@@ -61,7 +61,7 @@
         </div>
 
         <!-- Pagination -->
-        <div id="pagination" class="flex justify-center gap-2 mt-4">
+        <div id="pagination" class="flex justify-center flex-wrap gap-2 mt-4">
         </div>
     </div>
 
@@ -70,7 +70,7 @@
         <div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto mx-4" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold text-gray-800">שיחה מלאה</h3>
-                <button onclick="document.getElementById('message-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+                <button onclick="document.getElementById('message-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl min-h-[44px] min-w-[44px] flex items-center justify-center">&times;</button>
             </div>
             <div id="modal-content" class="space-y-4"></div>
         </div>
