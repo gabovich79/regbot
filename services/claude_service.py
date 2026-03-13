@@ -1,11 +1,17 @@
 import time
 import re
+import asyncio
+import logging
 import google.generativeai as genai
 from config import GOOGLE_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING
 from services.rag_service import retrieve_relevant_chunks
 
+logger = logging.getLogger(__name__)
 
 genai.configure(api_key=GOOGLE_API_KEY)
+
+# Timeout for Gemini API calls (seconds)
+GEMINI_TIMEOUT = 90
 
 
 def calculate_cost(usage) -> float:
@@ -56,6 +62,41 @@ async def get_system_instructions(db) -> str:
     return SYSTEM_PROMPT
 
 
+def _build_gemini_model(system_instructions: str):
+    """Create a Gemini model instance with given instructions."""
+    return genai.GenerativeModel(
+        model_name=DEFAULT_MODEL,
+        system_instruction=system_instructions,
+        generation_config=genai.types.GenerationConfig(
+            max_output_tokens=MAX_OUTPUT_TOKENS,
+            temperature=0.3,
+        ),
+    )
+
+
+def _sync_send_and_collect(chat, user_message: str) -> tuple[list[str], dict]:
+    """
+    Synchronous helper that sends message and collects all chunks.
+    Runs in a thread pool to avoid blocking the event loop.
+    Returns (text_chunks, usage_info).
+    """
+    chunks = []
+    response = chat.send_message(user_message, stream=True)
+
+    for chunk in response:
+        if chunk.text:
+            chunks.append(chunk.text)
+
+    # Extract usage metadata
+    input_tokens = 0
+    output_tokens = 0
+    if hasattr(response, 'usage_metadata') and response.usage_metadata:
+        input_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0) or 0
+        output_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0) or 0
+
+    return chunks, {"input_tokens": input_tokens, "output_tokens": output_tokens}
+
+
 async def stream_chat(user_question: str, db,
                        conversation_history: list[dict] | None = None,
                        top_k: int = 20, context_window: int = 1):
@@ -89,17 +130,10 @@ async def stream_chat(user_question: str, db,
     system_instructions = await get_system_instructions(db)
 
     # Yield thinking indicator so frontend knows we're working
-    yield {"type": "thinking", "text": "מחפש מידע רלוונטי..."}
+    yield {"type": "thinking", "text": "מעבד את השאלה..."}
 
-    # Build Gemini model with system instruction
-    model = genai.GenerativeModel(
-        model_name=DEFAULT_MODEL,
-        system_instruction=system_instructions,
-        generation_config=genai.types.GenerationConfig(
-            max_output_tokens=MAX_OUTPUT_TOKENS,
-            temperature=0.3,
-        ),
-    )
+    # Build Gemini model
+    model = _build_gemini_model(system_instructions)
 
     # Convert conversation history to Gemini format
     gemini_history = []
@@ -126,30 +160,27 @@ async def stream_chat(user_question: str, db,
     full_text = ""
 
     try:
-        response = chat.send_message(user_message, stream=True)
+        # Run the blocking Gemini call in a thread pool with timeout
+        # This prevents blocking the async event loop
+        text_chunks, usage_meta = await asyncio.wait_for(
+            asyncio.to_thread(_sync_send_and_collect, chat, user_message),
+            timeout=GEMINI_TIMEOUT,
+        )
 
-        for chunk in response:
-            if chunk.text:
-                full_text += chunk.text
-                yield {"type": "text", "text": chunk.text}
+        # Yield all text chunks
+        for chunk_text in text_chunks:
+            full_text += chunk_text
+            yield {"type": "text", "text": chunk_text}
 
-        # Get usage metadata
+        # Calculate metrics
         elapsed_ms = int((time.time() - start_time) * 1000)
-
-        input_tokens = 0
-        output_tokens = 0
-        if hasattr(response, 'usage_metadata') and response.usage_metadata:
-            input_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0) or 0
-            output_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0) or 0
-
-        usage = {"input_tokens": input_tokens, "output_tokens": output_tokens}
-        cost = calculate_cost(usage)
+        cost = calculate_cost(usage_meta)
         confidence = extract_confidence(full_text)
 
         yield {
             "type": "usage",
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
+            "input_tokens": usage_meta.get("input_tokens", 0),
+            "output_tokens": usage_meta.get("output_tokens", 0),
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
             "cost_usd": cost,
@@ -158,5 +189,11 @@ async def stream_chat(user_question: str, db,
             "full_text": full_text,
         }
 
+    except asyncio.TimeoutError:
+        elapsed_ms = int((time.time() - start_time) * 1000)
+        logger.warning(f"Gemini timeout after {elapsed_ms}ms for: {user_question[:50]}...")
+        yield {"type": "error", "text": f"הזמן הקצוב לתשובה חלף ({GEMINI_TIMEOUT} שניות). נסה שוב."}
+
     except Exception as e:
+        logger.error(f"Gemini error: {e}", exc_info=True)
         yield {"type": "error", "text": f"שגיאה מ-Gemini API: {str(e)}"}
