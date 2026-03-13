@@ -65,7 +65,7 @@ async def get_system_instructions(db) -> str:
 def _build_gemini_model(system_instructions: str):
     """Create a Gemini model instance with given instructions and Google Search grounding."""
     search_tool = genai.protos.Tool(
-        google_search_retrieval=genai.protos.GoogleSearchRetrieval()
+        google_search=genai.protos.GoogleSearch()
     )
     return genai.GenerativeModel(
         model_name=DEFAULT_MODEL,
