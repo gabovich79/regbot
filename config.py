@@ -6,7 +6,7 @@ load_dotenv()
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-2.5-flash")
 MAX_TOKENS_WARNING = int(os.getenv("MAX_TOKENS_WARNING", "150000"))
 CACHE_TTL_MINUTES = int(os.getenv("CACHE_TTL_MINUTES", "5"))
 MAX_OUTPUT_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "16384"))
@@ -20,12 +20,12 @@ DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data")
 DOCUMENTS_DIR = os.path.join(DATA_DIR, "documents")
 DB_PATH = os.path.join(DATA_DIR, "regbot.db")
 
-# Google Gemini pricing per 1M tokens (gemini-2.0-flash)
+# Google Gemini pricing per 1M tokens (gemini-2.5-flash)
 PRICING = {
-    "input": 0.10,
-    "output": 0.40,
-    "cache_read": 0.025,
-    "cache_write": 0.10,
+    "input": 0.15,
+    "output": 0.60,
+    "cache_read": 0.0375,
+    "cache_write": 0.15,
 }
 
 SYSTEM_PROMPT = """אתה יועץ רגולטורי מומחה בתחום קופות גמל, קרנות השתלמות ופנסיה בישראל.
