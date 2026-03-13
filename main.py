@@ -5,15 +5,17 @@ import uuid
 import csv
 import io
 import logging
+import secrets
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Depends
 from fastapi.responses import StreamingResponse, FileResponse, Response
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
-from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING, MAX_PROMPT_TOKENS, RAG_TOP_K, RAG_CONTEXT_WINDOW
+from config import DOCUMENTS_DIR, MAX_UPLOAD_SIZE_MB, MAX_TOKENS_WARNING, MAX_PROMPT_TOKENS, RAG_TOP_K, RAG_CONTEXT_WINDOW, ADMIN_PASSWORD
 from models.database import (
     init_db, get_all_documents, add_document, delete_document, get_document,
     get_total_tokens, create_conversation, get_conversations,
@@ -42,6 +44,20 @@ app = FastAPI(title="RegBot", lifespan=lifespan)
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
 BUILD_VERSION = "rag-embeddings-v1"
+
+# --- Auth ---
+
+security = HTTPBasic()
+
+
+def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
+    if not ADMIN_PASSWORD:
+        return  # No password set = auth disabled (dev mode)
+    correct = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
+    if not correct:
+        raise HTTPException(status_code=401, detail="Unauthorized",
+                            headers={"WWW-Authenticate": "Basic"})
+    return credentials.username
 
 
 @app.get("/api/version")
@@ -139,7 +155,7 @@ async def get_conversation(conv_id: int):
 # --- Documents API ---
 
 @app.get("/api/documents")
-async def list_documents():
+async def list_documents(_=Depends(verify_admin)):
     return await get_all_documents(active_only=False)
 
 
@@ -163,7 +179,7 @@ async def _index_document(doc_id: int, title: str, source_ref: str, text: str):
 
 
 @app.post("/api/documents/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin)):
     content = await file.read()
     if len(content) > MAX_UPLOAD_SIZE_MB * 1024 * 1024:
         raise HTTPException(400, f"הקובץ גדול מ-{MAX_UPLOAD_SIZE_MB}MB")
@@ -223,7 +239,7 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 @app.post("/api/documents/url")
-async def add_document_url(url: str = Form(...), title: str = Form(None)):
+async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depends(verify_admin)):
     try:
         is_gdrive = "drive.google.com" in url or "docs.google.com" in url
         if is_gdrive:
@@ -279,7 +295,7 @@ async def add_document_url(url: str = Form(...), title: str = Form(None)):
 
 
 @app.delete("/api/documents/{doc_id}")
-async def remove_document(doc_id: int):
+async def remove_document(doc_id: int, _=Depends(verify_admin)):
     doc = await get_document(doc_id)
     if not doc:
         raise HTTPException(404, "מסמך לא נמצא")
@@ -289,7 +305,7 @@ async def remove_document(doc_id: int):
 
 
 @app.get("/api/documents/stats")
-async def document_stats():
+async def document_stats(_=Depends(verify_admin)):
     docs = await get_all_documents(active_only=True)
     total_tokens = sum(d.get("token_count", 0) or 0 for d in docs)
     db = await get_db()
@@ -312,7 +328,7 @@ async def document_stats():
 # --- Reindex API ---
 
 @app.post("/api/documents/reindex")
-async def reindex_all_documents():
+async def reindex_all_documents(_=Depends(verify_admin)):
     """Re-chunk and re-embed all active documents."""
     docs = await get_all_documents(active_only=True)
     results = []
@@ -335,13 +351,14 @@ async def list_logs(
     page: int = Query(1, ge=1),
     date_from: str = Query(None),
     date_to: str = Query(None),
+    _=Depends(verify_admin),
 ):
     logs, total = await get_logs(page, 20, date_from, date_to)
     return {"logs": logs, "total": total, "page": page, "per_page": 20}
 
 
 @app.get("/api/logs/export")
-async def export_logs():
+async def export_logs(_=Depends(verify_admin)):
     logs, _ = await get_logs(page=1, per_page=10000)
     output = io.StringIO()
     writer = csv.writer(output)
@@ -370,7 +387,7 @@ async def export_logs():
 # --- Costs API ---
 
 @app.get("/api/costs")
-async def get_costs():
+async def get_costs(_=Depends(verify_admin)):
     summary = await get_costs_summary()
     daily = await get_costs_daily(7)
     return {"summary": summary, "daily": daily}
@@ -387,10 +404,10 @@ async def serve_index():
 
 
 @app.get("/admin")
-async def serve_admin():
+async def serve_admin(_=Depends(verify_admin)):
     return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
 
 
 @app.get("/logs")
-async def serve_logs():
+async def serve_logs(_=Depends(verify_admin)):
     return FileResponse(os.path.join(FRONTEND_DIR, "logs.html"))
