@@ -97,6 +97,22 @@ def chunk_regulatory_document(text: str, doc_metadata: dict) -> list[dict]:
     return chunks
 
 
+def chunk_regulatory_pages(pages: list[dict], doc_metadata: dict) -> list[dict]:
+    """Chunk page-wise extracted text while retaining citation page provenance."""
+    chunks = []
+    for page in pages:
+        page_number = page["page_number"]
+        page_metadata = {
+            **doc_metadata,
+            "page_start": page_number,
+            "page_end": page_number,
+        }
+        for chunk in chunk_regulatory_document(page["text"], page_metadata):
+            chunk["chunk_index"] = len(chunks)
+            chunks.append(chunk)
+    return chunks
+
+
 def _chunk_by_paragraph(text: str, doc_metadata: dict) -> list[dict]:
     """Fallback for unstructured text, still constrained by embedding tokens."""
     return [

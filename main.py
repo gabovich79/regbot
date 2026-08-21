@@ -24,11 +24,11 @@ from models.database import (
     update_document_index_status,
 )
 from services.document_service import (
-    extract_pdf_bytes, extract_docx_bytes, fetch_url_text, fetch_gdrive_text,
+    extract_pdf_bytes, extract_pdf_bytes_pages, extract_docx_bytes, fetch_url_text, fetch_gdrive_text,
     save_document_text, load_document_text, delete_document_file, estimate_tokens,
 )
 from services.claude_service import stream_chat
-from services.rag_service import chunk_regulatory_document, embed_and_store_chunks
+from services.rag_service import chunk_regulatory_document, chunk_regulatory_pages, embed_and_store_chunks
 
 logging.basicConfig(
     level=logging.INFO,
@@ -172,7 +172,13 @@ async def list_documents(_=Depends(verify_admin)):
     return await get_all_documents(active_only=False)
 
 
-async def _index_document(doc_id: int, title: str, source_ref: str, text: str):
+async def _index_document(
+    doc_id: int,
+    title: str,
+    source_ref: str,
+    text: str,
+    pages: list[dict] | None = None,
+):
     """Chunk and embed a document for RAG retrieval."""
     db = await get_db()
     try:
@@ -183,7 +189,11 @@ async def _index_document(doc_id: int, title: str, source_ref: str, text: str):
             "effective_date": None,
             "topic": None,
         }
-        chunks = chunk_regulatory_document(text, doc_metadata)
+        chunks = (
+            chunk_regulatory_pages(pages, doc_metadata)
+            if pages is not None
+            else chunk_regulatory_document(text, doc_metadata)
+        )
         num_chunks = await embed_and_store_chunks(chunks, db)
         await update_document_index_status(doc_id, "ready", chunk_count=num_chunks)
         logger.info(f"Document {doc_id} indexed: {num_chunks} chunks")
@@ -207,8 +217,10 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
     filename = file.filename or "unknown"
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
 
+    pages = None
     if ext == "pdf":
-        text = extract_pdf_bytes(content)
+        pages = extract_pdf_bytes_pages(content)
+        text = "\n\n".join(page["text"] for page in pages)
         source_type = "pdf"
     elif ext in ("doc", "docx"):
         text = extract_docx_bytes(content)
@@ -232,7 +244,7 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
 
     # RAG indexing
     try:
-        num_chunks = await _index_document(doc_id, filename, filename, text)
+        num_chunks = await _index_document(doc_id, filename, filename, text, pages=pages)
     except Exception as e:
         logger.error(f"RAG indexing failed for doc {doc_id}: {e}")
         num_chunks = 0

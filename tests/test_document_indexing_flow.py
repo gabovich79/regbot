@@ -56,3 +56,32 @@ async def test_index_document_marks_document_failed_when_embedding_fails(monkeyp
     assert status_updates == [
         ((42, "failed"), {"error": "embedding provider unavailable"})
     ]
+
+
+@pytest.mark.asyncio
+async def test_index_document_uses_page_aware_chunks_when_pages_are_available(monkeypatch):
+    async def fake_get_db():
+        return _Db()
+
+    async def fake_embed(chunks, _db):
+        assert [(chunk["page_start"], chunk["page_end"]) for chunk in chunks] == [(4, 4)]
+        return 1
+
+    async def ignore_status(*_args, **_kwargs):
+        pass
+
+    monkeypatch.setattr(main, "get_db", fake_get_db)
+    monkeypatch.setattr(main, "chunk_regulatory_pages", lambda pages, metadata: [{
+        "content": pages[0]["text"],
+        "page_start": metadata["page_start"] if "page_start" in metadata else pages[0]["page_number"],
+        "page_end": pages[0]["page_number"],
+    }], raising=False)
+    monkeypatch.setattr(main, "chunk_regulatory_document", lambda *_args: (_ for _ in ()).throw(AssertionError("flat chunking used")))
+    monkeypatch.setattr(main, "embed_and_store_chunks", fake_embed)
+    monkeypatch.setattr(main, "update_document_index_status", ignore_status)
+
+    result = await main._index_document(
+        42, "מסמך", "ref", "טקסט שטוח", pages=[{"page_number": 4, "text": "טקסט בעמוד"}]
+    )
+
+    assert result == 1

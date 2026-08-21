@@ -189,6 +189,19 @@ async def update_document_index_status(
         await db.close()
 
 
+async def update_document_extraction(doc_id: int, *, text_path: str, token_count: int):
+    """Update extracted text bookkeeping before a safe re-index operation."""
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE documents SET text_path = ?, token_count = ? WHERE id = ?",
+            (text_path, token_count, doc_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
 async def delete_document(doc_id):
     db = await get_db()
     try:
