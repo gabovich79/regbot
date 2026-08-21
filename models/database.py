@@ -24,6 +24,10 @@ async def init_db():
                 text_path   TEXT NOT NULL,
                 token_count INTEGER,
                 is_active   INTEGER DEFAULT 1,
+                index_status TEXT NOT NULL DEFAULT 'pending',
+                index_error  TEXT,
+                indexed_at   DATETIME,
+                chunk_count  INTEGER NOT NULL DEFAULT 0,
                 added_at    DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -70,9 +74,47 @@ async def init_db():
                 updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        await _migrate_document_indexing_columns(db)
         await db.commit()
     finally:
         await db.close()
+
+
+async def _migrate_document_indexing_columns(db: aiosqlite.Connection):
+    """Apply additive indexing-state migrations to existing SQLite databases."""
+    cursor = await db.execute("PRAGMA table_info(documents)")
+    columns = {row["name"] for row in await cursor.fetchall()}
+    migrations = {
+        "index_status": "TEXT NOT NULL DEFAULT 'pending'",
+        "index_error": "TEXT",
+        "indexed_at": "DATETIME",
+        "chunk_count": "INTEGER NOT NULL DEFAULT 0",
+    }
+    for column, definition in migrations.items():
+        if column not in columns:
+            await db.execute(f"ALTER TABLE documents ADD COLUMN {column} {definition}")
+
+    # Backfill what can be known safely from the pre-existing chunks. Documents
+    # without chunks are intentionally visible as failed instead of pretending
+    # to be searchable.
+    await db.execute("""
+        UPDATE documents
+        SET chunk_count = (
+            SELECT COUNT(*) FROM document_chunks dc WHERE dc.document_id = documents.id
+        )
+    """)
+    await db.execute("""
+        UPDATE documents
+        SET index_status = CASE WHEN chunk_count > 0 THEN 'ready' ELSE 'failed' END,
+            index_error = CASE
+                WHEN chunk_count = 0 THEN COALESCE(
+                    index_error,
+                    'לא נוצרו קטעי אינדקס; יש לבצע אינדוקס מחדש לאחר אימות ספק ה-embeddings.'
+                )
+                ELSE index_error
+            END
+        WHERE index_status = 'pending'
+    """)
 
 
 # --- Document queries ---
@@ -95,12 +137,42 @@ async def add_document(title, source_type, source_ref, text_path, token_count):
     db = await get_db()
     try:
         cursor = await db.execute(
-            """INSERT INTO documents (title, source_type, source_ref, text_path, token_count)
-               VALUES (?, ?, ?, ?, ?)""",
+            """INSERT INTO documents
+               (title, source_type, source_ref, text_path, token_count, index_status)
+               VALUES (?, ?, ?, ?, ?, 'indexing')""",
             (title, source_type, source_ref, text_path, token_count),
         )
         await db.commit()
         return cursor.lastrowid
+    finally:
+        await db.close()
+
+
+async def update_document_index_status(
+    doc_id: int,
+    status: str,
+    *,
+    error: str | None = None,
+    chunk_count: int | None = None,
+):
+    """Persist a document's indexing lifecycle without hiding a failed state."""
+    if status not in {"indexing", "ready", "failed"}:
+        raise ValueError(f"Unsupported index status: {status}")
+
+    db = await get_db()
+    try:
+        await db.execute(
+            """
+            UPDATE documents
+            SET index_status = ?,
+                index_error = ?,
+                chunk_count = COALESCE(?, chunk_count),
+                indexed_at = CASE WHEN ? = 'ready' THEN CURRENT_TIMESTAMP ELSE indexed_at END
+            WHERE id = ?
+            """,
+            (status, error, chunk_count, status, doc_id),
+        )
+        await db.commit()
     finally:
         await db.close()
 
