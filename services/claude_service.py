@@ -6,7 +6,6 @@ from google import genai
 from google.genai import types
 from config import (
     GOOGLE_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING,
-    ENABLE_GOOGLE_SEARCH,
 )
 from services.rag_service import retrieve_relevant_chunks
 
@@ -81,11 +80,15 @@ async def get_system_instructions(db) -> str:
 
 
 def build_generation_config(system_instructions: str, *, enable_google_search: bool):
-    """Build Gemini config; external web search is opt-in, never implicit."""
-    tools = [types.Tool(google_search=types.GoogleSearch())] if enable_google_search else None
+    """Build Gemini config grounded only in the indexed regulatory corpus.
+
+    The Google Search tool is deliberately disabled even when an old Render
+    environment variable requests it: it can expose tool traces and mixes
+    uncontrolled web content into a regulated-answer flow.
+    """
     return types.GenerateContentConfig(
         system_instruction=system_instructions,
-        tools=tools,
+        tools=None,
         temperature=0.3,
         max_output_tokens=MAX_OUTPUT_TOKENS,
     )
@@ -98,7 +101,7 @@ def _sync_send_and_collect(system_instructions: str, gemini_history: list, user_
     Returns (text_chunks, usage_info).
     """
     config = build_generation_config(
-        system_instructions, enable_google_search=ENABLE_GOOGLE_SEARCH
+        system_instructions, enable_google_search=False
     )
 
     # Build full contents: history + new user message
