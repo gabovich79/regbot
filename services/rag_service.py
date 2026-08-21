@@ -67,33 +67,42 @@ def _chunk_by_paragraph(text: str, doc_metadata: dict) -> list[dict]:
 
 async def embed_and_store_chunks(chunks: list[dict], db) -> int:
     """
-    Create embeddings for chunks and store in DB.
-    Deletes old chunks for the same document_id first.
-    Returns number of chunks saved.
+    Create all replacement embeddings before atomically replacing a document's
+    existing chunks. If embedding or storage fails, the previous index remains
+    available.
     """
     if not chunks:
         return 0
 
     doc_id = chunks[0]["document_id"]
 
-    # Delete previous chunks for this document (re-index case)
-    await db.execute(
-        "DELETE FROM document_chunks WHERE document_id = ?", (doc_id,)
-    )
-
+    # Generate every replacement embedding before touching the existing index.
+    # A provider outage must never turn a previously searchable document into an
+    # empty document.
     BATCH_SIZE = 100
-    total_saved = 0
-
+    embedded_chunks: list[tuple[dict, list[float]]] = []
     for i in range(0, len(chunks), BATCH_SIZE):
         batch = chunks[i:i + BATCH_SIZE]
-        texts = [c["content"] for c in batch]
-
         response = await openai_client.embeddings.create(
             model=EMBEDDING_MODEL,
-            input=texts
+            input=[chunk["content"] for chunk in batch],
+        )
+        if len(response.data) != len(batch):
+            raise ValueError(
+                f"expected {len(batch)} embeddings, got {len(response.data)}"
+            )
+        embedded_chunks.extend(
+            (chunk, embedding.embedding)
+            for chunk, embedding in zip(batch, response.data)
         )
 
-        for chunk, emb_obj in zip(batch, response.data):
+    # Replace chunks in one transaction only after all provider calls succeeded.
+    try:
+        await db.execute("BEGIN")
+        await db.execute(
+            "DELETE FROM document_chunks WHERE document_id = ?", (doc_id,)
+        )
+        for chunk, embedding in embedded_chunks:
             await db.execute("""
                 INSERT INTO document_chunks
                 (document_id, content, section_header, chunk_index,
@@ -108,12 +117,16 @@ async def embed_and_store_chunks(chunks: list[dict], db) -> int:
                 chunk["document_ref"],
                 chunk["effective_date"],
                 chunk["topic"],
-                json.dumps(emb_obj.embedding)
+                json.dumps(embedding),
             ))
-            total_saved += 1
+        await db.commit()
+    except BaseException:
+        # Cancellation can arrive after DELETE; always reset this connection's
+        # transaction before propagating the interruption.
+        await db.rollback()
+        raise
 
-    await db.commit()
-    return total_saved
+    return len(embedded_chunks)
 
 
 async def retrieve_relevant_chunks(
