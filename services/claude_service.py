@@ -31,6 +31,25 @@ def append_evidence_citation_contract(instructions: str) -> str:
     return f"{instructions.strip()}\n\n{EVIDENCE_CITATION_CONTRACT.strip()}"
 
 
+def append_retrieved_sources(answer: str, context: str) -> str:
+    """Append compact machine-derived provenance when the model omits it."""
+    if "מקורות שנשלפו" in answer:
+        return answer
+
+    sources = []
+    seen = set()
+    for citation_id, metadata in re.findall(r"\[\[SOURCE (D[^|\s]+) \| ([^\]]+)\]\]", context):
+        if citation_id in seen:
+            continue
+        seen.add(citation_id)
+        sources.append(f"* [{citation_id}] {metadata}")
+        if len(sources) == 8:
+            break
+    if not sources:
+        return answer
+    return f"{answer.rstrip()}\n\n---\nמקורות שנשלפו:\n" + "\n".join(sources)
+
+
 def calculate_cost(usage) -> float:
     input_tokens = usage.get("input_tokens", 0)
     output_tokens = usage.get("output_tokens", 0)
@@ -200,6 +219,12 @@ async def stream_chat(user_question: str, db,
         for chunk_text in text_chunks:
             full_text += chunk_text
             yield {"type": "text", "text": chunk_text}
+
+        sourced_text = append_retrieved_sources(full_text, relevant_context)
+        if sourced_text != full_text:
+            footer = sourced_text[len(full_text):]
+            full_text = sourced_text
+            yield {"type": "text", "text": footer}
 
         # Calculate metrics
         elapsed_ms = int((time.time() - start_time) * 1000)
