@@ -15,6 +15,19 @@ client = genai.Client(api_key=GOOGLE_API_KEY)
 # Timeout for Gemini API calls (seconds)
 GEMINI_TIMEOUT = 90
 
+EVIDENCE_CITATION_CONTRACT = """
+חוזה citations מחייב:
+- כל טענה מהותית המבוססת על המסמכים חייבת להסתיים במזהה evidence מדויק בפורמט `[D<doc>-P<page>]` או `[D<doc>-C<chunk>]`.
+- השתמש רק במזהים שמופיעים בכותרות `[[SOURCE D...]]` שקיבלת בהקשר.
+- אל תכתוב "קטע 1" או מספר עמוד שלא הופיע ב־SOURCE.
+- בסוף התשובה כלול רשימת "מקורות" עם שם מסמך, עמוד/עמודים, סעיף אם קיים ו־URL כפי שמופיעים ב־SOURCE.
+"""
+
+
+def append_evidence_citation_contract(instructions: str) -> str:
+    """Keep editable instructions while making evidence provenance non-optional."""
+    return f"{instructions.strip()}\n\n{EVIDENCE_CITATION_CONTRACT.strip()}"
+
 
 def calculate_cost(usage) -> float:
     input_tokens = usage.get("input_tokens", 0)
@@ -58,10 +71,10 @@ async def get_system_instructions(db) -> str:
         )
         row = await cursor.fetchone()
         if row and row["value"]:
-            return row["value"]
+            return append_evidence_citation_contract(row["value"])
     except Exception:
         pass  # Table doesn't exist yet or other error
-    return SYSTEM_PROMPT
+    return append_evidence_citation_contract(SYSTEM_PROMPT)
 
 
 def _sync_send_and_collect(system_instructions: str, gemini_history: list, user_message: str) -> tuple[list[str], dict]:
