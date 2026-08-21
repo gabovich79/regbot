@@ -21,6 +21,7 @@ from models.database import (
     get_total_tokens, create_conversation, get_conversations,
     get_conversation_messages, save_message, get_logs, get_costs_daily,
     get_costs_summary, get_db, get_setting, set_setting,
+    update_document_index_status,
 )
 from services.document_service import (
     extract_pdf_bytes, extract_docx_bytes, fetch_url_text, fetch_gdrive_text,
@@ -184,8 +185,15 @@ async def _index_document(doc_id: int, title: str, source_ref: str, text: str):
         }
         chunks = chunk_regulatory_document(text, doc_metadata)
         num_chunks = await embed_and_store_chunks(chunks, db)
+        await update_document_index_status(doc_id, "ready", chunk_count=num_chunks)
         logger.info(f"Document {doc_id} indexed: {num_chunks} chunks")
         return num_chunks
+    except Exception as error:
+        try:
+            await update_document_index_status(doc_id, "failed", error=str(error))
+        except Exception:
+            logger.exception("Failed to persist indexing failure for document %s", doc_id)
+        raise
     finally:
         await db.close()
 
