@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from main import _index_document
 from models.database import get_all_documents, init_db
 from services.document_service import load_document_text
+from services.embedding_errors import is_insufficient_quota
 
 
 async def reindex_all():
@@ -36,6 +37,9 @@ async def reindex_all():
         except Exception as error:
             failed += 1
             print(f"  [{document['id']}] ERROR: {error}")
+            if is_insufficient_quota(error):
+                print("Stopping: the embedding provider has no available credit; retries cannot succeed.")
+                break
 
     print(f"\nDone. Total chunks indexed: {total_chunks}; failed documents: {failed}")
     if failed:
