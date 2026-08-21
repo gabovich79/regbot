@@ -42,6 +42,16 @@ async def test_init_db_migrates_existing_documents_with_indexing_status(tmp_path
 
     assert {"index_status", "index_error", "indexed_at", "chunk_count"} <= columns
 
+    db = await database.get_db()
+    try:
+        chunk_columns = {
+            row["name"]
+            for row in await (await db.execute("PRAGMA table_info(document_chunks)")).fetchall()
+        }
+    finally:
+        await db.close()
+    assert {"page_start", "page_end"} <= chunk_columns
+
 
 @pytest.mark.asyncio
 async def test_new_document_tracks_indexing_then_ready_state(tmp_path, monkeypatch):

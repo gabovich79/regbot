@@ -62,6 +62,8 @@ async def init_db():
                 document_ref   TEXT,
                 effective_date TEXT,
                 topic          TEXT,
+                page_start     INTEGER,
+                page_end       INTEGER,
                 embedding      TEXT NOT NULL
             );
 
@@ -75,6 +77,7 @@ async def init_db():
             );
         """)
         await _migrate_document_indexing_columns(db)
+        await _migrate_chunk_citation_columns(db)
         await db.commit()
     finally:
         await db.close()
@@ -115,6 +118,15 @@ async def _migrate_document_indexing_columns(db: aiosqlite.Connection):
             END
         WHERE index_status = 'pending'
     """)
+
+
+async def _migrate_chunk_citation_columns(db: aiosqlite.Connection):
+    """Add nullable page boundaries for legacy chunks and future citations."""
+    cursor = await db.execute("PRAGMA table_info(document_chunks)")
+    columns = {row["name"] for row in await cursor.fetchall()}
+    for column in ("page_start", "page_end"):
+        if column not in columns:
+            await db.execute(f"ALTER TABLE document_chunks ADD COLUMN {column} INTEGER")
 
 
 # --- Document queries ---
