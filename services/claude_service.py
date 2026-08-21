@@ -4,7 +4,10 @@ import asyncio
 import logging
 from google import genai
 from google.genai import types
-from config import GOOGLE_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING
+from config import (
+    GOOGLE_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING,
+    ENABLE_GOOGLE_SEARCH,
+)
 from services.rag_service import retrieve_relevant_chunks
 
 logger = logging.getLogger(__name__)
@@ -77,19 +80,25 @@ async def get_system_instructions(db) -> str:
     return append_evidence_citation_contract(SYSTEM_PROMPT)
 
 
+def build_generation_config(system_instructions: str, *, enable_google_search: bool):
+    """Build Gemini config; external web search is opt-in, never implicit."""
+    tools = [types.Tool(google_search=types.GoogleSearch())] if enable_google_search else None
+    return types.GenerateContentConfig(
+        system_instruction=system_instructions,
+        tools=tools,
+        temperature=0.3,
+        max_output_tokens=MAX_OUTPUT_TOKENS,
+    )
+
+
 def _sync_send_and_collect(system_instructions: str, gemini_history: list, user_message: str) -> tuple[list[str], dict]:
     """
     Synchronous helper that sends message and collects all chunks.
     Runs in a thread pool to avoid blocking the event loop.
     Returns (text_chunks, usage_info).
     """
-    google_search_tool = types.Tool(google_search=types.GoogleSearch())
-
-    config = types.GenerateContentConfig(
-        system_instruction=system_instructions,
-        tools=[google_search_tool],
-        temperature=0.3,
-        max_output_tokens=MAX_OUTPUT_TOKENS,
+    config = build_generation_config(
+        system_instructions, enable_google_search=ENABLE_GOOGLE_SEARCH
     )
 
     # Build full contents: history + new user message
