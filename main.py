@@ -21,11 +21,11 @@ from models.database import (
     get_total_tokens, create_conversation, get_conversations,
     get_conversation_messages, save_message, get_logs, get_costs_daily,
     get_costs_summary, get_db, get_setting, set_setting,
-    update_document_index_status,
+    update_document_index_status, update_document_source_artifact,
 )
 from services.document_service import (
     extract_pdf_bytes, extract_pdf_bytes_pages, extract_docx_bytes, fetch_url_text, fetch_gdrive_text,
-    save_document_text, load_document_text, delete_document_file, estimate_tokens,
+    save_original_document, save_document_text, load_document_text, delete_document_file, estimate_tokens,
 )
 from services.claude_service import stream_chat
 from services.rag_service import chunk_regulatory_document, chunk_regulatory_pages, embed_and_store_chunks
@@ -233,6 +233,10 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
 
     token_count = estimate_tokens(text)
     doc_id = await add_document(filename, source_type, filename, "", token_count)
+    original_path, source_checksum = save_original_document(doc_id, ext, content)
+    await update_document_source_artifact(
+        doc_id, original_path=original_path, checksum=source_checksum
+    )
     text_path = save_document_text(doc_id, text)
 
     db = await get_db()

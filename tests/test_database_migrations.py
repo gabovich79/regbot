@@ -40,7 +40,7 @@ async def test_init_db_migrates_existing_documents_with_indexing_status(tmp_path
     finally:
         await db.close()
 
-    assert {"index_status", "index_error", "indexed_at", "chunk_count"} <= columns
+    assert {"index_status", "index_error", "indexed_at", "chunk_count", "original_path", "source_checksum"} <= columns
 
     db = await database.get_db()
     try:
@@ -81,3 +81,10 @@ async def test_new_document_tracks_indexing_then_ready_state(tmp_path, monkeypat
     refreshed = await database.get_document(document_id)
     assert refreshed["text_path"] == "refreshed.txt"
     assert refreshed["token_count"] == 321
+
+    await database.update_document_source_artifact(
+        document_id, original_path="source.pdf", checksum="abc123"
+    )
+    sourced = await database.get_document(document_id)
+    assert sourced["original_path"] == "source.pdf"
+    assert sourced["source_checksum"] == "abc123"
