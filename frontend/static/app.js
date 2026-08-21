@@ -294,9 +294,7 @@ async function loadDocuments() {
         document.getElementById('total-tokens').textContent = totalTokens.toLocaleString();
 
         const warning = document.getElementById('token-warning');
-        if (warning) {
-            totalTokens > 150000 ? warning.classList.remove('hidden') : warning.classList.add('hidden');
-        }
+        if (warning) warning.classList.add('hidden');
     } catch (e) {
         table.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
     }

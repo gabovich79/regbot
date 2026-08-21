@@ -15,6 +15,7 @@ MAX_PROMPT_TOKENS = int(os.getenv("MAX_PROMPT_TOKENS", "160000"))
 MAX_UPLOAD_SIZE_MB = 50
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "20"))
 RAG_CONTEXT_WINDOW = int(os.getenv("RAG_CONTEXT_WINDOW", "1"))
+RAG_MAX_CONTEXT_TOKENS = int(os.getenv("RAG_MAX_CONTEXT_TOKENS", "50000"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
 
 DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
