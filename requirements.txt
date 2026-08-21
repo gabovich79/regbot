@@ -12,3 +12,6 @@ gunicorn==23.0.0
 openai>=1.0.0
 numpy>=1.26.0
 google-genai>=1.0.0
+# Keep the regression suite runnable in a clean deploy/CI environment.
+pytest>=8,<10
+pytest-asyncio>=0.23,<2
