@@ -74,3 +74,10 @@ async def test_new_document_tracks_indexing_then_ready_state(tmp_path, monkeypat
     assert indexed["index_error"] is None
     assert indexed["chunk_count"] == 3
     assert indexed["indexed_at"] is not None
+
+    await database.update_document_extraction(
+        document_id, text_path="refreshed.txt", token_count=321
+    )
+    refreshed = await database.get_document(document_id)
+    assert refreshed["text_path"] == "refreshed.txt"
+    assert refreshed["token_count"] == 321

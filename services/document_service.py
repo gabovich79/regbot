@@ -45,6 +45,18 @@ def extract_docx(file_path: str) -> str:
     return clean_text("\n".join(paragraphs))
 
 
+def extract_pdf_bytes_pages(content: bytes) -> list[dict]:
+    """Extract in-memory PDF content with stable 1-based page numbers."""
+    doc = fitz.open(stream=content, filetype="pdf")
+    try:
+        return [
+            {"page_number": index, "text": clean_text(page.get_text())}
+            for index, page in enumerate(doc, start=1)
+        ]
+    finally:
+        doc.close()
+
+
 def extract_pdf_bytes(content: bytes) -> str:
     doc = fitz.open(stream=content, filetype="pdf")
     pages = []
@@ -61,20 +73,38 @@ def extract_docx_bytes(content: bytes) -> str:
     return clean_text("\n".join(paragraphs))
 
 
-async def fetch_url_text(url: str) -> str:
+def normalize_source_url(source_ref: str) -> str | None:
+    """Extract the actual URL from raw UI/export strings stored in legacy rows."""
+    match = re.search(r"https?://[^\s`]+", source_ref or "")
+    return match.group(0) if match else None
+
+
+async def fetch_url_document(url: str) -> tuple[str, list[dict] | None]:
+    """Fetch a URL and retain page boundaries when the response is a PDF."""
     async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
         response = await client.get(url)
         response.raise_for_status()
-        content_type = response.headers.get("content-type", "")
+        content_type = response.headers.get("content-type", "").lower()
+        normalized_url = str(response.url).lower()
 
-        if "pdf" in content_type:
-            return extract_pdf_bytes(response.content)
+        if "pdf" in content_type or normalized_url.endswith(".pdf"):
+            pages = extract_pdf_bytes_pages(response.content)
+            return "\n\n".join(page["text"] for page in pages), pages
+        if "wordprocessingml" in content_type or "docx" in content_type or normalized_url.endswith(".docx"):
+            return extract_docx_bytes(response.content), None
+        if "msword" in content_type or normalized_url.endswith(".doc"):
+            raise ValueError("legacy .doc URL requires manual conversion before page-aware re-ingestion")
 
         soup = BeautifulSoup(response.text, "html.parser")
         for tag in soup(["script", "style", "nav", "footer", "header"]):
             tag.decompose()
         text = soup.get_text(separator="\n")
-        return clean_text(text)
+        return clean_text(text), None
+
+
+async def fetch_url_text(url: str) -> str:
+    text, _ = await fetch_url_document(url)
+    return text
 
 
 def extract_gdrive_file_id(url: str) -> str | None:
