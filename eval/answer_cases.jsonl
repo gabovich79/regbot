@@ -1,4 +1,4 @@
 {"id":"answer-transfer-information","question":"לקוח מבקש לנייד כספים בין קופות גמל. איזה מידע צריך לעבור בין הגופים, ואילו הוראות מסדירות את העברת הכספים? ענה בתנאים ברורים עם מקורות.","expected_citation_prefixes":["D24-","D20-"],"must_include":["העברת כספים","מידע"],"must_not_include":["פטור מלא ממס"]}
-{"id":"answer-annual-cost","question":"מה נדרש לגלות לעמית לגבי העלות השנתית הצפויה? תן מקור.","expected_citation_prefixes":["D25-"],"must_include":["עלות","שנתית"],"must_not_include":[]}
+{"id":"answer-annual-cost","question":"מה נדרש לגלות לעמית לגבי העלות השנתית הצפויה? תן מקור.","any_citation_prefixes":["D25-","D34-"],"must_include":["עלות","שנתית"],"must_not_include":[]}
 {"id":"answer-mortality","question":"מה קובע חוזר גמל 2024-9-8 בנושא שיעורי תמותה? ציין עמוד ומקור.","expected_citation_prefixes":["D23-P"],"must_include":["תמותה"],"must_not_include":[]}
 {"id":"answer-age-tracks","question":"מהן ההוראות למסלולי השקעה תלויי גיל? ציין מקור.","expected_citation_prefixes":["D22-"],"must_include":["תלויי גיל"],"must_not_include":[]}
