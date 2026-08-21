@@ -22,10 +22,12 @@ from models.database import (
     get_all_documents,
     init_db,
     update_document_extraction,
+    update_document_source_artifact,
 )
 from services.document_service import (
     fetch_url_document,
     normalize_source_url,
+    save_original_document,
     save_document_text,
 )
 from services.token_utils import estimate_tokens
@@ -55,9 +57,15 @@ async def reingest_url_documents(*, apply: bool, document_ids: set[int] | None):
             continue
 
         try:
-            text, pages = await fetch_url_document(source_url)
+            text, pages, source_bytes, extension = await fetch_url_document(source_url)
             if not text.strip():
                 raise ValueError("the source returned no extractable text")
+            original_path, source_checksum = save_original_document(
+                document["id"], extension, source_bytes
+            )
+            await update_document_source_artifact(
+                document["id"], original_path=original_path, checksum=source_checksum
+            )
             text_path = save_document_text(document["id"], text)
             await update_document_extraction(
                 document["id"], text_path=text_path, token_count=estimate_tokens(text)

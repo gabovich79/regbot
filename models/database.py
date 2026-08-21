@@ -22,6 +22,8 @@ async def init_db():
                 source_type TEXT NOT NULL,
                 source_ref  TEXT,
                 text_path   TEXT NOT NULL,
+                original_path TEXT,
+                source_checksum TEXT,
                 token_count INTEGER,
                 is_active   INTEGER DEFAULT 1,
                 index_status TEXT NOT NULL DEFAULT 'pending',
@@ -77,6 +79,7 @@ async def init_db():
             );
         """)
         await _migrate_document_indexing_columns(db)
+        await _migrate_document_source_columns(db)
         await _migrate_chunk_citation_columns(db)
         await db.commit()
     finally:
@@ -118,6 +121,19 @@ async def _migrate_document_indexing_columns(db: aiosqlite.Connection):
             END
         WHERE index_status = 'pending'
     """)
+
+
+async def _migrate_document_source_columns(db: aiosqlite.Connection):
+    """Add retained source-file provenance to legacy document rows."""
+    cursor = await db.execute("PRAGMA table_info(documents)")
+    columns = {row["name"] for row in await cursor.fetchall()}
+    migrations = {
+        "original_path": "TEXT",
+        "source_checksum": "TEXT",
+    }
+    for column, definition in migrations.items():
+        if column not in columns:
+            await db.execute(f"ALTER TABLE documents ADD COLUMN {column} {definition}")
 
 
 async def _migrate_chunk_citation_columns(db: aiosqlite.Connection):
@@ -183,6 +199,21 @@ async def update_document_index_status(
             WHERE id = ?
             """,
             (status, error, chunk_count, status, doc_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
+async def update_document_source_artifact(
+    doc_id: int, *, original_path: str, checksum: str
+):
+    """Record immutable source-file provenance for future local re-indexing."""
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE documents SET original_path = ?, source_checksum = ? WHERE id = ?",
+            (original_path, checksum, doc_id),
         )
         await db.commit()
     finally:

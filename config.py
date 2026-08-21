@@ -19,6 +19,7 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
 
 DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
 DOCUMENTS_DIR = os.path.join(DATA_DIR, "documents")
+ORIGINALS_DIR = os.path.join(DATA_DIR, "originals")
 DB_PATH = os.path.join(DATA_DIR, "regbot.db")
 
 # Google Gemini pricing per 1M tokens (gemini-2.5-flash)

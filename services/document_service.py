@@ -1,12 +1,14 @@
 import os
 import re
+import hashlib
 import fitz  # pymupdf
 from docx import Document
 import httpx
 from bs4 import BeautifulSoup
-from config import DOCUMENTS_DIR
+from config import DOCUMENTS_DIR, ORIGINALS_DIR
 
 os.makedirs(DOCUMENTS_DIR, exist_ok=True)
+os.makedirs(ORIGINALS_DIR, exist_ok=True)
 
 
 from services.token_utils import estimate_tokens
@@ -79,7 +81,7 @@ def normalize_source_url(source_ref: str) -> str | None:
     return match.group(0) if match else None
 
 
-async def fetch_url_document(url: str) -> tuple[str, list[dict] | None]:
+async def fetch_url_document(url: str) -> tuple[str, list[dict] | None, bytes, str]:
     """Fetch a URL and retain page boundaries when the response is a PDF."""
     async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
         response = await client.get(url)
@@ -89,9 +91,9 @@ async def fetch_url_document(url: str) -> tuple[str, list[dict] | None]:
 
         if "pdf" in content_type or normalized_url.endswith(".pdf"):
             pages = extract_pdf_bytes_pages(response.content)
-            return "\n\n".join(page["text"] for page in pages), pages
+            return "\n\n".join(page["text"] for page in pages), pages, response.content, "pdf"
         if "wordprocessingml" in content_type or "docx" in content_type or normalized_url.endswith(".docx"):
-            return extract_docx_bytes(response.content), None
+            return extract_docx_bytes(response.content), None, response.content, "docx"
         if "msword" in content_type or normalized_url.endswith(".doc"):
             raise ValueError("legacy .doc URL requires manual conversion before page-aware re-ingestion")
 
@@ -99,11 +101,11 @@ async def fetch_url_document(url: str) -> tuple[str, list[dict] | None]:
         for tag in soup(["script", "style", "nav", "footer", "header"]):
             tag.decompose()
         text = soup.get_text(separator="\n")
-        return clean_text(text), None
+        return clean_text(text), None, response.content, "html"
 
 
 async def fetch_url_text(url: str) -> str:
-    text, _ = await fetch_url_document(url)
+    text, _, _, _ = await fetch_url_document(url)
     return text
 
 
@@ -137,6 +139,15 @@ async def fetch_gdrive_text(url: str) -> str:
             return extract_docx_bytes(response.content)
         else:
             return clean_text(response.text)
+
+
+def save_original_document(doc_id: int, extension: str, content: bytes) -> tuple[str, str]:
+    """Persist the immutable source bytes and return path plus SHA-256 checksum."""
+    safe_extension = re.sub(r"[^a-z0-9]", "", extension.lower()) or "bin"
+    path = os.path.join(ORIGINALS_DIR, f"{doc_id}.{safe_extension}")
+    with open(path, "wb") as file:
+        file.write(content)
+    return path, hashlib.sha256(content).hexdigest()
 
 
 def save_document_text(doc_id: int, text: str) -> str:
