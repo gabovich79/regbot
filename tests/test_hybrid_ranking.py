@@ -37,3 +37,31 @@ def test_hybrid_rank_limits_repeated_chunks_from_one_document():
     )
 
     assert [chunk["document_id"] for chunk in ranked] == [1, 2]
+
+
+def test_hybrid_rank_normalizes_hebrew_prefixes_for_annual_cost_disclosure():
+    chunks = [
+        {"document_id": 1, "document_title": "חוזר אחר", "document_ref": "", "content": "עמית"},
+        {"document_id": 25, "document_title": "חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה", "document_ref": "", "content": ""},
+    ]
+
+    ranked = rank_hybrid_chunks(
+        "מה נדרש לגלות לעמית לגבי העלות השנתית הצפויה?",
+        [(0.95, chunks[0]), (0.50, chunks[1])],
+    )
+
+    assert ranked[0]["document_id"] == 25
+
+
+def test_hybrid_rank_normalizes_hebrew_prefixes_for_transfer_information():
+    chunks = [
+        {"document_id": 24, "document_title": "חוזר גמל 2020-9-2 העברת כספים", "document_ref": "", "content": ""},
+        {"document_id": 20, "document_title": "חוזר גמל 2020-9-3 מבנה אחיד העברת מידע", "document_ref": "", "content": ""},
+    ]
+
+    ranked = rank_hybrid_chunks(
+        "איזה מידע צריך לעבור ואילו הוראות רלוונטיות להעברת הכספים?",
+        [(0.95, chunks[0]), (0.50, chunks[1])],
+    )
+
+    assert 20 in [chunk["document_id"] for chunk in ranked]

@@ -36,6 +36,14 @@ def format_chunk_citation(chunk: dict) -> str:
     return f"D{document_id}-C{chunk.get('chunk_index', 0) + 1}"
 
 
+def _hebrew_token_variants(token: str) -> set[str]:
+    """Handle common Hebrew prefixes without pretending to be a full lemmatizer."""
+    variants = {token}
+    if len(token) > 3 and token[0] in "והבכלמש":
+        variants.add(token[1:])
+    return variants
+
+
 def _lexical_score(question: str, chunk: dict) -> float:
     """Score exact regulatory identifiers and title terms above semantic drift."""
     normalized_question = question.lower()
@@ -54,11 +62,12 @@ def _lexical_score(question: str, chunk: dict) -> float:
         if len(token) > 2 and not token.isdigit()
     ]
     for token in query_tokens:
-        if token in title:
+        variants = _hebrew_token_variants(token)
+        if any(variant in title for variant in variants):
             score += 5.0
-        if token in source_ref:
+        if any(variant in source_ref for variant in variants):
             score += 3.0
-        if token in content:
+        if any(variant in content for variant in variants):
             score += 0.2
     return score
 
