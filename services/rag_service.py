@@ -9,7 +9,7 @@ import json
 import numpy as np
 import tiktoken
 from openai import AsyncOpenAI
-from config import OPENAI_API_KEY, EMBEDDING_MODEL
+from config import OPENAI_API_KEY, EMBEDDING_MODEL, RAG_MAX_CONTEXT_TOKENS
 
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
@@ -34,6 +34,19 @@ def format_chunk_citation(chunk: dict) -> str:
         page_label = str(page_start) if page_start == page_end else f"{page_start}-{page_end}"
         return f"D{document_id}-P{page_label}"
     return f"D{document_id}-C{chunk.get('chunk_index', 0) + 1}"
+
+
+def fit_context_blocks_to_budget(blocks: list[str], max_tokens: int) -> list[str]:
+    """Keep ordered evidence blocks that fit an explicit per-question budget."""
+    selected = []
+    used_tokens = 0
+    for block in blocks:
+        tokens = len(EMBEDDING_ENCODING.encode(block))
+        if used_tokens + tokens > max_tokens:
+            continue
+        selected.append(block)
+        used_tokens += tokens
+    return selected
 
 
 def _hebrew_token_variants(token: str) -> set[str]:
@@ -285,7 +298,8 @@ async def retrieve_relevant_chunks(
     question: str,
     db,
     top_k: int = 20,
-    context_window: int = 1
+    context_window: int = 1,
+    max_context_tokens: int = RAG_MAX_CONTEXT_TOKENS,
 ) -> str:
     """
     Retrieve the most relevant chunks for a question using embedding similarity.
@@ -385,4 +399,4 @@ async def retrieve_relevant_chunks(
                 f"{c['content']}\n[[/SOURCE {citation_id}]]"
             )
 
-    return "\n\n".join(parts)
+    return "\n\n".join(fit_context_blocks_to_budget(parts, max_context_tokens))

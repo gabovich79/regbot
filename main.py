@@ -254,14 +254,9 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
         num_chunks = 0
 
     total = await get_total_tokens()
+    # Corpus size is not a prompt size: retrieval sends a bounded evidence
+    # subset for every question. Health is shown through ready/failed status.
     warning = None
-    if total > MAX_PROMPT_TOKENS:
-        warning = (
-            f"סה\"כ טוקנים ({total:,}) חורג ממגבלת ה-API ({MAX_PROMPT_TOKENS:,}). "
-            f"המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר לכל שאלה."
-        )
-    elif total > MAX_TOKENS_WARNING:
-        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר."
 
     return {
         "id": doc_id,
@@ -326,13 +321,6 @@ async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depe
 
     total = await get_total_tokens()
     warning = None
-    if total > MAX_PROMPT_TOKENS:
-        warning = (
-            f"סה\"כ טוקנים ({total:,}) חורג ממגבלת ה-API ({MAX_PROMPT_TOKENS:,}). "
-            f"המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר לכל שאלה."
-        )
-    elif total > MAX_TOKENS_WARNING:
-        warning = "המסמכים קרובים לגבול. המערכת תבחר אוטומטית את הקטעים הרלוונטיים ביותר."
 
     return {
         "id": doc_id,
