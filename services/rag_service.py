@@ -36,6 +36,76 @@ def format_chunk_citation(chunk: dict) -> str:
     return f"D{document_id}-C{chunk.get('chunk_index', 0) + 1}"
 
 
+def _lexical_score(question: str, chunk: dict) -> float:
+    """Score exact regulatory identifiers and title terms above semantic drift."""
+    normalized_question = question.lower()
+    title = (chunk.get("document_title") or "").lower()
+    source_ref = (chunk.get("document_ref") or "").lower()
+    content = (chunk.get("content") or "").lower()
+    references = re.findall(r"\d{4}-\d+-\d+", normalized_question)
+
+    score = 0.0
+    for reference in references:
+        if reference in title or reference in source_ref:
+            score += 100.0
+
+    query_tokens = [
+        token for token in re.findall(r"[\w\u0590-\u05FF]+", normalized_question)
+        if len(token) > 2 and not token.isdigit()
+    ]
+    for token in query_tokens:
+        if token in title:
+            score += 5.0
+        if token in source_ref:
+            score += 3.0
+        if token in content:
+            score += 0.2
+    return score
+
+
+def rank_hybrid_chunks(
+    question: str,
+    dense_scored_chunks: list[tuple[float, dict]],
+    *,
+    max_per_document: int = 3,
+    rrf_k: int = 60,
+) -> list[dict]:
+    """Fuse dense and lexical rankings, then retain evidence diversity."""
+    if not dense_scored_chunks:
+        return []
+
+    dense_ranked = sorted(dense_scored_chunks, key=lambda item: item[0], reverse=True)
+    lexical_ranked = sorted(
+        dense_scored_chunks,
+        key=lambda item: _lexical_score(question, item[1]),
+        reverse=True,
+    )
+    dense_rank = {id(chunk): rank for rank, (_, chunk) in enumerate(dense_ranked, start=1)}
+    lexical_rank = {id(chunk): rank for rank, (_, chunk) in enumerate(lexical_ranked, start=1)}
+    lexical_score = {id(chunk): _lexical_score(question, chunk) for _, chunk in dense_scored_chunks}
+
+    fused = []
+    for _, chunk in dense_scored_chunks:
+        key = id(chunk)
+        score = (
+            1 / (rrf_k + dense_rank[key])
+            + 1 / (rrf_k + lexical_rank[key])
+            + 0.01 * lexical_score[key]
+        )
+        fused.append((score, chunk))
+    fused.sort(key=lambda item: item[0], reverse=True)
+
+    selected = []
+    document_counts = {}
+    for _, chunk in fused:
+        document_id = chunk["document_id"]
+        if document_counts.get(document_id, 0) >= max_per_document:
+            continue
+        selected.append(chunk)
+        document_counts[document_id] = document_counts.get(document_id, 0) + 1
+    return selected
+
+
 def _split_to_embedding_limit(text: str) -> list[str]:
     """Split text into overlapping chunks accepted by the embedding API."""
     if len(EMBEDDING_ENCODING.encode(text)) <= MAX_EMBEDDING_TOKENS:
@@ -241,8 +311,7 @@ async def retrieve_relevant_chunks(
         )
         scored.append((score, row_dict))
 
-    scored.sort(key=lambda x: x[0], reverse=True)
-    top_chunks = [c for _, c in scored[:top_k]]
+    top_chunks = rank_hybrid_chunks(question, scored, max_per_document=3)[:top_k]
 
     if not top_chunks:
         return ""
