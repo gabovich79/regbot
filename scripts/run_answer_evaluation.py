@@ -42,7 +42,7 @@ async def answer_for_case(case: dict, db) -> str:
     return answer
 
 
-async def run(cases_path: Path):
+async def run(cases_path: Path, *, show_failures: bool):
     await init_db()
     cases = load_cases(cases_path)
     db = await get_db()
@@ -58,6 +58,9 @@ async def run(cases_path: Path):
                 print(f"  missing citations: {result['missing_citation_prefixes']}")
                 print(f"  missing terms: {result['missing_required_terms']}")
                 print(f"  prohibited terms: {result['prohibited_terms_found']}")
+                if show_failures:
+                    print("  answer:")
+                    print(answer)
 
         passed = sum(result["passed"] for result in results)
         total = len(results)
@@ -70,8 +73,12 @@ async def run(cases_path: Path):
 def main():
     parser = argparse.ArgumentParser(description="Evaluate complete RegBot answers")
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
+    parser.add_argument(
+        "--show-failures", action="store_true",
+        help="print full generated answers for failed cases",
+    )
     args = parser.parse_args()
-    raise SystemExit(asyncio.run(run(args.cases)))
+    raise SystemExit(asyncio.run(run(args.cases, show_failures=args.show_failures)))
 
 
 if __name__ == "__main__":
