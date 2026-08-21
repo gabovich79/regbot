@@ -23,6 +23,8 @@ async def _chunk_db():
             document_ref TEXT,
             effective_date TEXT,
             topic TEXT,
+            page_start INTEGER,
+            page_end INTEGER,
             embedding TEXT NOT NULL
         )
         """

@@ -73,6 +73,8 @@ def _new_chunk(content: str, section_header: str, chunk_index: int, doc_metadata
         "document_ref": doc_metadata.get("source_ref", ""),
         "effective_date": doc_metadata.get("effective_date", ""),
         "topic": doc_metadata.get("topic", ""),
+        "page_start": doc_metadata.get("page_start"),
+        "page_end": doc_metadata.get("page_end"),
     }
 
 
@@ -147,8 +149,9 @@ async def embed_and_store_chunks(chunks: list[dict], db) -> int:
             await db.execute("""
                 INSERT INTO document_chunks
                 (document_id, content, section_header, chunk_index,
-                 document_title, document_ref, effective_date, topic, embedding)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 document_title, document_ref, effective_date, topic,
+                 page_start, page_end, embedding)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 chunk["document_id"],
                 chunk["content"],
@@ -158,6 +161,8 @@ async def embed_and_store_chunks(chunks: list[dict], db) -> int:
                 chunk["document_ref"],
                 chunk["effective_date"],
                 chunk["topic"],
+                chunk.get("page_start"),
+                chunk.get("page_end"),
                 json.dumps(embedding),
             ))
         await db.commit()

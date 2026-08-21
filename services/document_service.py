@@ -18,6 +18,18 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 
+def extract_pdf_pages(file_path: str) -> list[dict]:
+    """Extract text page-by-page so citations can point to the source page."""
+    doc = fitz.open(file_path)
+    try:
+        return [
+            {"page_number": index, "text": clean_text(page.get_text())}
+            for index, page in enumerate(doc, start=1)
+        ]
+    finally:
+        doc.close()
+
+
 def extract_pdf(file_path: str) -> str:
     doc = fitz.open(file_path)
     pages = []
