@@ -10,6 +10,7 @@ import numpy as np
 import tiktoken
 from openai import AsyncOpenAI
 from config import OPENAI_API_KEY, EMBEDDING_MODEL, RAG_MAX_CONTEXT_TOKENS
+from services.validity import document_validity_status
 
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
@@ -34,6 +35,34 @@ def format_chunk_citation(chunk: dict) -> str:
         page_label = str(page_start) if page_start == page_end else f"{page_start}-{page_end}"
         return f"D{document_id}-P{page_label}"
     return f"D{document_id}-C{chunk.get('chunk_index', 0) + 1}"
+
+
+# A superseded/expired document loses a small fused-relevance amount (roughly
+# two RRF ranks), so a current document surfaces first when relevance is close.
+# Explicit references (a circular number in the question) still dominate via the
+# lexical +100 term, keeping historical lookups intact.
+VALIDITY_PENALTY = 0.001
+VALIDITY_STATUS_LABELS = {
+    "current": "",
+    "superseded": "הוחלף במסמך עדכני",
+    "expired": "פג תוקף",
+}
+
+
+def format_document_header(chunk: dict) -> str:
+    """Render an evidence-block header, flagging superseded/expired documents."""
+    parts = [f"=== {chunk['document_title']}"]
+    ref = chunk.get("document_ref")
+    if ref:
+        parts.append(ref)
+    effective = chunk.get("effective_date")
+    if effective:
+        parts.append(f"תוקף: {effective}")
+    label = VALIDITY_STATUS_LABELS.get(chunk.get("validity_status") or "", "")
+    if label:
+        parts.append(f"[{label}]")
+    return " | ".join(parts) + " ==="
+
 
 
 def fit_context_blocks_to_budget(blocks: list[str], max_tokens: int) -> list[str]:
@@ -109,10 +138,13 @@ def rank_hybrid_chunks(
     fused = []
     for _, chunk in dense_scored_chunks:
         key = id(chunk)
+        validity_status = chunk.get("validity_status")
+        penalty = VALIDITY_PENALTY if validity_status in ("superseded", "expired") else 0.0
         score = (
             1 / (rrf_k + dense_rank[key])
             + 1 / (rrf_k + lexical_rank[key])
             + 0.01 * lexical_score[key]
+            - penalty
         )
         fused.append((score, chunk))
     fused.sort(key=lambda item: item[0], reverse=True)
@@ -294,6 +326,64 @@ async def embed_and_store_chunks(chunks: list[dict], db) -> int:
     return len(embedded_chunks)
 
 
+async def _retrieve_top_chunks(question: str, db, top_k: int = 20) -> list[dict]:
+    """Embed the question and rank chunks across active documents (no expansion)."""
+    q_response = await openai_client.embeddings.create(
+        model=EMBEDDING_MODEL,
+        input=question
+    )
+    q_vec = np.array(q_response.data[0].embedding)
+
+    # Load all chunks from active documents
+    cursor = await db.execute("""
+        SELECT dc.*, d.superseded_by, d.valid_until,
+               d.effective_date AS doc_effective_date
+        FROM document_chunks dc
+        JOIN documents d ON dc.document_id = d.id
+        WHERE d.is_active = 1
+    """)
+    rows = await cursor.fetchall()
+
+    if not rows:
+        return []
+
+    # Cosine similarity scoring
+    scored = []
+    for row in rows:
+        row_dict = dict(row)
+        doc_effective = row_dict.pop("doc_effective_date", None)
+        if doc_effective:
+            row_dict["effective_date"] = doc_effective
+        row_dict["validity_status"] = document_validity_status(row_dict)
+        vec = np.array(json.loads(row_dict["embedding"]))
+        score = float(
+            np.dot(q_vec, vec) /
+            (np.linalg.norm(q_vec) * np.linalg.norm(vec) + 1e-10)
+        )
+        scored.append((score, row_dict))
+
+    return rank_hybrid_chunks(question, scored, max_per_document=3)[:top_k]
+
+
+async def retrieve_ranked_documents(question: str, db, top_k: int = 20) -> list[dict]:
+    """Return documents ordered by relevance, for evaluation and metrics."""
+    top_chunks = await _retrieve_top_chunks(question, db, top_k=top_k)
+    ranked: list[dict] = []
+    seen: set[int] = set()
+    for chunk in top_chunks:
+        doc_id = chunk["document_id"]
+        if doc_id in seen:
+            continue
+        seen.add(doc_id)
+        ranked.append({
+            "document_id": doc_id,
+            "title": chunk["document_title"],
+            "source_ref": chunk.get("document_ref"),
+            "validity_status": chunk.get("validity_status"),
+        })
+    return ranked
+
+
 async def retrieve_relevant_chunks(
     question: str,
     db,
@@ -305,39 +395,19 @@ async def retrieve_relevant_chunks(
     Retrieve the most relevant chunks for a question using embedding similarity.
     Returns a formatted string ready to send to Claude.
     """
-    # Embed the question
-    q_response = await openai_client.embeddings.create(
-        model=EMBEDDING_MODEL,
-        input=question
-    )
-    q_vec = np.array(q_response.data[0].embedding)
-
-    # Load all chunks from active documents
-    cursor = await db.execute("""
-        SELECT dc.* FROM document_chunks dc
-        JOIN documents d ON dc.document_id = d.id
-        WHERE d.is_active = 1
-    """)
-    rows = await cursor.fetchall()
-
-    if not rows:
-        return ""
-
-    # Cosine similarity scoring
-    scored = []
-    for row in rows:
-        row_dict = dict(row)
-        vec = np.array(json.loads(row_dict["embedding"]))
-        score = float(
-            np.dot(q_vec, vec) /
-            (np.linalg.norm(q_vec) * np.linalg.norm(vec) + 1e-10)
-        )
-        scored.append((score, row_dict))
-
-    top_chunks = rank_hybrid_chunks(question, scored, max_per_document=3)[:top_k]
+    top_chunks = await _retrieve_top_chunks(question, db, top_k=top_k)
 
     if not top_chunks:
         return ""
+
+    # Carry document-level validity and effective date into the expanded fetch,
+    # which reads document_chunks alone (no documents join).
+    validity_by_doc = {
+        chunk["document_id"]: chunk.get("validity_status") for chunk in top_chunks
+    }
+    effective_by_doc = {
+        chunk["document_id"]: chunk.get("effective_date") for chunk in top_chunks
+    }
 
     # Context expansion — add neighboring chunks
     ids_to_fetch = set()
@@ -362,7 +432,12 @@ async def retrieve_relevant_chunks(
     from collections import defaultdict
     by_doc = defaultdict(list)
     for row in expanded_rows:
-        by_doc[row["document_id"]].append(dict(row))
+        expanded = dict(row)
+        expanded["validity_status"] = validity_by_doc.get(expanded["document_id"])
+        doc_effective = effective_by_doc.get(expanded["document_id"])
+        if doc_effective:
+            expanded["effective_date"] = doc_effective
+        by_doc[expanded["document_id"]].append(expanded)
 
     # Maintain order by relevance (most relevant document first)
     seen_docs = []
@@ -376,14 +451,7 @@ async def retrieve_relevant_chunks(
         doc_chunks = sorted(by_doc.get(doc_id, []), key=lambda x: x["chunk_index"])
         if not doc_chunks:
             continue
-        first = doc_chunks[0]
-        header = (
-            f"=== {first['document_title']}"
-            f"{' | ' + first['document_ref'] if first['document_ref'] else ''}"
-            f"{' | תוקף: ' + first['effective_date'] if first['effective_date'] else ''}"
-            f" ==="
-        )
-        parts.append(header)
+        parts.append(format_document_header(doc_chunks[0]))
         for c in doc_chunks:
             citation_id = format_chunk_citation(c)
             page_start = c.get("page_start")

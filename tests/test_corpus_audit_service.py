@@ -62,6 +62,7 @@ def test_audit_corpus_reports_index_and_extraction_problems(tmp_path):
         "unindexed_documents": 1,
         "missing_text_files": 1,
         "total_chunks": 1,
+        "validity": {"current": 2, "superseded": 0, "expired": 0, "undated": 2},
     }
     assert report["documents"][0]["chunk_count"] == 1
     assert report["documents"][0]["extraction_chars"] == len(extracted.read_text(encoding="utf-8"))

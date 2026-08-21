@@ -1,8 +1,8 @@
-{"id":"circular-2024-9-8","category":"exact-reference","question":"מה קובע חוזר גמל 2024-9-8 בנושא שיעורי תמותה?","expected_documents":["חוזר גמל 2024-9-8"]}
-{"id":"transfer-funds-2020","category":"exact-reference","question":"מה קובע חוזר גמל 2020-9-2 בנושא העברת כספים בין קופות גמל?","expected_documents":["חוזר גמל 2020-9-2 העברת כספים"]}
-{"id":"uniform-interface","category":"exact-reference","question":"מהו חוזר גמל 2020-9-3 בנושא מבנה אחיד להעברת מידע?","expected_documents":["חוזר גמל 2020-9-3 מבנה אחיד העברת מידע"]}
-{"id":"management-fees","category":"exact-reference","question":"מה קובע חוזר גמל 2016-9-8 בנושא דמי ניהול?","expected_documents":["חוזר גמל 2016-9-8 דמי ניהול"]}
-{"id":"fund-transfer-2022","category":"exact-reference","question":"מה קובע חוזר גמל 2022-9-3 בנושא ניוד בין קופות?","expected_documents":["חוזר גמל 2022-9-3 ניוד בין קופות"]}
-{"id":"complex-transfer-and-information","category":"multi-document","question":"לקוח מבקש לנייד כספים בין קופות גמל. איזה מידע צריך לעבור ואילו הוראות רלוונטיות להעברת הכספים?","expected_documents":["חוזר גמל 2020-9-2 העברת כספים","חוזר גמל 2020-9-3 מבנה אחיד העברת מידע"]}
-{"id":"annual-cost-disclosure","category":"semantic","question":"מה נדרש לגלות לעמית לגבי העלות השנתית הצפויה?","expected_documents":["חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה"]}
-{"id":"age-dependent-tracks","category":"semantic","question":"מהן ההוראות למסלולי השקעה תלויי גיל?","expected_documents":["חוזר גמל 2016-9-11 מסלולי תלויי גיל"]}
+{"id":"circular-2024-9-8","category":"exact-reference","question":"מה קובע חוזר גמל 2024-9-8 בנושא שיעורי תמותה?","relevant_documents":["חוזר גמל 2024-9-8"]}
+{"id":"transfer-funds-2020","category":"exact-reference","question":"מה קובע חוזר גמל 2020-9-2 בנושא העברת כספים בין קופות גמל?","relevant_documents":["חוזר גמל 2020-9-2 העברת כספים"]}
+{"id":"uniform-interface","category":"exact-reference","question":"מהו חוזר גמל 2020-9-3 בנושא מבנה אחיד להעברת מידע?","relevant_documents":["חוזר גמל 2020-9-3 מבנה אחיד העברת מידע"]}
+{"id":"management-fees","category":"exact-reference","question":"מה קובע חוזר גמל 2016-9-8 בנושא דמי ניהול?","relevant_documents":["חוזר גמל 2016-9-8 דמי ניהול"],"distractor_documents":["חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה"]}
+{"id":"fund-transfer-2022","category":"exact-reference","question":"מה קובע חוזר גמל 2022-9-3 בנושא ניוד בין קופות?","relevant_documents":["חוזר גמל 2022-9-3 ניוד בין קופות"]}
+{"id":"complex-transfer-and-information","category":"multi-document","question":"לקוח מבקש לנייד כספים בין קופות גמל. איזה מידע צריך לעבור ואילו הוראות רלוונטיות להעברת הכספים?","relevant_documents":["חוזר גמל 2020-9-2 העברת כספים","חוזר גמל 2020-9-3 מבנה אחיד העברת מידע"]}
+{"id":"annual-cost-disclosure","category":"semantic","question":"מה נדרש לגלות לעמית לגבי העלות השנתית הצפויה?","relevant_documents":["חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה"]}
+{"id":"age-dependent-tracks","category":"semantic","question":"מהן ההוראות למסלולי השקעה תלויי גיל?","relevant_documents":["חוזר גמל 2016-9-11 מסלולי תלויי גיל"]}

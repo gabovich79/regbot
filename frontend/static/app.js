@@ -252,6 +252,30 @@ function renderDocumentSource(doc) {
     return `<div><span class="px-2 py-1 rounded-full text-xs bg-gray-100">${type}</span><div class="mt-1 text-xs text-gray-500">${sourceSaved}${sourceRef ? ` ${sourceRef}` : ''}</div></div>`;
 }
 
+function validityStatus(doc) {
+    if (doc.superseded_by) return 'superseded';
+    if (doc.valid_until && doc.valid_until < new Date().toISOString().slice(0, 10)) return 'expired';
+    return 'current';
+}
+
+function renderValidity(doc) {
+    const status = validityStatus(doc);
+    let badge;
+    if (status === 'superseded') {
+        badge = `<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">⤴ הוחלף (#${escapeHtml(String(doc.superseded_by))})</span>`;
+    } else if (status === 'expired') {
+        badge = '<span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">✕ פג תוקף</span>';
+    } else if (doc.effective_date) {
+        badge = '<span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">✓ בתוקף</span>';
+    } else {
+        badge = '<span class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">ללא תאריך</span>';
+    }
+    const date = doc.effective_date ? `<div class="mt-1 text-xs text-gray-500">${escapeHtml(doc.effective_date)}</div>` : '';
+    return `<div>${badge}${date}<button onclick="openValidityModal(${doc.id})" class="mt-1 text-xs text-blue-600 hover:underline min-h-[32px]">ערוך תוקף</button></div>`;
+}
+
+let allDocuments = [];
+
 async function loadDocuments() {
     const table = document.getElementById('documents-table');
     const noDocs = document.getElementById('no-docs');
@@ -260,6 +284,7 @@ async function loadDocuments() {
     try {
         const res = await fetch('/api/documents');
         const docs = await res.json();
+        allDocuments = docs;
 
         if (docs.length === 0) {
             table.innerHTML = '';
@@ -276,6 +301,7 @@ async function loadDocuments() {
                 <td class="px-4 py-3 font-mono">${(doc.chunk_count || 0).toLocaleString()}</td>
                 <td class="px-4 py-3">${(doc.token_count || 0).toLocaleString()}</td>
                 <td class="px-4 py-3 text-gray-500">${formatDate(doc.added_at)}</td>
+                <td class="px-4 py-3">${renderValidity(doc)}</td>
                 <td class="px-4 py-3">
                     <button onclick="deleteDoc(${doc.id})" class="text-red-500 hover:text-red-700 text-xs py-2 px-2 min-h-[44px] inline-flex items-center">🗑 הסר</button>
                 </td>
@@ -296,7 +322,7 @@ async function loadDocuments() {
         const warning = document.getElementById('token-warning');
         if (warning) warning.classList.add('hidden');
     } catch (e) {
-        table.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
+        table.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
     }
 }
 
@@ -307,6 +333,43 @@ async function deleteDoc(id) {
         loadDocuments();
     } catch (e) {
         alert('שגיאה בהסרת המסמך');
+    }
+}
+
+function openValidityModal(docId) {
+    const doc = allDocuments.find(d => d.id === docId);
+    if (!doc) return;
+    document.getElementById('validity-doc-id').value = doc.id;
+    document.getElementById('validity-doc-title').textContent = doc.title;
+    document.getElementById('validity-effective-date').value = doc.effective_date || '';
+    const select = document.getElementById('validity-superseded-by');
+    const options = allDocuments
+        .filter(d => d.id !== docId && d.is_active)
+        .map(d => `<option value="${d.id}" ${d.id === doc.superseded_by ? 'selected' : ''}>#${d.id} · ${escapeHtml(d.title)}</option>`)
+        .join('');
+    select.innerHTML = '<option value="">— עדיין בתוקף —</option>' + options;
+    document.getElementById('validity-modal')?.classList.remove('hidden');
+}
+
+function hideValidityModal() {
+    document.getElementById('validity-modal')?.classList.add('hidden');
+}
+
+async function saveValidity() {
+    const docId = document.getElementById('validity-doc-id').value;
+    const effectiveDate = document.getElementById('validity-effective-date').value;
+    const supersededBy = document.getElementById('validity-superseded-by').value;
+    try {
+        const formData = new FormData();
+        if (effectiveDate) formData.append('effective_date', effectiveDate);
+        formData.append('superseded_by', supersededBy);
+        const res = await fetch(`/api/documents/${docId}/validity`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'שגיאה');
+        hideValidityModal();
+        loadDocuments();
+    } catch (e) {
+        alert('שגיאה בעדכון תוקף: ' + e.message);
     }
 }
 
