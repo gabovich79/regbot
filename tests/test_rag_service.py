@@ -149,6 +149,11 @@ async def test_short_embedding_response_keeps_existing_document_chunks(monkeypat
         await db.close()
 
 
+def test_chunk_citation_uses_page_range_or_chunk_fallback():
+    assert rag_service.format_chunk_citation({"document_id": 23, "page_start": 17, "page_end": 18}) == "D23-P17-18"
+    assert rag_service.format_chunk_citation({"document_id": 7, "page_start": None, "page_end": None, "chunk_index": 4}) == "D7-C5"
+
+
 def test_section_chunking_never_exceeds_embedding_token_limit():
     text = (
         "סעיף 1\n" + ("מילה " * 12000) +

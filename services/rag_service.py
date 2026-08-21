@@ -25,6 +25,17 @@ MAX_EMBEDDING_TOKENS = 7_000
 CHUNK_OVERLAP_WORDS = 80
 
 
+def format_chunk_citation(chunk: dict) -> str:
+    """Create a stable, human-auditable citation ID for an evidence chunk."""
+    document_id = chunk["document_id"]
+    page_start = chunk.get("page_start")
+    page_end = chunk.get("page_end")
+    if page_start is not None and page_end is not None:
+        page_label = str(page_start) if page_start == page_end else f"{page_start}-{page_end}"
+        return f"D{document_id}-P{page_label}"
+    return f"D{document_id}-C{chunk.get('chunk_index', 0) + 1}"
+
+
 def _split_to_embedding_limit(text: str) -> list[str]:
     """Split text into overlapping chunks accepted by the embedding API."""
     if len(EMBEDDING_ENCODING.encode(text)) <= MAX_EMBEDDING_TOKENS:
@@ -282,7 +293,18 @@ async def retrieve_relevant_chunks(
         )
         parts.append(header)
         for c in doc_chunks:
-            section = f"[{c['section_header']}]\n" if c["section_header"] else ""
-            parts.append(f"{section}{c['content']}")
+            citation_id = format_chunk_citation(c)
+            page_start = c.get("page_start")
+            page_end = c.get("page_end")
+            if page_start is not None and page_end is not None:
+                page_label = f"עמוד {page_start}" if page_start == page_end else f"עמודים {page_start}-{page_end}"
+            else:
+                page_label = "עמוד לא זמין במאגר הישן"
+            section_label = c["section_header"] or "קטע ללא כותרת"
+            parts.append(
+                f"[[SOURCE {citation_id} | מסמך: {c['document_title']} | "
+                f"{page_label} | סעיף: {section_label} | URL: {c['document_ref']}]]\n"
+                f"{c['content']}\n[[/SOURCE {citation_id}]]"
+            )
 
     return "\n\n".join(parts)
