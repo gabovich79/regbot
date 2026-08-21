@@ -16,7 +16,6 @@ MAX_UPLOAD_SIZE_MB = 50
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "20"))
 RAG_CONTEXT_WINDOW = int(os.getenv("RAG_CONTEXT_WINDOW", "1"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
-ENABLE_GOOGLE_SEARCH = os.getenv("ENABLE_GOOGLE_SEARCH", "false").lower() == "true"
 
 DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
 DOCUMENTS_DIR = os.path.join(DATA_DIR, "documents")

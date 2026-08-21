@@ -7,7 +7,7 @@ def test_generation_config_disables_google_search_by_default():
     assert not config.tools
 
 
-def test_generation_config_adds_google_search_only_when_explicitly_enabled():
+def test_generation_config_never_enables_google_search_tool():
     config = build_generation_config("ענה בעברית", enable_google_search=True)
 
-    assert len(config.tools) == 1
+    assert not config.tools
