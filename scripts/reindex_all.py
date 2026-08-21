@@ -1,51 +1,45 @@
-"""
-Re-index all active documents: chunk + embed.
-Run once after deploy or when changing chunking strategy:
+"""Re-index every active document with the currently configured embedding model.
+
+Run after verifying that the embedding provider has usable quota:
     python scripts/reindex_all.py
+
+The indexing service preserves existing chunks until replacement embeddings are
+available, and records each document as ready or failed.
 """
+
 import asyncio
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from models.database import get_db, init_db
-from services.rag_service import chunk_regulatory_document, embed_and_store_chunks
+from main import _index_document
+from models.database import get_all_documents, init_db
+from services.document_service import load_document_text
 
 
 async def reindex_all():
     await init_db()
-    db = await get_db()
-    try:
-        cursor = await db.execute(
-            "SELECT id, title, source_ref, text_path FROM documents WHERE is_active = 1"
-        )
-        docs = await cursor.fetchall()
-        print(f"Found {len(docs)} active documents to index")
+    docs = await get_all_documents(active_only=True)
+    print(f"Found {len(docs)} active documents to index")
 
-        total_chunks = 0
-        for doc in docs:
-            doc = dict(doc)
-            try:
-                with open(doc["text_path"], "r", encoding="utf-8") as f:
-                    text = f.read()
-                metadata = {
-                    "id": doc["id"],
-                    "title": doc["title"],
-                    "source_ref": doc.get("source_ref", ""),
-                    "effective_date": None,
-                    "topic": None,
-                }
-                chunks = chunk_regulatory_document(text, metadata)
-                num = await embed_and_store_chunks(chunks, db)
-                total_chunks += num
-                print(f"  [{doc['id']}] {doc['title']} -> {num} chunks")
-            except Exception as e:
-                print(f"  [{doc['id']}] ERROR: {e}")
+    total_chunks = 0
+    failed = 0
+    for document in docs:
+        try:
+            text = load_document_text(document["text_path"])
+            num_chunks = await _index_document(
+                document["id"], document["title"], document.get("source_ref", ""), text
+            )
+            total_chunks += num_chunks
+            print(f"  [{document['id']}] {document['title']} -> {num_chunks} chunks")
+        except Exception as error:
+            failed += 1
+            print(f"  [{document['id']}] ERROR: {error}")
 
-        print(f"\nDone. Total chunks indexed: {total_chunks}")
-    finally:
-        await db.close()
+    print(f"\nDone. Total chunks indexed: {total_chunks}; failed documents: {failed}")
+    if failed:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
