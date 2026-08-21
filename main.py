@@ -24,7 +24,7 @@ from models.database import (
     update_document_index_status, update_document_source_artifact,
 )
 from services.document_service import (
-    extract_pdf_bytes, extract_pdf_bytes_pages, extract_docx_bytes, fetch_url_text, fetch_gdrive_text,
+    extract_pdf_bytes, extract_pdf_bytes_pages, extract_docx_bytes, fetch_url_document, fetch_url_text, fetch_gdrive_text,
     save_original_document, save_document_text, load_document_text, delete_document_file, estimate_tokens,
 )
 from services.claude_service import stream_chat
@@ -269,20 +269,28 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
         "token_count": token_count,
         "total_tokens": total,
         "num_chunks": num_chunks,
+        "index_status": "ready" if num_chunks else "failed",
         "warning": warning,
-        "message": f"נוסף בהצלחה — {token_count:,} טוקנים, {num_chunks} קטעים",
+        "message": (
+            f"נוסף והוכן לחיפוש — {token_count:,} טוקנים, {num_chunks} קטעים"
+            if num_chunks else
+            "הקובץ נשמר אך האינדוקס נכשל — פתח את טבלת המסמכים כדי לראות את סיבת הכשל"
+        ),
     }
 
 
 @app.post("/api/documents/url")
 async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depends(verify_admin)):
+    pages = None
+    source_content = None
+    source_extension = None
     try:
         is_gdrive = "drive.google.com" in url or "docs.google.com" in url
         if is_gdrive:
             text = await fetch_gdrive_text(url)
             source_type = "gdrive"
         else:
-            text = await fetch_url_text(url)
+            text, pages, source_content, source_extension = await fetch_url_document(url)
             source_type = "url"
     except Exception as e:
         raise HTTPException(400, f"שגיאה בהורדת המסמך: {str(e)}")
@@ -293,6 +301,13 @@ async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depe
     doc_title = title or url[:80]
     token_count = estimate_tokens(text)
     doc_id = await add_document(doc_title, source_type, url, "", token_count)
+    if source_content is not None and source_extension is not None:
+        original_path, source_checksum = save_original_document(
+            doc_id, source_extension, source_content
+        )
+        await update_document_source_artifact(
+            doc_id, original_path=original_path, checksum=source_checksum
+        )
     text_path = save_document_text(doc_id, text)
 
     db = await get_db()
@@ -304,7 +319,7 @@ async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depe
 
     # RAG indexing
     try:
-        num_chunks = await _index_document(doc_id, doc_title, url, text)
+        num_chunks = await _index_document(doc_id, doc_title, url, text, pages=pages)
     except Exception as e:
         logger.error(f"RAG indexing failed for doc {doc_id}: {e}")
         num_chunks = 0
@@ -325,8 +340,13 @@ async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depe
         "token_count": token_count,
         "total_tokens": total,
         "num_chunks": num_chunks,
+        "index_status": "ready" if num_chunks else "failed",
         "warning": warning,
-        "message": f"נוסף בהצלחה — {token_count:,} טוקנים, {num_chunks} קטעים",
+        "message": (
+            f"נוסף והוכן לחיפוש — {token_count:,} טוקנים, {num_chunks} קטעים"
+            if num_chunks else
+            "המסמך נשמר אך האינדוקס נכשל — פתח את טבלת המסמכים כדי לראות את סיבת הכשל"
+        ),
     }
 
 

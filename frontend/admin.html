@@ -76,6 +76,18 @@
                     <div class="text-xs text-gray-500">מסמכים פעילים</div>
                 </div>
                 <div class="bg-white rounded-lg border border-gray-200 px-4 py-3 text-center flex-1 min-w-[120px]">
+                    <div id="ready-count" class="text-xl md:text-2xl font-bold text-green-600">0</div>
+                    <div class="text-xs text-gray-500">מאונדקסים ותקינים</div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 px-4 py-3 text-center flex-1 min-w-[120px]">
+                    <div id="failed-count" class="text-xl md:text-2xl font-bold text-red-600">0</div>
+                    <div class="text-xs text-gray-500">דורשים טיפול</div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 px-4 py-3 text-center flex-1 min-w-[120px]">
+                    <div id="total-chunks" class="text-xl md:text-2xl font-bold text-violet-600">0</div>
+                    <div class="text-xs text-gray-500">קטעי חיפוש</div>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 px-4 py-3 text-center flex-1 min-w-[120px]">
                     <div id="total-tokens" class="text-xl md:text-2xl font-bold text-blue-600">0</div>
                     <div class="text-xs text-gray-500">טוקנים סה"כ</div>
                 </div>
@@ -83,11 +95,13 @@
 
             <!-- Documents Table -->
             <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-                <table class="w-full text-sm min-w-[600px]">
+                <table class="w-full text-sm min-w-[980px]">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">כותרת</th>
-                            <th class="text-right px-4 py-3 font-medium text-gray-600">סוג</th>
+                            <th class="text-right px-4 py-3 font-medium text-gray-600">מקור</th>
+                            <th class="text-right px-4 py-3 font-medium text-gray-600">סטטוס אינדוקס</th>
+                            <th class="text-right px-4 py-3 font-medium text-gray-600">קטעי חיפוש</th>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">טוקנים</th>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">תאריך הוספה</th>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">פעולות</th>
