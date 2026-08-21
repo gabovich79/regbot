@@ -231,6 +231,27 @@ function askSuggestion(btn) {
 
 // ==================== Admin - Documents ====================
 
+function renderIndexStatus(doc) {
+    const status = doc.index_status || (doc.chunk_count > 0 ? 'ready' : 'unknown');
+    if (status === 'ready') {
+        return '<span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">✓ מוכן לחיפוש</span>';
+    }
+    if (status === 'indexing') {
+        return '<span class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">⏳ באינדוקס</span>';
+    }
+    const error = doc.index_error ? `<details class="mt-1 text-xs text-red-700"><summary class="cursor-pointer">הצג סיבה</summary><div class="mt-1 max-w-xs break-words">${escapeHtml(doc.index_error)}</div></details>` : '';
+    return `<span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">✕ דורש טיפול</span>${error}`;
+}
+
+function renderDocumentSource(doc) {
+    const type = escapeHtml(doc.source_type || 'לא ידוע');
+    const sourceSaved = doc.original_path ? ' • מקור מקורי נשמר' : '';
+    const sourceRef = doc.source_ref && /^https?:\/\//.test(doc.source_ref)
+        ? `<a href="${escapeHtml(doc.source_ref)}" target="_blank" rel="noopener" class="text-blue-600 hover:underline">פתח מקור</a>`
+        : '';
+    return `<div><span class="px-2 py-1 rounded-full text-xs bg-gray-100">${type}</span><div class="mt-1 text-xs text-gray-500">${sourceSaved}${sourceRef ? ` ${sourceRef}` : ''}</div></div>`;
+}
+
 async function loadDocuments() {
     const table = document.getElementById('documents-table');
     const noDocs = document.getElementById('no-docs');
@@ -250,9 +271,9 @@ async function loadDocuments() {
         table.innerHTML = docs.map(doc => `
             <tr class="border-b border-gray-100 hover:bg-gray-50">
                 <td class="px-4 py-3 font-medium">${escapeHtml(doc.title)}</td>
-                <td class="px-4 py-3">
-                    <span class="px-2 py-1 rounded-full text-xs bg-gray-100">${doc.source_type}</span>
-                </td>
+                <td class="px-4 py-3">${renderDocumentSource(doc)}</td>
+                <td class="px-4 py-3">${renderIndexStatus(doc)}</td>
+                <td class="px-4 py-3 font-mono">${(doc.chunk_count || 0).toLocaleString()}</td>
                 <td class="px-4 py-3">${(doc.token_count || 0).toLocaleString()}</td>
                 <td class="px-4 py-3 text-gray-500">${formatDate(doc.added_at)}</td>
                 <td class="px-4 py-3">
@@ -263,7 +284,12 @@ async function loadDocuments() {
 
         // Update stats
         const activeDocs = docs.filter(d => d.is_active);
+        const readyDocs = activeDocs.filter(d => (d.index_status || (d.chunk_count > 0 ? 'ready' : 'unknown')) === 'ready');
+        const failedDocs = activeDocs.filter(d => (d.index_status || (d.chunk_count > 0 ? 'ready' : 'unknown')) === 'failed' || d.chunk_count === 0);
         document.getElementById('doc-count').textContent = activeDocs.length;
+        document.getElementById('ready-count').textContent = readyDocs.length;
+        document.getElementById('failed-count').textContent = failedDocs.length;
+        document.getElementById('total-chunks').textContent = activeDocs.reduce((sum, d) => sum + (d.chunk_count || 0), 0).toLocaleString();
         const totalTokens = activeDocs.reduce((sum, d) => sum + (d.token_count || 0), 0);
         document.getElementById('total-tokens').textContent = totalTokens.toLocaleString();
 
@@ -272,7 +298,7 @@ async function loadDocuments() {
             totalTokens > 150000 ? warning.classList.remove('hidden') : warning.classList.add('hidden');
         }
     } catch (e) {
-        table.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
+        table.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
     }
 }
 
