@@ -3,6 +3,8 @@ import json
 import aiosqlite
 import pytest
 
+import tiktoken
+
 from services import rag_service
 
 
@@ -143,3 +145,35 @@ async def test_short_embedding_response_keeps_existing_document_chunks(monkeypat
         assert [row["content"] for row in rows] == ["הקטע הקיים"]
     finally:
         await db.close()
+
+
+def test_section_chunking_never_exceeds_embedding_token_limit():
+    text = (
+        "סעיף 1\n" + ("מילה " * 12000) +
+        "\nסעיף 2\nקטע קצר\n"
+        "סעיף 3\nקטע קצר נוסף\n"
+    )
+    chunks = rag_service.chunk_regulatory_document(
+        text, {"id": 7, "title": "מסמך ארוך", "source_ref": "ref"}
+    )
+
+    encoder = tiktoken.get_encoding("cl100k_base")
+    assert len(chunks) > 3
+    assert all(
+        len(encoder.encode(chunk["content"])) <= rag_service.MAX_EMBEDDING_TOKENS
+        for chunk in chunks
+    )
+
+
+def test_unstructured_chunking_never_exceeds_embedding_token_limit():
+    chunks = rag_service.chunk_regulatory_document(
+        "מילה " * 12000,
+        {"id": 8, "title": "מסמך לא מובנה", "source_ref": "ref"},
+    )
+
+    assert len(chunks) > 1
+    assert all(
+        len(rag_service.EMBEDDING_ENCODING.encode(chunk["content"]))
+        <= rag_service.MAX_EMBEDDING_TOKENS
+        for chunk in chunks
+    )

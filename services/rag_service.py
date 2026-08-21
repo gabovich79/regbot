@@ -7,6 +7,7 @@ and retrieves relevant chunks at query time using cosine similarity.
 import re
 import json
 import numpy as np
+import tiktoken
 from openai import AsyncOpenAI
 from config import OPENAI_API_KEY, EMBEDDING_MODEL
 
@@ -17,52 +18,90 @@ SECTION_PATTERN = re.compile(
     re.MULTILINE
 )
 
+# `text-embedding-3-large` rejects inputs at 8,192 tokens. Reserve room below
+# that hard limit so headings and overlap never cause an ingestion failure.
+EMBEDDING_ENCODING = tiktoken.get_encoding("cl100k_base")
+MAX_EMBEDDING_TOKENS = 7_000
+CHUNK_OVERLAP_WORDS = 80
+
+
+def _split_to_embedding_limit(text: str) -> list[str]:
+    """Split text into overlapping chunks accepted by the embedding API."""
+    if len(EMBEDDING_ENCODING.encode(text)) <= MAX_EMBEDDING_TOKENS:
+        return [text]
+
+    words = text.split()
+    chunks = []
+    start = 0
+    while start < len(words):
+        low, high, best_end = start + 1, len(words), start
+        while low <= high:
+            middle = (low + high) // 2
+            candidate = " ".join(words[start:middle])
+            if len(EMBEDDING_ENCODING.encode(candidate)) <= MAX_EMBEDDING_TOKENS:
+                best_end = middle
+                low = middle + 1
+            else:
+                high = middle - 1
+
+        if best_end == start:
+            # A pathological single token/word must still respect the provider
+            # limit. Losing a little lexical structure beats losing the whole
+            # document to a 400 response.
+            token_ids = EMBEDDING_ENCODING.encode(" ".join(words[start:]))
+            chunks.extend(
+                EMBEDDING_ENCODING.decode(token_ids[i:i + MAX_EMBEDDING_TOKENS])
+                for i in range(0, len(token_ids), MAX_EMBEDDING_TOKENS)
+            )
+            break
+
+        chunks.append(" ".join(words[start:best_end]))
+        if best_end == len(words):
+            break
+        start = max(best_end - CHUNK_OVERLAP_WORDS, start + 1)
+
+    return chunks
+
+
+def _new_chunk(content: str, section_header: str, chunk_index: int, doc_metadata: dict) -> dict:
+    return {
+        "content": content,
+        "section_header": section_header,
+        "chunk_index": chunk_index,
+        "document_id": doc_metadata["id"],
+        "document_title": doc_metadata["title"],
+        "document_ref": doc_metadata.get("source_ref", ""),
+        "effective_date": doc_metadata.get("effective_date", ""),
+        "topic": doc_metadata.get("topic", ""),
+    }
+
 
 def chunk_regulatory_document(text: str, doc_metadata: dict) -> list[dict]:
-    """Split a regulatory document into chunks by section headers."""
-    splits = [(m.start(), m.group().strip()) for m in SECTION_PATTERN.finditer(text)]
-
+    """Split by legal section, then enforce the embedding provider's token cap."""
+    splits = [(match.start(), match.group().strip()) for match in SECTION_PATTERN.finditer(text)]
     if len(splits) < 3:
         return _chunk_by_paragraph(text, doc_metadata)
 
     chunks = []
-    for i, (start, header) in enumerate(splits):
-        end = splits[i + 1][0] if i + 1 < len(splits) else len(text)
+    for index, (start, header) in enumerate(splits):
+        end = splits[index + 1][0] if index + 1 < len(splits) else len(text)
         content = text[start:end].strip()
         if len(content) < 40:
             continue
-        chunks.append({
-            "content": content,
-            "section_header": header,
-            "chunk_index": i,
-            "document_id": doc_metadata["id"],
-            "document_title": doc_metadata["title"],
-            "document_ref": doc_metadata.get("source_ref", ""),
-            "effective_date": doc_metadata.get("effective_date", ""),
-            "topic": doc_metadata.get("topic", ""),
-        })
+        section_parts = _split_to_embedding_limit(content)
+        for part_index, part in enumerate(section_parts, start=1):
+            label = header if len(section_parts) == 1 else f"{header} — חלק {part_index}"
+            chunks.append(_new_chunk(part, label, len(chunks), doc_metadata))
     return chunks
 
 
 def _chunk_by_paragraph(text: str, doc_metadata: dict) -> list[dict]:
-    """Fallback — split by paragraphs of ~800 words with 100-word overlap."""
-    words = text.split()
-    size, overlap, chunks = 800, 100, []
-    i = 0
-    while i < len(words):
-        content = " ".join(words[i:i + size])
-        chunks.append({
-            "content": content,
-            "section_header": f"קטע {len(chunks) + 1}",
-            "chunk_index": len(chunks),
-            "document_id": doc_metadata["id"],
-            "document_title": doc_metadata["title"],
-            "document_ref": doc_metadata.get("source_ref", ""),
-            "effective_date": doc_metadata.get("effective_date", ""),
-            "topic": doc_metadata.get("topic", ""),
-        })
-        i += size - overlap
-    return chunks
+    """Fallback for unstructured text, still constrained by embedding tokens."""
+    return [
+        _new_chunk(content, f"קטע {index}", index - 1, doc_metadata)
+        for index, content in enumerate(_split_to_embedding_limit(text), start=1)
+        if content.strip()
+    ]
 
 
 async def embed_and_store_chunks(chunks: list[dict], db) -> int:
@@ -79,7 +118,9 @@ async def embed_and_store_chunks(chunks: list[dict], db) -> int:
     # Generate every replacement embedding before touching the existing index.
     # A provider outage must never turn a previously searchable document into an
     # empty document.
-    BATCH_SIZE = 100
+    # Cap batches below the provider's aggregate token ceiling. A document can
+    # legitimately yield many near-7k chunks after safety splitting.
+    BATCH_SIZE = 20
     embedded_chunks: list[tuple[dict, list[float]]] = []
     for i in range(0, len(chunks), BATCH_SIZE):
         batch = chunks[i:i + BATCH_SIZE]
