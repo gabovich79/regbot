@@ -56,6 +56,7 @@ async def run(cases_path: Path, *, show_failures: bool):
             print(f"[{status}] {case['id']}")
             if not result["passed"]:
                 print(f"  missing citations: {result['missing_citation_prefixes']}")
+                print(f"  missing alternative citations: {result['missing_any_citation_prefixes']}")
                 print(f"  missing terms: {result['missing_required_terms']}")
                 print(f"  prohibited terms: {result['prohibited_terms_found']}")
                 if show_failures:
