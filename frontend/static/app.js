@@ -249,7 +249,11 @@ function renderDocumentSource(doc) {
     const sourceRef = doc.source_ref && /^https?:\/\//.test(doc.source_ref)
         ? `<a href="${escapeHtml(doc.source_ref)}" target="_blank" rel="noopener" class="text-blue-600 hover:underline">פתח מקור</a>`
         : '';
-    return `<div><span class="px-2 py-1 rounded-full text-xs bg-gray-100">${type}</span><div class="mt-1 text-xs text-gray-500">${sourceSaved}${sourceRef ? ` ${sourceRef}` : ''}</div></div>`;
+    const originalLink = doc.original_path
+        ? `<a href="/api/documents/${doc.id}/original" target="_blank" rel="noopener" class="text-blue-600 hover:underline">פתח קובץ</a>`
+        : '';
+    const links = [originalLink, sourceRef].filter(Boolean).join(' · ');
+    return `<div><span class="px-2 py-1 rounded-full text-xs bg-gray-100">${type}</span><div class="mt-1 text-xs text-gray-500">${sourceSaved}${links ? ` ${links}` : ''}</div></div>`;
 }
 
 function validityStatus(doc) {

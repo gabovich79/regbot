@@ -339,6 +339,19 @@ async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depe
     }
 
 
+@app.get("/api/documents/{doc_id}/original")
+async def download_original_document(doc_id: int, _=Depends(verify_admin)):
+    """Serve the retained original source artifact to an authenticated admin."""
+    doc = await get_document(doc_id)
+    if not doc:
+        raise HTTPException(404, "מסמך לא נמצא")
+    original_path = doc.get("original_path")
+    if not original_path or not os.path.isfile(original_path):
+        raise HTTPException(404, "קובץ המקור המקורי לא נשמר עבור מסמך זה")
+    filename = os.path.basename(doc.get("title") or original_path)
+    return FileResponse(original_path, filename=filename, content_disposition_type="inline")
+
+
 @app.post("/api/documents/{doc_id}/archive")
 async def archive_document_endpoint(doc_id: int, _=Depends(verify_admin)):
     """Archive a document from retrieval without deleting its source files."""
