@@ -329,6 +329,19 @@ async def update_document_metadata(
         await db.close()
 
 
+async def archive_document(doc_id: int):
+    """Remove a document from retrieval while preserving its source artifact."""
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE documents SET is_active = 0, lifecycle_status = 'historical' WHERE id = ?",
+            (doc_id,),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
 async def delete_document(doc_id):
     db = await get_db()
     try:

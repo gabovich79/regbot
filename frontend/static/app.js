@@ -305,6 +305,7 @@ async function loadDocuments() {
                 <td class="px-4 py-3">${escapeHtml(doc.topic || '—')}</td>
                 <td class="px-4 py-3">
                     <button onclick="openMetadataModal(${doc.id})" class="text-blue-600 hover:text-blue-800 text-xs py-2 px-2 min-h-[44px] inline-flex items-center">✏️ פרטים</button>
+                    <button onclick="archiveDoc(${doc.id})" class="text-amber-600 hover:text-amber-800 text-xs py-2 px-2 min-h-[44px] inline-flex items-center">📦 ארכיון</button>
                     <button onclick="deleteDoc(${doc.id})" class="text-red-500 hover:text-red-700 text-xs py-2 px-2 min-h-[44px] inline-flex items-center">🗑 הסר</button>
                 </td>
             </tr>
@@ -325,6 +326,18 @@ async function loadDocuments() {
         if (warning) warning.classList.add('hidden');
     } catch (e) {
         table.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
+    }
+}
+
+async function archiveDoc(id) {
+    if (!confirm('להעביר את המסמך לארכיון ולהוציא אותו מהחיפוש? המקור יישמר.')) return;
+    try {
+        const res = await fetch(`/api/documents/${id}/archive`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'שגיאה');
+        loadDocuments();
+    } catch (e) {
+        alert('שגיאה בהעברת המסמך לארכיון: ' + e.message);
     }
 }
 
