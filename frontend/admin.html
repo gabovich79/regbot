@@ -105,6 +105,7 @@
                             <th class="text-right px-4 py-3 font-medium text-gray-600">טוקנים</th>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">תאריך הוספה</th>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">תוקף</th>
+                            <th class="text-right px-4 py-3 font-medium text-gray-600">נושא</th>
                             <th class="text-right px-4 py-3 font-medium text-gray-600">פעולות</th>
                         </tr>
                     </thead>
@@ -203,6 +204,37 @@
             <div class="flex justify-end gap-2">
                 <button onclick="hideValidityModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 min-h-[44px]">ביטול</button>
                 <button onclick="saveValidity()" class="px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 min-h-[44px]">שמור</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metadata Edit Modal -->
+    <div id="metadata-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-[calc(100vw-2rem)] max-w-lg">
+            <h3 class="text-lg font-semibold mb-1">עריכת פרטי מסמך</h3>
+            <p id="metadata-doc-title" class="text-sm text-gray-500 mb-4"></p>
+            <input type="hidden" id="metadata-doc-id" />
+            <label class="block text-sm text-gray-600 mb-1">שם תיאורי</label>
+            <input id="metadata-title" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3 text-sm" />
+            <label class="block text-sm text-gray-600 mb-1">נושא</label>
+            <input id="metadata-topic" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3 text-sm" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">סוג מסמך</label>
+                    <select id="metadata-type" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                        <option>חוזר</option><option>תקנה</option><option>חוק</option><option>הכרעה</option><option>טיוטה</option><option>אחר</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">סטטוס</label>
+                    <select id="metadata-status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                        <option value="current">בתוקף</option><option value="superseded">הוחלף</option><option value="repealed">בוטל</option><option value="draft">טיוטה</option><option value="historical">היסטורי</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="hideMetadataModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 min-h-[44px]">ביטול</button>
+                <button onclick="saveMetadata()" class="px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 min-h-[44px]">שמור</button>
             </div>
         </div>
     </div>

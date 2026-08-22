@@ -22,7 +22,7 @@ from models.database import (
     get_conversation_messages, save_message, get_logs, get_costs_daily,
     get_costs_summary, get_db, get_setting, set_setting,
     update_document_index_status, update_document_source_artifact,
-    set_document_validity,
+    set_document_validity, update_document_metadata,
 )
 from services.document_service import (
     extract_pdf_bytes, extract_pdf_bytes_pages, extract_docx_bytes, fetch_url_document, fetch_url_text, fetch_gdrive_text,
@@ -378,6 +378,34 @@ async def set_document_validity_endpoint(
         superseded_by=superseded_by_id,
     )
     return {"message": "סטטוס התוקף עודכן בהצלחה"}
+
+
+@app.post("/api/documents/{doc_id}/metadata")
+async def update_document_metadata_endpoint(
+    doc_id: int,
+    title: str = Form(None),
+    topic: str = Form(None),
+    document_type: str = Form(None),
+    lifecycle_status: str = Form(None),
+    _=Depends(verify_admin),
+):
+    """Update curator metadata without re-indexing or deleting the document."""
+    doc = await get_document(doc_id)
+    if not doc:
+        raise HTTPException(404, "מסמך לא נמצא")
+    if title is not None and not title.strip():
+        raise HTTPException(400, "כותרת לא יכולה להיות ריקה")
+    try:
+        await update_document_metadata(
+            doc_id,
+            title=title.strip() if title is not None else None,
+            topic=topic.strip() if topic is not None else None,
+            document_type=document_type.strip() if document_type is not None else None,
+            lifecycle_status=lifecycle_status or None,
+        )
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
+    return {"message": "פרטי המסמך עודכנו בהצלחה"}
 
 
 @app.get("/api/documents/stats")

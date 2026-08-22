@@ -302,7 +302,9 @@ async function loadDocuments() {
                 <td class="px-4 py-3">${(doc.token_count || 0).toLocaleString()}</td>
                 <td class="px-4 py-3 text-gray-500">${formatDate(doc.added_at)}</td>
                 <td class="px-4 py-3">${renderValidity(doc)}</td>
+                <td class="px-4 py-3">${escapeHtml(doc.topic || '—')}</td>
                 <td class="px-4 py-3">
+                    <button onclick="openMetadataModal(${doc.id})" class="text-blue-600 hover:text-blue-800 text-xs py-2 px-2 min-h-[44px] inline-flex items-center">✏️ פרטים</button>
                     <button onclick="deleteDoc(${doc.id})" class="text-red-500 hover:text-red-700 text-xs py-2 px-2 min-h-[44px] inline-flex items-center">🗑 הסר</button>
                 </td>
             </tr>
@@ -322,7 +324,7 @@ async function loadDocuments() {
         const warning = document.getElementById('token-warning');
         if (warning) warning.classList.add('hidden');
     } catch (e) {
-        table.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
+        table.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-red-500">שגיאה בטעינה</td></tr>';
     }
 }
 
@@ -333,6 +335,40 @@ async function deleteDoc(id) {
         loadDocuments();
     } catch (e) {
         alert('שגיאה בהסרת המסמך');
+    }
+}
+
+function openMetadataModal(docId) {
+    const doc = allDocuments.find(d => d.id === docId);
+    if (!doc) return;
+    document.getElementById('metadata-doc-id').value = doc.id;
+    document.getElementById('metadata-doc-title').textContent = doc.title;
+    document.getElementById('metadata-title').value = doc.title || '';
+    document.getElementById('metadata-topic').value = doc.topic || '';
+    document.getElementById('metadata-type').value = doc.document_type || 'אחר';
+    document.getElementById('metadata-status').value = doc.lifecycle_status || 'current';
+    document.getElementById('metadata-modal')?.classList.remove('hidden');
+}
+
+function hideMetadataModal() {
+    document.getElementById('metadata-modal')?.classList.add('hidden');
+}
+
+async function saveMetadata() {
+    const docId = document.getElementById('metadata-doc-id').value;
+    const formData = new FormData();
+    formData.append('title', document.getElementById('metadata-title').value.trim());
+    formData.append('topic', document.getElementById('metadata-topic').value.trim());
+    formData.append('document_type', document.getElementById('metadata-type').value);
+    formData.append('lifecycle_status', document.getElementById('metadata-status').value);
+    try {
+        const res = await fetch(`/api/documents/${docId}/metadata`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'שגיאה');
+        hideMetadataModal();
+        loadDocuments();
+    } catch (e) {
+        alert('שגיאה בעדכון פרטי המסמך: ' + e.message);
     }
 }
 

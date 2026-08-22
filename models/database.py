@@ -159,6 +159,9 @@ async def _migrate_document_validity_columns(db: aiosqlite.Connection):
         "effective_date": "TEXT",
         "valid_until": "TEXT",
         "superseded_by": "INTEGER",
+        "topic": "TEXT",
+        "document_type": "TEXT",
+        "lifecycle_status": "TEXT NOT NULL DEFAULT 'current'",
     }
     for column, definition in migrations.items():
         if column not in columns:
@@ -279,6 +282,48 @@ async def set_document_validity(
             "UPDATE documents SET effective_date = ?, valid_until = ?, superseded_by = ? WHERE id = ?",
             (effective_date, valid_until, superseded_by, doc_id),
         )
+        await db.commit()
+    finally:
+        await db.close()
+
+
+async def update_document_metadata(
+    doc_id: int,
+    *,
+    title: str | None = None,
+    topic: str | None = None,
+    document_type: str | None = None,
+    lifecycle_status: str | None = None,
+):
+    """Update curator metadata and keep stored chunk citation titles in sync."""
+    allowed_statuses = {"current", "superseded", "repealed", "draft", "historical"}
+    if lifecycle_status is not None and lifecycle_status not in allowed_statuses:
+        raise ValueError(f"Unsupported lifecycle status: {lifecycle_status}")
+
+    db = await get_db()
+    try:
+        fields = []
+        values = []
+        for column, value in (
+            ("title", title),
+            ("topic", topic),
+            ("document_type", document_type),
+            ("lifecycle_status", lifecycle_status),
+        ):
+            if value is not None:
+                fields.append(f"{column} = ?")
+                values.append(value)
+        if not fields:
+            return
+        values.append(doc_id)
+        await db.execute(
+            f"UPDATE documents SET {', '.join(fields)} WHERE id = ?", values
+        )
+        if title is not None:
+            await db.execute(
+                "UPDATE document_chunks SET document_title = ? WHERE document_id = ?",
+                (title, doc_id),
+            )
         await db.commit()
     finally:
         await db.close()

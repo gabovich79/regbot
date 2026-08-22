@@ -54,6 +54,9 @@ def audit_corpus(db_path: str | Path) -> dict:
             "effective_date": document.get("effective_date"),
             "valid_until": document.get("valid_until"),
             "superseded_by": document.get("superseded_by"),
+            "topic": document.get("topic"),
+            "document_type": document.get("document_type"),
+            "lifecycle_status": document.get("lifecycle_status") or "current",
             "validity_status": document_validity_status(document),
             "issues": issues,
         })
