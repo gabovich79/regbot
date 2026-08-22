@@ -252,7 +252,10 @@ function renderDocumentSource(doc) {
     const originalLink = doc.original_path
         ? `<a href="/api/documents/${doc.id}/original" target="_blank" rel="noopener" class="text-blue-600 hover:underline">פתח קובץ</a>`
         : '';
-    const links = [originalLink, sourceRef].filter(Boolean).join(' · ');
+    const extractedTextLink = doc.text_path
+        ? `<a href="/api/documents/${doc.id}/text" target="_blank" rel="noopener" class="text-blue-600 hover:underline">פתח טקסט שחולץ</a>`
+        : '';
+    const links = [originalLink, extractedTextLink, sourceRef].filter(Boolean).join(' · ');
     return `<div><span class="px-2 py-1 rounded-full text-xs bg-gray-100">${type}</span><div class="mt-1 text-xs text-gray-500">${sourceSaved}${links ? ` ${links}` : ''}</div></div>`;
 }
 
