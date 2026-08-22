@@ -80,11 +80,26 @@ async def init_db():
                 value       TEXT NOT NULL,
                 updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS regulatory_parameters (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                parameter_key   TEXT NOT NULL,
+                tax_year        INTEGER NOT NULL,
+                value_text      TEXT NOT NULL,
+                unit            TEXT NOT NULL,
+                source_title    TEXT NOT NULL,
+                source_url      TEXT NOT NULL,
+                source_page     TEXT,
+                source_type     TEXT NOT NULL DEFAULT 'official',
+                verified_at     DATETIME,
+                UNIQUE(parameter_key, tax_year)
+            );
         """)
         await _migrate_document_indexing_columns(db)
         await _migrate_document_source_columns(db)
         await _migrate_chunk_citation_columns(db)
         await _migrate_document_validity_columns(db)
+        await _migrate_regulatory_parameters(db)
         await db.commit()
     finally:
         await db.close()
@@ -178,6 +193,28 @@ async def _migrate_document_validity_columns(db: aiosqlite.Connection):
                 (extracted, row["id"]),
             )
 
+
+
+async def _migrate_regulatory_parameters(db: aiosqlite.Connection):
+    """Seed verified year-specific tax parameters without overwriting updates."""
+    await db.execute(
+        """
+        INSERT OR IGNORE INTO regulatory_parameters
+            (parameter_key, tax_year, value_text, unit, source_title,
+             source_url, source_page, source_type, verified_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """,
+        (
+            "training_fund_favored_deposit_limit",
+            2026,
+            "20,566",
+            "ILS_PER_YEAR",
+            "לוח עזר לחישוב מס הכנסה — ינואר 2026 ואילך",
+            "https://www.gov.il/BlobFolder/generalpage/income-tax-monthly-deductions-booklet/he/generalInformation_income-tax-monthly-deductions-booklet_monthly-deductions-booklet-2026.pdf",
+            "12",
+            "official",
+        ),
+    )
 
 
 # --- Document queries ---
