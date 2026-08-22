@@ -9,6 +9,7 @@ from config import (
     GOOGLE_API_KEY, DEFAULT_MODEL, SYSTEM_PROMPT, MAX_OUTPUT_TOKENS, PRICING,
 )
 from services.rag_service import retrieve_relevant_chunks
+from services.tax_parameters import get_tax_parameter_context
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,8 @@ EVIDENCE_CITATION_CONTRACT = """
 - כל טענה מהותית המבוססת על המסמכים חייבת להסתיים במזהה evidence מדויק בפורמט `[D<doc>-P<page>]` או `[D<doc>-C<chunk>]`.
 - השתמש רק במזהים שמופיעים בכותרות `[[SOURCE D...]]` שקיבלת בהקשר.
 - אל תכתוב "קטע 1" או מספר עמוד שלא הופיע ב־SOURCE.
-- בסוף התשובה כלול רשימת "מקורות" עם שם מסמך, עמוד/עמודים, סעיף אם קיים ו־URL כפי שמופיעים ב־SOURCE.
+- אם קיבלת בלוק `[[TAX-PARAM-YYYY]]`, ציין את שנת המס, את הסכום ואת המקור של הפרמטר; אל תציג סכום כספי בלי שנה.
+- מקור חיצוני מסומן `official_web_fallback` אינו חלק מהקורפוס; ציין זאת במפורש אם השתמשת בו.
 """
 
 
@@ -48,9 +50,20 @@ def append_retrieved_sources(answer: str, context: str) -> str:
         sources.append(f"* [{citation_id}] {metadata}")
         if len(sources) == 8:
             break
-    if not sources:
+    tax_sources = re.findall(
+        r"\[\[TAX-PARAM-(\d+)\]\].*?מקור: ([^|\n]+).*?URL: (https?://[^\s\n]+)",
+        context,
+        re.DOTALL,
+    )
+    tax_lines = [f"* [TAX-PARAM-{year}] {title.strip()} | URL: {url}" for year, title, url in tax_sources]
+    if "מקורות שנשלפו" in answer:
+        if tax_lines and "TAX-PARAM-" not in answer:
+            return f"{answer.rstrip()}\n" + "\n".join(tax_lines)
         return answer
-    return f"{answer.rstrip()}\n\n---\nמקורות שנשלפו:\n" + "\n".join(sources)
+    if not sources and not tax_lines:
+        return answer
+    source_lines = sources + tax_lines
+    return f"{answer.rstrip()}\n\n---\nמקורות שנשלפו:\n" + "\n".join(source_lines)
 
 
 def calculate_cost(usage) -> float:
@@ -177,6 +190,9 @@ async def stream_chat(user_question: str, db,
             top_k=effective_top_k,
             context_window=context_window,
         )
+        tax_context = await get_tax_parameter_context(user_question)
+        if tax_context:
+            relevant_context = f"{tax_context}\n\n{relevant_context}" if relevant_context else tax_context
     except Exception as e:
         yield {"type": "error", "text": f"שגיאה בשליפת מסמכים: {str(e)}"}
         return
