@@ -14,3 +14,19 @@ URL: https://www.gov.il/tax-2026.pdf
 
     assert "TAX-PARAM-2026" in answer
     assert "https://www.gov.il/tax-2026.pdf" in answer
+
+
+def test_append_retrieved_sources_repairs_malformed_tax_citation():
+    context = """
+[[TAX-PARAM-2026]]
+פרמטר מס רשמי לשנת המס 2026: 20,566 ₪ לשנה.
+מקור: לוח ניכויים 2026 | עמוד: 12
+URL: https://www.gov.il/tax-2026.pdf
+[[/TAX-PARAM]]
+"""
+
+    answer = "הסכום הוא 20,566 ₪ לשנה [DTAX-PARAM-2026].\n\nמקורות שנשלפו:"
+    repaired = append_retrieved_sources(answer, context)
+
+    assert "[TAX-PARAM-2026]" in repaired
+    assert "https://www.gov.il/tax-2026.pdf" in repaired
