@@ -23,6 +23,57 @@ def score_answer_response(case: dict, answer: str) -> dict:
     }
 
 
+def score_professional_answer(case: dict, answer: str) -> dict:
+    """Score a professional answer against conclusion, concepts and actions."""
+    conclusion_terms = case.get("expected_conclusion", [])
+    required_concepts = case.get("required_concepts", [])
+    required_actions = case.get("required_actions", [])
+    clarification_terms = case.get("clarification_terms", [])
+    prohibited_terms = case.get("must_not_include", [])
+
+    def fraction_found(terms: list[str]) -> tuple[float, list[str]]:
+        missing = [term for term in terms if term not in answer]
+        return (1.0 if not terms else (len(terms) - len(missing)) / len(terms), missing)
+
+    conclusion_score, missing_conclusion = fraction_found(conclusion_terms)
+    concepts_score, missing_concepts = fraction_found(required_concepts)
+    actions_score, missing_actions = fraction_found(required_actions)
+    clarification_score, missing_clarification = fraction_found(clarification_terms)
+    prohibited_found = [term for term in prohibited_terms if term in answer]
+
+    expected_prefixes = case.get("expected_citation_prefixes", [])
+    any_prefixes = case.get("any_citation_prefixes", [])
+    missing_citations = [prefix for prefix in expected_prefixes if prefix not in answer]
+    missing_any_citations = (
+        any_prefixes if any_prefixes and not any(prefix in answer for prefix in any_prefixes) else []
+    )
+    clarification_passed = not case.get("requires_clarification") or clarification_score == 1.0
+    passed = (
+        conclusion_score == 1.0
+        and concepts_score == 1.0
+        and actions_score == 1.0
+        and clarification_passed
+        and not missing_citations
+        and not missing_any_citations
+        and not prohibited_found
+    )
+    return {
+        "id": case["id"],
+        "passed": passed,
+        "conclusion_score": conclusion_score,
+        "required_concepts_score": concepts_score,
+        "actionability_score": actions_score,
+        "clarification_score": clarification_score,
+        "missing_conclusion_terms": missing_conclusion,
+        "missing_required_concepts": missing_concepts,
+        "missing_required_actions": missing_actions,
+        "missing_clarification_terms": missing_clarification,
+        "missing_citation_prefixes": missing_citations,
+        "missing_any_citation_prefixes": missing_any_citations,
+        "prohibited_terms_found": prohibited_found,
+    }
+
+
 def score_retrieval_context(case: dict, context: str) -> dict:
     """Score whether all expected document titles appeared in retrieved context."""
     expected = case.get("expected_documents", [])
