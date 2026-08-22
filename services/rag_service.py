@@ -125,16 +125,22 @@ LEGAL_QUERY_GROUPS = (
 def build_retrieval_queries(question: str) -> list[str]:
     """Expand multi-issue legal questions into focused retrieval queries."""
     normalized = question.lower()
-    if "זכויות עמית" not in normalized:
-        return [question]
+    queries = [question]
 
-    matched = [label for label, terms in LEGAL_QUERY_GROUPS if any(term in normalized for term in terms)]
-    if len(matched) < 2:
-        return [question]
-    return [
-        question,
-        *[f"{label} זכויות עמית חוק הפיקוח על קופות גמל סעיף 25" for label in matched],
-    ]
+    if "זכויות עמית" in normalized:
+        matched = [label for label, terms in LEGAL_QUERY_GROUPS if any(term in normalized for term in terms)]
+        if len(matched) >= 2:
+            queries.extend(
+                f"{label} זכויות עמית חוק הפיקוח על קופות גמל סעיף 25" for label in matched
+            )
+
+    if "הלוואה" in normalized and "קרן השתלמות" in normalized:
+        queries.extend([
+            "הלוואה לעמית מקרן השתלמות תנאים חוזר 2016-9-17 סעיף 8(ד)",
+            "הלוואה כנגד כספים נזילים ולא נזילים קרן השתלמות 50% 80% שבע שנים",
+        ])
+
+    return queries
 
 
 def infer_document_authority(chunk: dict) -> str:

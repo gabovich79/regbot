@@ -16,7 +16,13 @@ def test_build_retrieval_queries_keeps_simple_question_single():
     assert build_retrieval_queries("מהו חוזר 2016-9-11?") == ["מהו חוזר 2016-9-11?"]
 
 
-def test_authority_ranking_promotes_law_for_rights_question():
+def test_build_retrieval_queries_focuses_training_fund_loan_conditions():
+    queries = build_retrieval_queries("האם אפשר לקחת הלוואה מקרן השתלמות ובאיזה תנאים?")
+
+    assert queries[0].startswith("האם אפשר")
+    assert any("2016-9-17" in query and "8(ד)" in query for query in queries)
+    assert any("50%" in query and "80%" in query and "שבע שנים" in query for query in queries)
+
     personal_fund_rules = {
         "document_id": 13,
         "document_title": "תקנות קופת גמל בניהול אישי — 2009",
