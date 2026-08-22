@@ -114,6 +114,59 @@ def _lexical_score(question: str, chunk: dict) -> float:
     return score
 
 
+
+LEGAL_QUERY_GROUPS = (
+    ("העברה", ("העברה", "העברת כספים")),
+    ("שעבוד", ("שעבוד",)),
+    ("עיקול", ("עיקול",)),
+)
+
+
+def build_retrieval_queries(question: str) -> list[str]:
+    """Expand multi-issue legal questions into focused retrieval queries."""
+    normalized = question.lower()
+    if "זכויות עמית" not in normalized:
+        return [question]
+
+    matched = [label for label, terms in LEGAL_QUERY_GROUPS if any(term in normalized for term in terms)]
+    if len(matched) < 2:
+        return [question]
+    return [
+        question,
+        *[f"{label} זכויות עמית חוק הפיקוח על קופות גמל סעיף 25" for label in matched],
+    ]
+
+
+def infer_document_authority(chunk: dict) -> str:
+    """Infer legal authority for legacy chunks that lack document_type metadata."""
+    explicit = (chunk.get("document_type") or "").strip()
+    if explicit:
+        return explicit
+    title = (chunk.get("document_title") or "").lower()
+    if "חוק" in title:
+        return "חוק"
+    if "תקנ" in title:
+        return "תקנה"
+    if "חוזר" in title:
+        return "חוזר"
+    if "הכרעה" in title:
+        return "הכרעה"
+    return "אחר"
+
+
+def authority_bonus(question: str, chunk: dict) -> float:
+    """Prefer primary legal authority for rights/prohibition questions."""
+    legal_terms = ("זכויות", "העברה", "שעבוד", "עיקול", "איסור", "מותר", "אסור")
+    if not any(term in question for term in legal_terms):
+        return 0.0
+    return {
+        "חוק": 0.040,
+        "תקנה": 0.020,
+        "חוזר": 0.010,
+        "הכרעה": 0.008,
+        "אחר": 0.0,
+    }.get(infer_document_authority(chunk), 0.0)
+
 def rank_hybrid_chunks(
     question: str,
     dense_scored_chunks: list[tuple[float, dict]],
@@ -144,6 +197,7 @@ def rank_hybrid_chunks(
             1 / (rrf_k + dense_rank[key])
             + 1 / (rrf_k + lexical_rank[key])
             + 0.01 * lexical_score[key]
+            + authority_bonus(question, chunk)
             - penalty
         )
         fused.append((score, chunk))
@@ -327,17 +381,21 @@ async def embed_and_store_chunks(chunks: list[dict], db) -> int:
 
 
 async def _retrieve_top_chunks(question: str, db, top_k: int = 20) -> list[dict]:
-    """Embed the question and rank chunks across active documents (no expansion)."""
-    q_response = await openai_client.embeddings.create(
-        model=EMBEDDING_MODEL,
-        input=question
-    )
-    q_vec = np.array(q_response.data[0].embedding)
+    """Embed and rank original plus focused queries across active documents."""
+    retrieval_queries = build_retrieval_queries(question)
+    query_vectors = []
+    for query in retrieval_queries:
+        q_response = await openai_client.embeddings.create(
+            model=EMBEDDING_MODEL,
+            input=query,
+        )
+        query_vectors.append(np.array(q_response.data[0].embedding))
 
-    # Load all chunks from active documents
+    # Load all chunks from active documents.
     cursor = await db.execute("""
         SELECT dc.*, d.superseded_by, d.valid_until,
-               d.effective_date AS doc_effective_date
+               d.effective_date AS doc_effective_date,
+               d.document_type
         FROM document_chunks dc
         JOIN documents d ON dc.document_id = d.id
         WHERE d.is_active = 1
@@ -347,7 +405,9 @@ async def _retrieve_top_chunks(question: str, db, top_k: int = 20) -> list[dict]
     if not rows:
         return []
 
-    # Cosine similarity scoring
+    # Score every chunk against each focused query. A chunk that matches more
+    # than one issue gets a small consensus bonus; the original question still
+    # remains in the query set and anchors overall relevance.
     scored = []
     for row in rows:
         row_dict = dict(row)
@@ -356,10 +416,11 @@ async def _retrieve_top_chunks(question: str, db, top_k: int = 20) -> list[dict]
             row_dict["effective_date"] = doc_effective
         row_dict["validity_status"] = document_validity_status(row_dict)
         vec = np.array(json.loads(row_dict["embedding"]))
-        score = float(
-            np.dot(q_vec, vec) /
-            (np.linalg.norm(q_vec) * np.linalg.norm(vec) + 1e-10)
-        )
+        similarities = [
+            float(np.dot(q_vec, vec) / (np.linalg.norm(q_vec) * np.linalg.norm(vec) + 1e-10))
+            for q_vec in query_vectors
+        ]
+        score = max(similarities) + 0.01 * max(0, sum(value >= 0.35 for value in similarities) - 1)
         scored.append((score, row_dict))
 
     return rank_hybrid_chunks(question, scored, max_per_document=3)[:top_k]
