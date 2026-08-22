@@ -92,12 +92,20 @@ def _lexical_score(question: str, chunk: dict) -> float:
     title = (chunk.get("document_title") or "").lower()
     source_ref = (chunk.get("document_ref") or "").lower()
     content = (chunk.get("content") or "").lower()
-    references = re.findall(r"\d{4}-\d+-\d+", normalized_question)
+    circular_references = re.findall(r"\d{4}-\d+-\d+", normalized_question)
+    references = re.findall(r"(?:סעיף|תקנה)\s+\d+(?:\([^\s)]+\))*", normalized_question)
+    percentages = re.findall(r"\d+%", normalized_question)
 
     score = 0.0
-    for reference in references:
+    for reference in circular_references:
         if reference in title or reference in source_ref:
             score += 100.0
+    for reference in references:
+        if reference in title or reference in source_ref or reference in (chunk.get("section_header") or "").lower() or reference in content:
+            score += 50.0
+    for percentage in percentages:
+        if percentage in content:
+            score += 20.0
 
     query_tokens = [
         token for token in re.findall(r"[\w\u0590-\u05FF]+", normalized_question)
