@@ -26,7 +26,7 @@ EVIDENCE_CITATION_CONTRACT = """
 - כל טענה מהותית המבוססת על המסמכים חייבת להסתיים במזהה evidence מדויק בפורמט `[D<doc>-P<page>]` או `[D<doc>-C<chunk>]`.
 - השתמש רק במזהים שמופיעים בכותרות `[[SOURCE D...]]` שקיבלת בהקשר.
 - אל תכתוב "קטע 1" או מספר עמוד שלא הופיע ב־SOURCE.
-- אם קיבלת בלוק `[[TAX-PARAM-YYYY]]`, ציין את שנת המס, את הסכום ואת המקור של הפרמטר; אל תציג סכום כספי בלי שנה.
+- אם קיבלת בלוק `[[TAX-PARAM-YYYY]]`, ציין את שנת המס, את הסכום ואת המקור של הפרמטר; השתמש בדיוק במזהה `[TAX-PARAM-YYYY]` ואל תוסיף לפניו `D`.
 - מקור חיצוני מסומן `official_web_fallback` אינו חלק מהקורפוס; ציין זאת במפורש אם השתמשת בו.
 """
 
@@ -38,8 +38,6 @@ def append_evidence_citation_contract(instructions: str) -> str:
 
 def append_retrieved_sources(answer: str, context: str) -> str:
     """Append compact machine-derived provenance when the model omits it."""
-    if "מקורות שנשלפו" in answer:
-        return answer
 
     sources = []
     seen = set()
@@ -57,8 +55,13 @@ def append_retrieved_sources(answer: str, context: str) -> str:
     )
     tax_lines = [f"* [TAX-PARAM-{year}] {title.strip()} | URL: {url}" for year, title, url in tax_sources]
     if "מקורות שנשלפו" in answer:
-        if tax_lines and "TAX-PARAM-" not in answer:
-            return f"{answer.rstrip()}\n" + "\n".join(tax_lines)
+        if tax_lines:
+            normalized_answer = re.sub(r"\[D?TAX-PARAM-(\d{4})\]", r"[TAX-PARAM-\1]", answer)
+            if "[TAX-PARAM-" not in normalized_answer:
+                return f"{normalized_answer.rstrip()}\n" + "\n".join(tax_lines)
+            if normalized_answer != answer and not any(line in normalized_answer for line in tax_lines):
+                return f"{normalized_answer.rstrip()}\n" + "\n".join(tax_lines)
+            return normalized_answer
         return answer
     if not sources and not tax_lines:
         return answer
