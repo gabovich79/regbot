@@ -1,0 +1,106 @@
+============================================================
+Benchmark comparison: flash (baseline) -> pro (candidate)
+Baseline : eval/results/web_answer_results.jsonl
+Candidate: eval/results/web_answer_results_pro.jsonl
+============================================================
+
+OVERALL  (n=36)
+  strict pass      1 ->    0 (-1)
+  conclusion    0.181 -> 0.278 (+0.097)
+  concepts      0.190 -> 0.255 (+0.065)
+  action        0.111 -> 0.139 (+0.028)
+  clarify       0.764 -> 0.819 (+0.056)
+
+------------------------------------------------------------
+PER CATEGORY
+
+abstention  (n=10)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.000 -> 0.000 ( 0.000)
+  concepts      0.150 -> 0.283 (+0.133)
+  action        0.000 -> 0.100 (+0.100)
+  clarify       0.150 -> 0.350 (+0.200)
+
+investments  (n=9)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.278 -> 0.333 (+0.056)
+  concepts      0.167 -> 0.167 ( 0.000)
+  action        0.333 -> 0.333 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+withdrawal  (n=4)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.250 -> 0.500 (+0.250)
+  concepts      0.125 -> 0.125 ( 0.000)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+severance  (n=3)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.333 -> 0.167 (-0.167)
+  concepts      0.278 -> 0.278 ( 0.000)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+products  (n=2)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.250 -> 0.750 (+0.500)
+  concepts      0.000 -> 0.250 (+0.250)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+employment  (n=2)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.000 -> 0.000 ( 0.000)
+  concepts      0.250 -> 0.250 ( 0.000)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+operations  (n=1)
+  strict pass      1 ->    0 (-1)
+  conclusion    1.000 -> 1.000 ( 0.000)
+  concepts      1.000 -> 0.500 (-0.500)
+  action        1.000 -> 1.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+identity  (n=1)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.000 -> 0.000 ( 0.000)
+  concepts      0.500 -> 0.500 ( 0.000)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+fees  (n=1)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.000 -> 1.000 (+1.000)
+  concepts      0.000 -> 1.000 (+1.000)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+reporting  (n=1)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.500 -> 0.500 ( 0.000)
+  concepts      0.000 -> 0.500 (+0.500)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+retirement  (n=1)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.000 -> 0.000 ( 0.000)
+  concepts      0.000 -> 0.000 ( 0.000)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+mobility  (n=1)
+  strict pass      0 ->    0 (  0)
+  conclusion    0.000 -> 0.500 (+0.500)
+  concepts      0.500 -> 0.000 (-0.500)
+  action        0.000 -> 0.000 ( 0.000)
+  clarify       1.000 -> 1.000 ( 0.000)
+
+------------------------------------------------------------
+FLIPS   FAIL->PASS: 0   PASS->FAIL: 1
+  - gemel-actions-clearinghouse
+
+============================================================
+Verdict: candidate REGRESSED  (1 -> 0 strict passes)
