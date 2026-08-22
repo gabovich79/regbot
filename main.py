@@ -22,7 +22,7 @@ from models.database import (
     get_conversation_messages, save_message, get_logs, get_costs_daily,
     get_costs_summary, get_db, get_setting, set_setting,
     update_document_index_status, update_document_source_artifact,
-    set_document_validity, update_document_metadata,
+    set_document_validity, update_document_metadata, archive_document,
 )
 from services.document_service import (
     extract_pdf_bytes, extract_pdf_bytes_pages, extract_docx_bytes, fetch_url_document, fetch_url_text, fetch_gdrive_text,
@@ -337,6 +337,16 @@ async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depe
             "המסמך נשמר אך האינדוקס נכשל — פתח את טבלת המסמכים כדי לראות את סיבת הכשל"
         ),
     }
+
+
+@app.post("/api/documents/{doc_id}/archive")
+async def archive_document_endpoint(doc_id: int, _=Depends(verify_admin)):
+    """Archive a document from retrieval without deleting its source files."""
+    doc = await get_document(doc_id)
+    if not doc:
+        raise HTTPException(404, "מסמך לא נמצא")
+    await archive_document(doc_id)
+    return {"message": "המסמך הועבר לארכיון והוסר מהחיפוש"}
 
 
 @app.delete("/api/documents/{doc_id}")
