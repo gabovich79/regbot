@@ -422,6 +422,7 @@ async def embed_and_store_chunks(chunks: list[dict], db) -> int:
 async def _retrieve_top_chunks(question: str, db, top_k: int = 20) -> list[dict]:
     """Embed and rank original plus focused queries across active documents."""
     retrieval_queries = build_retrieval_queries(question)
+    ranking_question = " ".join(retrieval_queries)
     query_vectors = []
     for query in retrieval_queries:
         q_response = await openai_client.embeddings.create(
@@ -462,7 +463,7 @@ async def _retrieve_top_chunks(question: str, db, top_k: int = 20) -> list[dict]
         score = max(similarities) + 0.01 * max(0, sum(value >= 0.35 for value in similarities) - 1)
         scored.append((score, row_dict))
 
-    ranked_chunks = rank_hybrid_chunks(question, scored, max_per_document=3)
+    ranked_chunks = rank_hybrid_chunks(ranking_question, scored, max_per_document=3)
     ranked_chunks = force_domain_evidence_chunks(
         question,
         ranked_chunks,
