@@ -57,10 +57,9 @@ def append_retrieved_sources(answer: str, context: str) -> str:
     if "מקורות שנשלפו" in answer:
         if tax_lines:
             normalized_answer = re.sub(r"\[D?TAX-PARAM-(\d{4})\]", r"[TAX-PARAM-\1]", answer)
-            if "[TAX-PARAM-" not in normalized_answer:
-                return f"{normalized_answer.rstrip()}\n" + "\n".join(tax_lines)
-            if normalized_answer != answer and not any(line in normalized_answer for line in tax_lines):
-                return f"{normalized_answer.rstrip()}\n" + "\n".join(tax_lines)
+            missing_tax_lines = [line for line in tax_lines if line not in normalized_answer]
+            if missing_tax_lines:
+                return f"{normalized_answer.rstrip()}\n" + "\n".join(missing_tax_lines)
             return normalized_answer
         return answer
     if not sources and not tax_lines:
