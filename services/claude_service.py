@@ -10,6 +10,7 @@ from config import (
 )
 from services.rag_service import retrieve_relevant_chunks
 from services.tax_parameters import get_tax_parameter_context
+from services.legal_rules import get_training_fund_loan_rule_context
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ EVIDENCE_CITATION_CONTRACT = """
 - השתמש רק במזהים שמופיעים בכותרות `[[SOURCE D...]]` שקיבלת בהקשר.
 - אל תכתוב "קטע 1" או מספר עמוד שלא הופיע ב־SOURCE.
 - אם קיבלת בלוק `[[TAX-PARAM-YYYY]]`, ציין את שנת המס, את הסכום ואת המקור של הפרמטר; השתמש בדיוק במזהה `[TAX-PARAM-YYYY]` ואל תוסיף לפניו `D`.
+- אם קיבלת בלוק `[[LEGAL-RULE ...]]`, השתמש בכלל רק עם המקור והסעיף שמופיעים בבלוק, ואל תציג תקרה רגולטורית כאישור שהגוף המוסדי יאשר את ההלוואה בפועל.
 - מקור חיצוני מסומן `official_web_fallback` אינו חלק מהקורפוס; ציין זאת במפורש אם השתמשת בו.
 """
 
@@ -54,6 +56,11 @@ def append_retrieved_sources(answer: str, context: str) -> str:
         re.DOTALL,
     )
     tax_lines = [f"* [TAX-PARAM-{year}] {title.strip()} | URL: {url}" for year, title, url in tax_sources]
+    legal_rule_lines = []
+    if "[[LEGAL-RULE LOAN-2016-9-17-8D]]" in context:
+        legal_rule_lines.append(
+            "* [LEGAL-RULE LOAN-2016-9-17-8D] חוזר גופים מוסדיים 2016-9-17, סעיף 8(ד) — הלוואה לעמית"
+        )
     if "מקורות שנשלפו" in answer:
         if tax_lines:
             normalized_answer = re.sub(r"\[D?TAX-PARAM-(\d{4})\]", r"[TAX-PARAM-\1]", answer)
@@ -61,10 +68,12 @@ def append_retrieved_sources(answer: str, context: str) -> str:
             if missing_tax_lines:
                 return f"{normalized_answer.rstrip()}\n" + "\n".join(missing_tax_lines)
             return normalized_answer
+        if legal_rule_lines and "LEGAL-RULE" not in answer:
+            return f"{answer.rstrip()}\n" + "\n".join(legal_rule_lines)
         return answer
-    if not sources and not tax_lines:
+    if not sources and not tax_lines and not legal_rule_lines:
         return answer
-    source_lines = sources + tax_lines
+    source_lines = sources + tax_lines + legal_rule_lines
     return f"{answer.rstrip()}\n\n---\nמקורות שנשלפו:\n" + "\n".join(source_lines)
 
 
@@ -193,8 +202,12 @@ async def stream_chat(user_question: str, db,
             context_window=context_window,
         )
         tax_context = await get_tax_parameter_context(user_question)
-        if tax_context:
-            relevant_context = f"{tax_context}\n\n{relevant_context}" if relevant_context else tax_context
+        loan_rule_context = get_training_fund_loan_rule_context(user_question)
+        additional_context = "\n\n".join(
+            context for context in (tax_context, loan_rule_context) if context
+        )
+        if additional_context:
+            relevant_context = f"{additional_context}\n\n{relevant_context}" if relevant_context else additional_context
     except Exception as e:
         yield {"type": "error", "text": f"שגיאה בשליפת מסמכים: {str(e)}"}
         return
