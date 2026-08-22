@@ -352,6 +352,24 @@ async def download_original_document(doc_id: int, _=Depends(verify_admin)):
     return FileResponse(original_path, filename=filename, content_disposition_type="inline")
 
 
+@app.get("/api/documents/{doc_id}/text")
+async def download_extracted_text(doc_id: int, _=Depends(verify_admin)):
+    """Serve the extracted UTF-8 text when the original binary is unavailable."""
+    doc = await get_document(doc_id)
+    if not doc:
+        raise HTTPException(404, "מסמך לא נמצא")
+    text_path = doc.get("text_path")
+    if not text_path or not os.path.isfile(text_path):
+        raise HTTPException(404, "קובץ הטקסט שחולץ לא נשמר עבור מסמך זה")
+    title = os.path.splitext(os.path.basename(doc.get("title") or "document"))[0]
+    return FileResponse(
+        text_path,
+        media_type="text/plain; charset=utf-8",
+        filename=f"{title}.txt",
+        content_disposition_type="inline",
+    )
+
+
 @app.post("/api/documents/{doc_id}/archive")
 async def archive_document_endpoint(doc_id: int, _=Depends(verify_admin)):
     """Archive a document from retrieval without deleting its source files."""
