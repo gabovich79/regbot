@@ -22,6 +22,7 @@ from models.database import (
     get_conversation_messages, save_message, get_logs, get_costs_daily,
     get_costs_summary, get_db, get_setting, set_setting,
     update_document_index_status, update_document_source_artifact,
+    set_document_validity, update_document_metadata,
 )
 from services.document_service import (
     extract_pdf_bytes, extract_pdf_bytes_pages, extract_docx_bytes, fetch_url_document, fetch_url_text, fetch_gdrive_text,
@@ -346,6 +347,65 @@ async def remove_document(doc_id: int, _=Depends(verify_admin)):
     delete_document_file(doc["text_path"])
     await delete_document(doc_id)
     return {"message": "המסמך הוסר בהצלחה"}
+
+
+@app.post("/api/documents/{doc_id}/validity")
+async def set_document_validity_endpoint(
+    doc_id: int,
+    effective_date: str = Form(None),
+    valid_until: str = Form(None),
+    superseded_by: str = Form(None),
+    _=Depends(verify_admin),
+):
+    """Set a document's effective date and supersession status."""
+    doc = await get_document(doc_id)
+    if not doc:
+        raise HTTPException(404, "מסמך לא נמצא")
+
+    superseded_by_id: int | None = None
+    if superseded_by not in (None, ""):
+        superseded_by_id = int(superseded_by)
+        if superseded_by_id == doc_id:
+            raise HTTPException(400, "מסמך לא יכול להחליף את עצמו")
+        replacement = await get_document(superseded_by_id)
+        if not replacement:
+            raise HTTPException(400, "המסמך המחליף לא נמצא")
+
+    await set_document_validity(
+        doc_id,
+        effective_date=(effective_date or None),
+        valid_until=(valid_until or None),
+        superseded_by=superseded_by_id,
+    )
+    return {"message": "סטטוס התוקף עודכן בהצלחה"}
+
+
+@app.post("/api/documents/{doc_id}/metadata")
+async def update_document_metadata_endpoint(
+    doc_id: int,
+    title: str = Form(None),
+    topic: str = Form(None),
+    document_type: str = Form(None),
+    lifecycle_status: str = Form(None),
+    _=Depends(verify_admin),
+):
+    """Update curator metadata without re-indexing or deleting the document."""
+    doc = await get_document(doc_id)
+    if not doc:
+        raise HTTPException(404, "מסמך לא נמצא")
+    if title is not None and not title.strip():
+        raise HTTPException(400, "כותרת לא יכולה להיות ריקה")
+    try:
+        await update_document_metadata(
+            doc_id,
+            title=title.strip() if title is not None else None,
+            topic=topic.strip() if topic is not None else None,
+            document_type=document_type.strip() if document_type is not None else None,
+            lifecycle_status=lifecycle_status or None,
+        )
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
+    return {"message": "פרטי המסמך עודכנו בהצלחה"}
 
 
 @app.get("/api/documents/stats")

@@ -30,6 +30,9 @@ async def init_db():
                 index_error  TEXT,
                 indexed_at   DATETIME,
                 chunk_count  INTEGER NOT NULL DEFAULT 0,
+                effective_date TEXT,
+                valid_until  TEXT,
+                superseded_by INTEGER,
                 added_at    DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -81,6 +84,7 @@ async def init_db():
         await _migrate_document_indexing_columns(db)
         await _migrate_document_source_columns(db)
         await _migrate_chunk_citation_columns(db)
+        await _migrate_document_validity_columns(db)
         await db.commit()
     finally:
         await db.close()
@@ -143,6 +147,37 @@ async def _migrate_chunk_citation_columns(db: aiosqlite.Connection):
     for column in ("page_start", "page_end"):
         if column not in columns:
             await db.execute(f"ALTER TABLE document_chunks ADD COLUMN {column} INTEGER")
+
+
+async def _migrate_document_validity_columns(db: aiosqlite.Connection):
+    """Add validity metadata and backfill effective_date from circular titles."""
+    from services.validity import extract_date_from_title
+
+    cursor = await db.execute("PRAGMA table_info(documents)")
+    columns = {row["name"] for row in await cursor.fetchall()}
+    migrations = {
+        "effective_date": "TEXT",
+        "valid_until": "TEXT",
+        "superseded_by": "INTEGER",
+        "topic": "TEXT",
+        "document_type": "TEXT",
+        "lifecycle_status": "TEXT NOT NULL DEFAULT 'current'",
+    }
+    for column, definition in migrations.items():
+        if column not in columns:
+            await db.execute(f"ALTER TABLE documents ADD COLUMN {column} {definition}")
+
+    # Backfill what can be inferred safely: circular titles embed their date.
+    cursor = await db.execute("SELECT id, title FROM documents WHERE effective_date IS NULL")
+    rows = await cursor.fetchall()
+    for row in rows:
+        extracted = extract_date_from_title(row["title"])
+        if extracted:
+            await db.execute(
+                "UPDATE documents SET effective_date = ? WHERE id = ?",
+                (extracted, row["id"]),
+            )
+
 
 
 # --- Document queries ---
@@ -228,6 +263,67 @@ async def update_document_extraction(doc_id: int, *, text_path: str, token_count
             "UPDATE documents SET text_path = ?, token_count = ? WHERE id = ?",
             (text_path, token_count, doc_id),
         )
+        await db.commit()
+    finally:
+        await db.close()
+
+
+async def set_document_validity(
+    doc_id: int,
+    *,
+    effective_date: str | None = None,
+    valid_until: str | None = None,
+    superseded_by: int | None = None,
+):
+    """Set a document's validity fields; passing None clears that field."""
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE documents SET effective_date = ?, valid_until = ?, superseded_by = ? WHERE id = ?",
+            (effective_date, valid_until, superseded_by, doc_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
+async def update_document_metadata(
+    doc_id: int,
+    *,
+    title: str | None = None,
+    topic: str | None = None,
+    document_type: str | None = None,
+    lifecycle_status: str | None = None,
+):
+    """Update curator metadata and keep stored chunk citation titles in sync."""
+    allowed_statuses = {"current", "superseded", "repealed", "draft", "historical"}
+    if lifecycle_status is not None and lifecycle_status not in allowed_statuses:
+        raise ValueError(f"Unsupported lifecycle status: {lifecycle_status}")
+
+    db = await get_db()
+    try:
+        fields = []
+        values = []
+        for column, value in (
+            ("title", title),
+            ("topic", topic),
+            ("document_type", document_type),
+            ("lifecycle_status", lifecycle_status),
+        ):
+            if value is not None:
+                fields.append(f"{column} = ?")
+                values.append(value)
+        if not fields:
+            return
+        values.append(doc_id)
+        await db.execute(
+            f"UPDATE documents SET {', '.join(fields)} WHERE id = ?", values
+        )
+        if title is not None:
+            await db.execute(
+                "UPDATE document_chunks SET document_title = ? WHERE document_id = ?",
+                (title, doc_id),
+            )
         await db.commit()
     finally:
         await db.close()

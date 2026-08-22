@@ -2,6 +2,7 @@ import time
 import re
 import asyncio
 import logging
+import functools
 from google import genai
 from google.genai import types
 from config import (
@@ -11,8 +12,10 @@ from services.rag_service import retrieve_relevant_chunks
 
 logger = logging.getLogger(__name__)
 
-# Initialize Google GenAI client
-client = genai.Client(api_key=GOOGLE_API_KEY)
+@functools.lru_cache(maxsize=1)
+def _get_client():
+    """Lazily build the Gemini client so the app can boot without GOOGLE_API_KEY."""
+    return genai.Client(api_key=GOOGLE_API_KEY)
 
 # Timeout for Gemini API calls (seconds)
 GEMINI_TIMEOUT = 90
@@ -130,7 +133,7 @@ def _sync_send_and_collect(system_instructions: str, gemini_history: list, user_
 
     chunks = []
     last_chunk = None
-    for chunk in client.models.generate_content_stream(
+    for chunk in _get_client().models.generate_content_stream(
         model=DEFAULT_MODEL,
         contents=contents,
         config=config,

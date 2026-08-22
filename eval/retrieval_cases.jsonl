@@ -1,8 +1,17 @@
-{"id":"circular-2024-9-8","category":"exact-reference","question":"מה קובע חוזר גמל 2024-9-8 בנושא שיעורי תמותה?","expected_documents":["חוזר גמל 2024-9-8"]}
-{"id":"transfer-funds-2020","category":"exact-reference","question":"מה קובע חוזר גמל 2020-9-2 בנושא העברת כספים בין קופות גמל?","expected_documents":["חוזר גמל 2020-9-2 העברת כספים"]}
-{"id":"uniform-interface","category":"exact-reference","question":"מהו חוזר גמל 2020-9-3 בנושא מבנה אחיד להעברת מידע?","expected_documents":["חוזר גמל 2020-9-3 מבנה אחיד העברת מידע"]}
-{"id":"management-fees","category":"exact-reference","question":"מה קובע חוזר גמל 2016-9-8 בנושא דמי ניהול?","expected_documents":["חוזר גמל 2016-9-8 דמי ניהול"]}
-{"id":"fund-transfer-2022","category":"exact-reference","question":"מה קובע חוזר גמל 2022-9-3 בנושא ניוד בין קופות?","expected_documents":["חוזר גמל 2022-9-3 ניוד בין קופות"]}
-{"id":"complex-transfer-and-information","category":"multi-document","question":"לקוח מבקש לנייד כספים בין קופות גמל. איזה מידע צריך לעבור ואילו הוראות רלוונטיות להעברת הכספים?","expected_documents":["חוזר גמל 2020-9-2 העברת כספים","חוזר גמל 2020-9-3 מבנה אחיד העברת מידע"]}
-{"id":"annual-cost-disclosure","category":"semantic","question":"מה נדרש לגלות לעמית לגבי העלות השנתית הצפויה?","expected_documents":["חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה"]}
-{"id":"age-dependent-tracks","category":"semantic","question":"מהן ההוראות למסלולי השקעה תלויי גיל?","expected_documents":["חוזר גמל 2016-9-11 מסלולי תלויי גיל"]}
+{"id":"fees-management","category":"semantic","question":"כמה דמי ניהול מותר לגבות מעמית בקופת גמל?","relevant_documents":["2016-9-8 דמי ניהול"],"distractor_documents":["2019-9-14 גילוי עלות"]}
+{"id":"transfer-funds","category":"semantic","question":"איך מעבירים כספים בין קופות גמל?","relevant_documents":["2020-9-2 העברת כספים","העברת כספים בין קופות גמל"],"distractor_documents":["2022-9-3 ניוד בין קופות"]}
+{"id":"fund-mobility","category":"semantic","question":"מה ההליך לניוד כספים מקופת גמל אחת לאחרת?","relevant_documents":["2022-9-3 ניוד בין קופות"],"distractor_documents":["2020-9-2 העברת כספים"]}
+{"id":"uniform-interface","category":"semantic","question":"איזה מידע גוף מוסדי צריך להעביר לגוף אחר ובאיזה מבנה?","relevant_documents":["2020-9-3 מבנה אחיד"],"distractor_documents":["2020-9-2 העברת כספים"]}
+{"id":"age-dependent-tracks","category":"semantic","question":"מהן ההוראות למסלולי השקעה תלויי גיל?","relevant_documents":["2016-9-11 מסלולי תלויי גיל"]}
+{"id":"mortality-tables","category":"semantic","question":"מהן טבלאות התמותה המעודכנות לחישוב ההתחייבויות האקטואריות?","relevant_documents":["2024-9-8"]}
+{"id":"identity-verification","category":"semantic","question":"מה נדרש כדי לאמת את זהותו של לקוח?","relevant_documents":["2013-9-10 אימות זהות"]}
+{"id":"annual-cost-disclosure","category":"multi-document","question":"מה צריך לגלות לעמית לגבי העלות השנתית הצפויה וכיצד להציג אותה?","relevant_documents":["2019-9-14 גילוי עלות","אופן הצגת העלות השנתית"]}
+{"id":"emergency-rules","category":"semantic","question":"מהן הוראות הממונה על שוק ההון לשעת חירום?","relevant_documents":["הוראות הממונה על שוק ההון לשעת חירום"]}
+{"id":"periodic-reports","category":"semantic","question":"איך עורכים דוח תקופתי לעמית?","relevant_documents":["דוחות תקופתיים"]}
+{"id":"statistical-collection","category":"semantic","question":"איזה מידע סטטיסטי גוף מוסדי צריך למסור בנוגע לפניות ציבור?","relevant_documents":["2019-9-3 איסוף מידע"]}
+{"id":"operations-by-institution","category":"semantic","question":"מה נדרש מגוף מוסדי בביצוע פעולות עבור עמית?","relevant_documents":["2015-9-30 ביצוע פעולות"]}
+{"id":"asset-management","category":"semantic","question":"מהם כללי ניהול נכסי ההשקעה של גוף מוסדי?","relevant_documents":["ניהול נכסי השקעה"]}
+{"id":"illiquid-assets","category":"semantic","question":"איך מתייחסים לנכסים לא סחירים או לטווח ארוך בהשקעות גופים מוסדיים?","relevant_documents":["נכסים לא סחירים"]}
+{"id":"personal-managed-fund","category":"semantic","question":"מהם התנאים לקופת גמל בניהול אישי?","relevant_documents":["קופת גמל בניהול אישי"]}
+{"id":"reservist-deposits","category":"semantic","question":"איך מסווגים הפקדות של משרתי מילואים?","relevant_documents":["משרתי מילואים"]}
+{"id":"severance-continuity","category":"semantic","question":"מה קובע תיקון 173 לגבי רצף זכויות בפיצויים?","relevant_documents":["173-רצף זכויות"]}
