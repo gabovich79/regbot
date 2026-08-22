@@ -151,6 +151,31 @@ def build_retrieval_queries(question: str) -> list[str]:
     return queries
 
 
+def force_domain_evidence_chunks(
+    question: str,
+    ranked_chunks: list[dict],
+    candidate_chunks: list[dict],
+) -> list[dict]:
+    """Force direct numeric loan-rule evidence into context for loan questions."""
+    normalized = question.lower()
+    if "הלוואה" not in normalized or "קרן השתלמות" not in normalized:
+        return ranked_chunks
+    markers = ("50%", "80%", "50 אחוז", "80 אחוז", "שבע שנים", "7 שנים", "8(ד)")
+    exact = [
+        chunk for chunk in candidate_chunks
+        if any(marker in (chunk.get("content") or "").lower() for marker in markers)
+        or any(marker in (chunk.get("section_header") or "").lower() for marker in markers)
+    ]
+    selected = list(ranked_chunks)
+    selected_ids = {(chunk["document_id"], chunk.get("chunk_index")) for chunk in selected}
+    for chunk in exact:
+        key = (chunk["document_id"], chunk.get("chunk_index"))
+        if key not in selected_ids:
+            selected.insert(0, chunk)
+            selected_ids.add(key)
+    return selected
+
+
 def infer_document_authority(chunk: dict) -> str:
     """Infer legal authority for legacy chunks that lack document_type metadata."""
     explicit = (chunk.get("document_type") or "").strip()
@@ -437,7 +462,13 @@ async def _retrieve_top_chunks(question: str, db, top_k: int = 20) -> list[dict]
         score = max(similarities) + 0.01 * max(0, sum(value >= 0.35 for value in similarities) - 1)
         scored.append((score, row_dict))
 
-    return rank_hybrid_chunks(question, scored, max_per_document=3)[:top_k]
+    ranked_chunks = rank_hybrid_chunks(question, scored, max_per_document=3)
+    ranked_chunks = force_domain_evidence_chunks(
+        question,
+        ranked_chunks,
+        [chunk for _, chunk in scored],
+    )
+    return ranked_chunks[:top_k]
 
 
 async def retrieve_ranked_documents(question: str, db, top_k: int = 20) -> list[dict]:
