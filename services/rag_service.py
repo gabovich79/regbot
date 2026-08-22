@@ -160,7 +160,7 @@ def force_domain_evidence_chunks(
     normalized = question.lower()
     if "הלוואה" not in normalized or "קרן השתלמות" not in normalized:
         return ranked_chunks
-    markers = ("50%", "80%", "50 אחוז", "80 אחוז", "שבע שנים", "7 שנים", "8(ד)")
+    markers = ("50%", "80%", "50 אחוז", "80 אחוז", "50 אחוזים", "80 אחוזים", "שבע שנים", "7 שנים", "8(ד)")
     exact = [
         chunk for chunk in candidate_chunks
         if any(marker in (chunk.get("content") or "").lower() for marker in markers)
