@@ -1,0 +1,45 @@
+{
+  "captured_at": "2026-08-29T23:05:34+03:00",
+  "production_url": "https://regbot-wly9.onrender.com",
+  "git_commit": "9e672e29e043ea05503cc6ea511035f71c4529bf",
+  "git_branch": "feat/hierarchical-legal-retrieval",
+  "api_version": "rag-embeddings-v1",
+  "active_documents": 36,
+  "active_document_chunks": 818,
+  "database_total_chunks_including_inactive": 819,
+  "generation_model": "gemini-2.5-flash",
+  "embedding_model": "text-embedding-3-large",
+  "retrieval": {
+    "strategy": "flat_global_chunk_scan",
+    "top_k": 20,
+    "context_window": 1,
+    "max_context_tokens": 50000,
+    "ranking": [
+      "dense_cosine",
+      "lexical_score",
+      "authority_bonus",
+      "validity_penalty",
+      "question_specific_intent_boosts"
+    ]
+  },
+  "manifest": "eval/production_corpus_manifest_2026-08-29.json",
+  "known_corpus_corrections": [
+    {
+      "document_id": 22,
+      "previous_wrong_title": "חוזר גמל 2016-9-11 מסלולי תלויי גיל",
+      "corrected_title": "העברת כספים בין קופות גמל - תיקון",
+      "topic": "ניודים, העברות בין קופות"
+    },
+    {
+      "document_id": 38,
+      "title": "רשימת מסלולי השקעה – תיקון (2024-1471)",
+      "topic": "רשימת מסלולי השקעה",
+      "source_checksum": "3c4c0c0ea5b784c357642c19ac8aadeea874699ad29acdb597152a1ede2ef199"
+    }
+  ],
+  "production_mutated": false,
+  "notes": [
+    "This baseline is read-only and does not activate hierarchical retrieval.",
+    "Document 38 was uploaded and document 22 metadata was corrected before baseline capture."
+  ]
+}

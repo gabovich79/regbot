@@ -2,7 +2,7 @@
 {"id":"transfer-funds","category":"semantic","question":"איך מעבירים כספים בין קופות גמל?","relevant_documents":["2020-9-2 העברת כספים","העברת כספים בין קופות גמל"],"distractor_documents":["2022-9-3 ניוד בין קופות"]}
 {"id":"fund-mobility","category":"semantic","question":"מה ההליך לניוד כספים מקופת גמל אחת לאחרת?","relevant_documents":["2022-9-3 ניוד בין קופות"],"distractor_documents":["2020-9-2 העברת כספים"]}
 {"id":"uniform-interface","category":"semantic","question":"איזה מידע גוף מוסדי צריך להעביר לגוף אחר ובאיזה מבנה?","relevant_documents":["2020-9-3 מבנה אחיד"],"distractor_documents":["2020-9-2 העברת כספים"]}
-{"id":"age-dependent-tracks","category":"semantic","question":"מהן ההוראות למסלולי השקעה תלויי גיל?","relevant_documents":["2016-9-11 מסלולי תלויי גיל"]}
+{"id":"age-dependent-tracks","category":"semantic","question":"מהן ההוראות למסלולי השקעה תלויי גיל?","relevant_documents":["רשימת מסלולי השקעה","2024-1471"],"distractor_documents":["העברת כספים בין קופות גמל"]}
 {"id":"mortality-tables","category":"semantic","question":"מהן טבלאות התמותה המעודכנות לחישוב ההתחייבויות האקטואריות?","relevant_documents":["2024-9-8"]}
 {"id":"identity-verification","category":"semantic","question":"מה נדרש כדי לאמת את זהותו של לקוח?","relevant_documents":["2013-9-10 אימות זהות"]}
 {"id":"annual-cost-disclosure","category":"multi-document","question":"מה צריך לגלות לעמית לגבי העלות השנתית הצפויה וכיצד להציג אותה?","relevant_documents":["2019-9-14 גילוי עלות","אופן הצגת העלות השנתית"]}
