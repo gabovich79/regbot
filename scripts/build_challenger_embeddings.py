@@ -4,25 +4,34 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from config import DATA_DIR, DOCUMENTS_DIR
 from services.document_profile_service import build_document_profile
 from services.legal_parser import build_legal_tree
 from services.embeddings import embed_texts
 
 MANIFEST = Path("eval/production_corpus_manifest_2026-08-29.json")
-TEXT_ROOT = Path("/tmp/regbot-hierarchical-corpus/texts")
 CACHE_PATH = Path("results/challenger_embeddings_cache.json")
+
+
+def text_root() -> Path:
+    """Use the deployed documents dir when DATA_DIR is /var/data (Render)."""
+    if os.environ.get("DATA_DIR"):
+        return Path(DOCUMENTS_DIR)
+    return Path("/tmp/regbot-hierarchical-corpus/texts")
 
 
 def load_documents() -> list[dict]:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    root = text_root()
     docs = []
     for doc in manifest:
-        text = (TEXT_ROOT / f"{doc['id']}.txt").read_text(encoding="utf-8", errors="replace")
+        text = (root / f"{doc['id']}.txt").read_text(encoding="utf-8", errors="replace")
         docs.append({"doc": doc, "text": text})
     return docs
 
