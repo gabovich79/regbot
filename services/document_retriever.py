@@ -78,7 +78,11 @@ class DocumentRetriever:
 
         scored = []
         for document in self.documents:
-            all_sections = self.document_sections.get(int(document["id"]), [])
+            raw_document_id = document.get("document_id")
+            if raw_document_id is None:
+                raw_document_id = document["id"]
+            document_id = int(raw_document_id)
+            all_sections = self.document_sections.get(document_id, [])
             profile_terms = _terms(self._profile_text(document, all_sections))
             overlap = len(query_terms & profile_terms)
             number_hits = sum(
@@ -95,7 +99,7 @@ class DocumentRetriever:
                 )
             )
             score = overlap + 30.0 * number_hits + 20.0 * section_hits
-            scored.append({"document_id": int(document["id"]), "score": score, **document})
+            scored.append({"document_id": document_id, "score": score, **document})
 
         scored.sort(key=lambda item: item["score"], reverse=True)
         return scored[:top_k]

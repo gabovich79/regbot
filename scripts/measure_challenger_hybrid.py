@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Hybrid (dense+lexical) hierarchical retrieval evaluation.
-
-Reads embeddings cache produced by build_challenger_embeddings.py and measures
-document Recall@3/@5 on the hierarchical cases.
-"""
+"""Hybrid dense+lexical document-retrieval evaluation for the challenger."""
 
 from __future__ import annotations
 
@@ -11,113 +7,130 @@ import asyncio
 import json
 import sys
 from pathlib import Path
+from typing import Awaitable, Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 
-from config import EMBEDDING_MODEL
 from services.document_retriever import DocumentRetriever
 
 CACHE = Path("results/challenger_embeddings_cache.json")
 CASES = Path("eval/hierarchical_cases.jsonl")
+RRF_K = 60
 
 
 def cosine(a: list[float], b: list[float]) -> float:
     va, vb = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
-    denom = float(np.linalg.norm(va) * np.linalg.norm(vb))
-    return float(np.dot(va, vb) / denom) if denom else 0.0
+    denominator = float(np.linalg.norm(va) * np.linalg.norm(vb))
+    return float(np.dot(va, vb) / denominator) if denominator else 0.0
+
+
+async def evaluate_hybrid(
+    profiles: list[dict],
+    cases: list[dict],
+    embed_queries: Callable[[list[str]], Awaitable[list[list[float]]]],
+    *,
+    top_k: int = 5,
+) -> dict:
+    """Evaluate every unique question once and require full multi-source recall."""
+    scored_cases = [case for case in cases if case.get("required_document_ids")]
+    unique_questions = list(dict.fromkeys(case["question"] for case in scored_cases))
+    vectors = await embed_queries(unique_questions)
+    if len(vectors) != len(unique_questions):
+        raise ValueError("Embedding provider returned an unexpected query-vector count")
+    query_vectors = dict(zip(unique_questions, vectors))
+
+    lexical = DocumentRetriever(profiles, document_sections={})
+    rows = []
+    for case in scored_cases:
+        question = case["question"]
+        required = set(case["required_document_ids"])
+        lexical_results = lexical.retrieve(question, top_k=len(profiles))
+        lexical_rank = {
+            int(document["document_id"]): rank
+            for rank, document in enumerate(lexical_results, 1)
+        }
+        dense_results = sorted(
+            ((cosine(profile["embedding"], query_vectors[question]), profile) for profile in profiles),
+            key=lambda item: item[0],
+            reverse=True,
+        )
+        dense_rank = {
+            int(profile["document_id"]): rank
+            for rank, (_, profile) in enumerate(dense_results, 1)
+        }
+        fused = sorted(
+            (
+                (
+                    1 / (RRF_K + lexical_rank[int(profile["document_id"])])
+                    + 1 / (RRF_K + dense_rank[int(profile["document_id"])]),
+                    int(profile["document_id"]),
+                )
+                for profile in profiles
+            ),
+            reverse=True,
+        )
+        selected = [document_id for _, document_id in fused[:top_k]]
+        retrieved_required = required & set(selected)
+        first_hit = next(
+            (rank for rank, document_id in enumerate(selected, 1) if document_id in required),
+            None,
+        )
+        rows.append(
+            {
+                "id": case["id"],
+                "required": sorted(required),
+                "selected": selected,
+                "hit_at": first_hit,
+                "required_recall_at_3": round(
+                    len(required & set(selected[:3])) / len(required), 3
+                ),
+                "required_recall_at_5": round(len(retrieved_required) / len(required), 3),
+                "all_required_documents_at_3": int(required <= set(selected[:3])),
+                "all_required_documents_at_5": int(required <= set(selected)),
+            }
+        )
+
+    metrics = {
+        "cases": len(rows),
+        "document_recall_at_3": round(
+            sum(row["required_recall_at_3"] for row in rows) / max(len(rows), 1), 3
+        ),
+        "document_recall_at_5": round(
+            sum(row["required_recall_at_5"] for row in rows) / max(len(rows), 1), 3
+        ),
+        "all_required_documents_recall_at_3": round(
+            sum(row["all_required_documents_at_3"] for row in rows) / max(len(rows), 1), 3
+        ),
+        "all_required_documents_recall_at_5": round(
+            sum(row["all_required_documents_at_5"] for row in rows) / max(len(rows), 1), 3
+        ),
+    }
+    return {"metrics": metrics, "rows": rows}
+
+
+async def _embed_queries(questions: list[str]) -> list[list[float]]:
+    from services.embeddings import embed_texts
+
+    return await embed_texts(questions)
 
 
 def main() -> int:
     if not CACHE.exists():
         print(json.dumps({"error": "cache missing; run build_challenger_embeddings.py first"}))
         return 1
-    cache = json.loads(CACHE.read_text(encoding="utf-8"))
-    profiles = cache["profiles"]
+    profiles = json.loads(CACHE.read_text(encoding="utf-8"))["profiles"]
     cases = [
         json.loads(line)
         for line in CASES.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
-
-    lexical = DocumentRetriever(profiles, document_sections={})
-    rows = []
-    for case in cases:
-        required = set(case.get("required_document_ids", []))
-        if not required:
-            continue
-        question = case["question"]
-        # Lexical order first (already includes official numbers/sections).
-        lex = lexical.retrieve(question, top_k=10)
-        lex_rank = {d["document_id"]: i for i, d in enumerate(lex)}
-
-        dense_scores = []
-        for p in profiles:
-            dense_scores.append((cosine(p["embedding"], _embed_query(question, profiles)), p))
-        dense_scores.sort(key=lambda item: item[0], reverse=True)
-        dense_rank = {p["document_id"]: i for i, (_, p) in enumerate(dense_scores)}
-
-        fused = []
-        for p in profiles:
-            did = int(p["document_id"])
-            rrf = 1 / (60 + lex_rank.get(did, 100)) + 1 / (60 + dense_rank.get(did, 100))
-            fused.append((rrf, did))
-        fused.sort(key=lambda item: item[0], reverse=True)
-        selected = [did for _, did in fused[:5]]
-
-        hit_at = next((i + 1 for i, did in enumerate(selected) if did in required), None)
-        rows.append(
-            {
-                "id": case["id"],
-                "required": sorted(required),
-                "selected": selected,
-                "hit_at": hit_at,
-                "recall_at_3": 1 if hit_at and hit_at <= 3 else 0,
-                "recall_at_5": 1 if hit_at and hit_at <= 5 else 0,
-            }
-        )
-
-    metrics = {
-        "cases": len(rows),
-        "recall_at_3": round(sum(r["recall_at_3"] for r in rows) / max(len(rows), 1), 3),
-        "recall_at_5": round(sum(r["recall_at_5"] for r in rows) / max(len(rows), 1), 3),
-    }
-    out = Path("results/challenger_hybrid_metrics.json")
-    out.write_text(json.dumps({"metrics": metrics, "rows": rows}, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps(metrics, ensure_ascii=False, indent=2))
+    result = asyncio.run(evaluate_hybrid(profiles, cases, _embed_queries))
+    output = Path("results/challenger_hybrid_metrics.json")
+    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(json.dumps(result["metrics"], ensure_ascii=False, indent=2))
     return 0
-
-
-def _embed_query(question: str, profiles: list[dict]) -> list[float]:
-    """Embed the question itself; fall back to a profile-mean proxy offline."""
-    try:
-        from services.embeddings import embed_texts
-
-        vectors = asyncio.run(embed_texts([question]))
-        return vectors[0]
-    except Exception:
-        from services.document_retriever import _terms
-
-        terms = _terms(question)
-        hits = [
-            p
-            for p in profiles
-            if terms & _terms(
-                " ".join(
-                    str(p.get(field) or "")
-                    for field in ("canonical_title", "topics", "profile_summary")
-                )
-            )
-        ]
-        if not hits:
-            return [0.0] * len(profiles[0]["embedding"])
-        dim = len(profiles[0]["embedding"])
-        vec = np.zeros(dim, dtype=float)
-        for p in hits[:5]:
-            vec += np.asarray(p["embedding"], dtype=float)
-        vec /= len(hits[:5])
-        return vec.tolist()
 
 
 if __name__ == "__main__":
