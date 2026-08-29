@@ -47,6 +47,7 @@ def build_profiles(docs: list[dict]) -> list[dict]:
 
 def build_nodes(docs: list[dict]) -> list[dict]:
     nodes = []
+    original_to_new: dict[int, int] = {}
     node_id = 1
     for item in docs:
         doc = item["doc"]
@@ -54,22 +55,29 @@ def build_nodes(docs: list[dict]) -> list[dict]:
         tree = build_legal_tree(paragraphs, doc)
         stack = [(tree, None)]
         while stack:
-            node, parent_id = stack.pop()
+            node, parent_original = stack.pop()
+            raw_text = node.get("raw_text", "")
+            # Only embed nodes with substantive body text; a bare heading is
+            # already covered by its profile/outline and adds noise.
+            if len(raw_text.strip()) < 60:
+                continue
+            new_id = node_id
+            original_to_new[id(node)] = new_id
+            parent_new = original_to_new.get(id(parent_original)) if parent_original is not None else None
             nodes.append(
                 {
-                    "id": node_id,
+                    "id": new_id,
                     "document_id": int(node.get("document_id", doc["id"])),
-                    "parent_id": parent_id,
+                    "parent_id": parent_new,
                     "node_type": node.get("node_type", "section"),
                     "heading": node.get("heading", ""),
-                    "raw_text": node.get("raw_text", ""),
+                    "raw_text": raw_text,
                     "page_start": None,
                 }
             )
-            current_id = node_id
             node_id += 1
             for child in reversed(node.get("children", [])):
-                stack.append((child, current_id))
+                stack.append((child, node))
     return nodes
 
 
