@@ -9,12 +9,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from config import DOCUMENTS_DIR
 from services.document_retriever import DocumentRetriever
 from services.document_profile_service import build_document_profile
 from services.legal_parser import build_legal_tree
 
 MANIFEST = Path("eval/production_corpus_manifest_2026-08-29.json")
 TEXT_ROOT = Path("/tmp/regbot-hierarchical-corpus/texts")
+if Path(DOCUMENTS_DIR).exists():
+    TEXT_ROOT = Path(DOCUMENTS_DIR)
 CASES = Path("eval/hierarchical_cases.jsonl")
 
 
