@@ -1,0 +1,123 @@
+{
+  "metrics": {
+    "cases": 7,
+    "recall_at_3": 0.714,
+    "recall_at_5": 0.857,
+    "mean_rank_of_first_hit": 2.17
+  },
+  "rows": [
+    {
+      "id": "age-dependent-tracks-v2",
+      "required": [
+        38
+      ],
+      "selected": [
+        38,
+        37,
+        36,
+        35,
+        33
+      ],
+      "hit_at": 1,
+      "recall_at_3": 1,
+      "recall_at_5": 1
+    },
+    {
+      "id": "transfer-funds-multisource",
+      "required": [
+        15,
+        22
+      ],
+      "selected": [
+        22,
+        24,
+        23,
+        20,
+        19
+      ],
+      "hit_at": 1,
+      "recall_at_3": 1,
+      "recall_at_5": 1
+    },
+    {
+      "id": "member-rights-section-25",
+      "required": [
+        18
+      ],
+      "selected": [
+        17,
+        16,
+        18,
+        37,
+        4
+      ],
+      "hit_at": 3,
+      "recall_at_3": 1,
+      "recall_at_5": 1
+    },
+    {
+      "id": "training-fund-withdrawal-employee-self-employed",
+      "required": [
+        37
+      ],
+      "selected": [
+        37,
+        13,
+        24,
+        6,
+        2
+      ],
+      "hit_at": 1,
+      "recall_at_3": 1,
+      "recall_at_5": 1
+    },
+    {
+      "id": "loan-training-fund-section-8d",
+      "required": [
+        36
+      ],
+      "selected": [
+        19,
+        37,
+        18,
+        15,
+        13
+      ],
+      "hit_at": null,
+      "recall_at_3": 0,
+      "recall_at_5": 0
+    },
+    {
+      "id": "withdrawal-and-tax-parameter-synthesis",
+      "required": [
+        37
+      ],
+      "selected": [
+        1,
+        24,
+        2,
+        37,
+        15
+      ],
+      "hit_at": 4,
+      "recall_at_3": 0,
+      "recall_at_5": 1
+    },
+    {
+      "id": "missing-explicit-section-abstention",
+      "required": [
+        18
+      ],
+      "selected": [
+        36,
+        20,
+        18,
+        17,
+        16
+      ],
+      "hit_at": 3,
+      "recall_at_3": 1,
+      "recall_at_5": 1
+    }
+  ]
+}

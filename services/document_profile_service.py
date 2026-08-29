@@ -53,6 +53,8 @@ def _extract_official_number(title: str, text: str) -> str | None:
 def _looks_like_identity_title(line: str) -> bool:
     if len(line) < 5 or len(line) > 220:
         return False
+    if line[0] in "][()\"'«»“”":
+        return False
     if any(line.startswith(prefix) for prefix in GENERIC_IDENTITY_LINES):
         return False
     if line.startswith(("סיווג", "בתוקף סמכות", "תוכן", "תאריך")):
@@ -71,12 +73,34 @@ def _looks_like_identity_title(line: str) -> bool:
             "הוראות",
             "רשימת",
             "תיקון",
+            "השקעה",
+            "הלווא",
+            "הצטרפות",
+            "עלות",
+            "דמי",
+            "ניוד",
+            "מבנה",
+            "דוחות",
+            "אימות",
+            "תמותה",
+            "מילואים",
+            "משיכ",
         )
     )
 
 
 def _extract_canonical_title(stored_title: str, text: str, official_number: str | None) -> str:
     lines = _clean_lines(text)[:40]
+    stored = stored_title.strip()
+    # A curator-chosen stored title is authoritative unless it is a raw
+    # filename; integrity checks later compare it against the body text.
+    looks_like_filename = (
+        "_" in stored
+        or stored.lower().endswith((".pdf", ".docx", ".doc"))
+        or len(stored) < 5
+    )
+    if stored and not looks_like_filename:
+        return stored
     if official_number:
         normalized_number = official_number.replace("-", "[-–]")
         for index, line in enumerate(lines):
@@ -87,7 +111,9 @@ def _extract_canonical_title(stored_title: str, text: str, official_number: str 
     for line in lines:
         if _looks_like_identity_title(line) and not OFFICIAL_NUMBER_PATTERN.search(line):
             return line
-    return stored_title.strip()
+    if stored and _looks_like_identity_title(stored):
+        return stored
+    return stored or (lines[0] if lines else "")
 
 
 def _detect_issuer(text: str) -> str | None:
@@ -124,6 +150,8 @@ def _extract_identity_evidence(text: str, canonical_title: str, official_number:
             evidence.append(line)
         elif official_number and official_number in line.replace("–", "-"):
             evidence.append(line)
+        elif _looks_like_identity_title(line) and len(line) <= 120:
+            evidence.append(line)
         if len(evidence) == 3:
             break
     return list(dict.fromkeys(evidence))
@@ -144,7 +172,7 @@ def _extract_summary(text: str, identity_evidence: list[str]) -> str:
         (line for line in candidates if "מטרת" in line or "מסדיר" in line),
         candidates[0] if candidates else "",
     )
-    return preferred[:900]
+    return preferred[:300]
 
 
 def _extract_outline(text: str) -> list[str]:
@@ -152,6 +180,8 @@ def _extract_outline(text: str) -> list[str]:
     headings = []
     for line in lines:
         if len(line) > 140:
+            continue
+        if line.endswith((".", ":", ";", ",")):
             continue
         if re.match(r"^(?:פרק|סעיף|תקנה)\s+", line) or line in {
             "כללי",
@@ -162,7 +192,11 @@ def _extract_outline(text: str) -> list[str]:
             "מסירת נתונים",
         }:
             headings.append(line)
-        if len(headings) == 80:
+        elif 8 <= len(line) <= 60 and not any(
+            marker in line for marker in ("- ", " – ")
+        ):
+            headings.append(line)
+        if len(headings) == 20:
             break
     return list(dict.fromkeys(headings))
 

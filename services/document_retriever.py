@@ -1,0 +1,101 @@
+"""Document-level retriever over canonical document profiles (pure Python)."""
+
+from __future__ import annotations
+
+import re
+from typing import Any
+
+
+_STOPWORDS = {
+    "מה",
+    "האם",
+    "איך",
+    "איזה",
+    "אילו",
+    "לגבי",
+    "של",
+    "על",
+    "או",
+    "בין",
+    "בקופת",
+    "בקופות",
+    "בקופה",
+    "מהן",
+    "מהם",
+    "נדרש",
+    "צריך",
+    "מותר",
+    "ניתן",
+    "אפשר",
+}
+
+
+def _terms(text: str) -> set[str]:
+    return {
+        token
+        for token in re.findall(r"[\w\u0590-\u05FF]+", (text or "").lower())
+        if len(token) > 1 and token not in _STOPWORDS
+    }
+
+
+class DocumentRetriever:
+    """Rank documents by profile text overlap; no embeddings, deterministic."""
+
+    def __init__(
+        self,
+        documents: list[dict[str, Any]],
+        document_sections: dict[int, list[str]] | None = None,
+    ):
+        self.documents = documents
+        self.document_sections = document_sections or {}
+
+    @staticmethod
+    def _profile_text(
+        document: dict[str, Any],
+        sections: list[str] | None = None,
+    ) -> str:
+        title = str(document.get("canonical_title") or document.get("title") or "")
+        topics = " ".join(document.get("topics") or [])
+        outline = " ".join((document.get("heading_outline") or [])[:40])
+        section_text = " ".join((sections or [])[:120])
+        return " ".join(
+            [
+                title,
+                title,  # title weighted double
+                topics,
+                topics,  # topics weighted double
+                document.get("profile_summary") or "",
+                outline,
+                section_text,
+                document.get("keywords") or "",
+            ]
+        )
+
+    def retrieve(self, question: str, top_k: int = 3) -> list[dict[str, Any]]:
+        query_terms = _terms(question)
+        query_numbers = set(re.findall(r"\d{4}-\d{1,2}-\d{1,3}", question))
+        section_queries = re.findall(r"סעיף\s+(\d+)", question)
+
+        scored = []
+        for document in self.documents:
+            all_sections = self.document_sections.get(int(document["id"]), [])
+            profile_terms = _terms(self._profile_text(document, all_sections))
+            overlap = len(query_terms & profile_terms)
+            number_hits = sum(
+                1
+                for number in query_numbers
+                if number in str(document.get("official_number") or "")
+            )
+            section_hits = sum(
+                1
+                for section in section_queries
+                if any(
+                    re.search(rf"\bסעיף\s*{section}\b", s) or f"סעיף{section}" in s.replace(" ", "")
+                    for s in all_sections
+                )
+            )
+            score = overlap + 30.0 * number_hits + 20.0 * section_hits
+            scored.append({"document_id": int(document["id"]), "score": score, **document})
+
+        scored.sort(key=lambda item: item["score"], reverse=True)
+        return scored[:top_k]

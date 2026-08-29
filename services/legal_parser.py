@@ -101,6 +101,7 @@ def build_legal_tree(
                 stack.pop()
             node: dict[str, Any] = {
                 "node_type": "chapter" if level == 1 else "section" if level == 2 else "subsection",
+                "document_id": int(document["id"]),
                 "heading": text,
                 "raw_text": text,
                 "children": [],

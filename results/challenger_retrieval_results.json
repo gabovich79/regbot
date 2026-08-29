@@ -1,0 +1,641 @@
+[
+  {
+    "id": "fees-management",
+    "question": "כמה דמי ניהול מותר לגבות מעמית בקופת גמל?",
+    "selected_documents": [
+      34,
+      33,
+      25,
+      24,
+      22
+    ],
+    "top_sections": [
+      {
+        "document_id": 33,
+        "heading": "הוצאה הנובעת מהשקעה בקרן סל"
+      },
+      {
+        "document_id": 34,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 34,
+        "heading": "הגדרות"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "transfer-funds",
+    "question": "איך מעבירים כספים בין קופות גמל?",
+    "selected_documents": [
+      1,
+      25,
+      24,
+      22,
+      19
+    ],
+    "top_sections": [
+      {
+        "document_id": 25,
+        "heading": "הגדרות"
+      },
+      {
+        "document_id": 24,
+        "heading": "\"העברת כספים בין קופות גמל\""
+      },
+      {
+        "document_id": 24,
+        "heading": "\"העברת כספים בין קופות גמל( \""
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "fund-mobility",
+    "question": "מה ההליך לניוד כספים מקופת גמל אחת לאחרת?",
+    "selected_documents": [
+      25,
+      15,
+      1,
+      34,
+      24
+    ],
+    "top_sections": [
+      {
+        "document_id": 15,
+        "heading": "לקצבה גמל לקופת כספים העברת"
+      },
+      {
+        "document_id": 15,
+        "heading": "לקצבה גמל קופת שאינה גמל לקופת כספים העברת"
+      },
+      {
+        "document_id": 25,
+        "heading": "כללי"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "uniform-interface",
+    "question": "איזה מידע גוף מוסדי צריך להעביר לגוף אחר ובאיזה מבנה?",
+    "selected_documents": [
+      20,
+      26,
+      25,
+      34,
+      22
+    ],
+    "top_sections": [
+      {
+        "document_id": 20,
+        "heading": "לקופת גמל), התשע\"ד-"
+      },
+      {
+        "document_id": 26,
+        "heading": "העברת מידע וביצוע פעולות בין מעסיק לגוף מוסדי"
+      },
+      {
+        "document_id": 22,
+        "heading": "מסירת נתונים"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "age-dependent-tracks",
+    "question": "מהן ההוראות למסלולי השקעה תלויי גיל?",
+    "selected_documents": [
+      34,
+      38,
+      37,
+      36,
+      35
+    ],
+    "top_sections": [
+      {
+        "document_id": 35,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 38,
+        "heading": "רשימת מסלולי השקעה – תיקון (2024-1471)"
+      },
+      {
+        "document_id": 38,
+        "heading": "רשימת מסלולי השקעה"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "mortality-tables",
+    "question": "מהן טבלאות התמותה המעודכנות לחישוב ההתחייבויות האקטואריות?",
+    "selected_documents": [
+      34,
+      38,
+      37,
+      36,
+      35
+    ],
+    "top_sections": [
+      {
+        "document_id": 37,
+        "heading": ":(ב)  נישום העוסק בעבודה ממושכת ידווח על הכנסותיו ממנה כך"
+      },
+      {
+        "document_id": 37,
+        "heading": "לחישוב שיעור השליטה בעקיפין וההחזקה המהותית בעקיפין של קופות"
+      },
+      {
+        "document_id": 37,
+        "heading": ".היהודית לארץ ישראל, תהיה פטורה ממס"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "identity-verification",
+    "question": "מה נדרש כדי לאמת את זהותו של לקוח?",
+    "selected_documents": [
+      38,
+      34,
+      32,
+      30,
+      25
+    ],
+    "top_sections": [
+      {
+        "document_id": 34,
+        "heading": "סעיף 3"
+      },
+      {
+        "document_id": 34,
+        "heading": "סעיף 4"
+      },
+      {
+        "document_id": 30,
+        "heading": "דברי הסבר"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "annual-cost-disclosure",
+    "question": "מה צריך לגלות לעמית לגבי העלות השנתית הצפויה וכיצד להציג אותה?",
+    "selected_documents": [
+      34,
+      30,
+      38,
+      37,
+      36
+    ],
+    "top_sections": [
+      {
+        "document_id": 34,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 34,
+        "heading": "דברי הסבר"
+      },
+      {
+        "document_id": 34,
+        "heading": "חוזר אופן הצגת העלות השנתית הצפויה לעמית — יישום 2023 (notice-2023-010)"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "emergency-rules",
+    "question": "מהן הוראות הממונה על שוק ההון לשעת חירום?",
+    "selected_documents": [
+      25,
+      35,
+      23,
+      21,
+      38
+    ],
+    "top_sections": [
+      {
+        "document_id": 35,
+        "heading": "הוראות הממונה על שוק ההון לשעת חירום — אוקטובר 2023 (notice-2023-031)"
+      },
+      {
+        "document_id": 35,
+        "heading": "סיווג: כללי"
+      },
+      {
+        "document_id": 35,
+        "heading": "כללי"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "periodic-reports",
+    "question": "איך עורכים דוח תקופתי לעמית?",
+    "selected_documents": [
+      34,
+      38,
+      37,
+      36,
+      35
+    ],
+    "top_sections": [
+      {
+        "document_id": 35,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 35,
+        "heading": "4. חובת הצגת דוח רבעוני"
+      },
+      {
+        "document_id": 35,
+        "heading": "על אף האמור בסעיף קטן (א) –"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "statistical-collection",
+    "question": "איזה מידע סטטיסטי גוף מוסדי צריך למסור בנוגע לפניות ציבור?",
+    "selected_documents": [
+      26,
+      20,
+      34,
+      30,
+      28
+    ],
+    "top_sections": [
+      {
+        "document_id": 30,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 30,
+        "heading": "דברי הסבר"
+      },
+      {
+        "document_id": 30,
+        "heading": "הוראות לעניין סיווג פניות"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "operations-by-institution",
+    "question": "מה נדרש מגוף מוסדי בביצוע פעולות עבור עמית?",
+    "selected_documents": [
+      26,
+      20,
+      34,
+      38,
+      37
+    ],
+    "top_sections": [
+      {
+        "document_id": 26,
+        "heading": "ביצוע פעולות על ידי גוף מוסדי עבור מעסיק"
+      },
+      {
+        "document_id": 20,
+        "heading": "\"ביצוע פעולות על ידי ג \"וף מוסדי עבור מעסיק"
+      },
+      {
+        "document_id": 34,
+        "heading": "הגדרות"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "asset-management",
+    "question": "מהם כללי ניהול נכסי ההשקעה של גוף מוסדי?",
+    "selected_documents": [
+      34,
+      33,
+      26,
+      36,
+      32
+    ],
+    "top_sections": [
+      {
+        "document_id": 34,
+        "heading": "פרמטרים לחישוב"
+      },
+      {
+        "document_id": 34,
+        "heading": "סעיף 2 – הגדרת עלות שנתית צפויה"
+      },
+      {
+        "document_id": 33,
+        "heading": "שה. 2022-5013"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "illiquid-assets",
+    "question": "איך מתייחסים לנכסים לא סחירים או לטווח ארוך בהשקעות גופים מוסדיים?",
+    "selected_documents": [
+      35,
+      34,
+      33,
+      32,
+      21
+    ],
+    "top_sections": [
+      {
+        "document_id": 32,
+        "heading": "נכסים לטווח ארוך / נכסים לא סחירים — השקעות גופים מוסדיים 2024"
+      },
+      {
+        "document_id": 32,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 35,
+        "heading": "17. הוראת מעבר"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "personal-managed-fund",
+    "question": "מהם התנאים לקופת גמל בניהול אישי?",
+    "selected_documents": [
+      13,
+      34,
+      25,
+      20,
+      15
+    ],
+    "top_sections": [
+      {
+        "document_id": 13,
+        "heading": ":אלה הוראות סותרת שאינה ככל ,גמל בקופת השקעה"
+      },
+      {
+        "document_id": 13,
+        "heading": ";העמית בחירת"
+      },
+      {
+        "document_id": 25,
+        "heading": "פרטים בנוגע לכל עובד שבעדו הופקדו תשלומים -"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "reservist-deposits",
+    "question": "איך מסווגים הפקדות של משרתי מילואים?",
+    "selected_documents": [
+      38,
+      37,
+      36,
+      35,
+      34
+    ],
+    "top_sections": [
+      {
+        "document_id": 38,
+        "heading": "ולא יעלה על"
+      },
+      {
+        "document_id": 38,
+        "heading": "ולא יעלה על"
+      },
+      {
+        "document_id": 38,
+        "heading": ":באופן הבא"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "severance-continuity",
+    "question": "מה קובע תיקון 173 לגבי רצף זכויות בפיצויים?",
+    "selected_documents": [
+      35,
+      34,
+      17,
+      16,
+      38
+    ],
+    "top_sections": [
+      {
+        "document_id": 35,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 35,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 34,
+        "heading": "דברי הסבר"
+      }
+    ],
+    "expected_documents": []
+  },
+  {
+    "id": "age-dependent-tracks-v2",
+    "question": "מהן ההוראות למסלולי השקעה תלויי גיל?",
+    "selected_documents": [
+      34,
+      38,
+      37,
+      36,
+      35
+    ],
+    "top_sections": [
+      {
+        "document_id": 35,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 38,
+        "heading": "רשימת מסלולי השקעה – תיקון (2024-1471)"
+      },
+      {
+        "document_id": 38,
+        "heading": "רשימת מסלולי השקעה"
+      }
+    ],
+    "expected_documents": [
+      38
+    ]
+  },
+  {
+    "id": "transfer-funds-multisource",
+    "question": "איך מעבירים כספים בין קופות גמל ומהם לוחות הזמנים?",
+    "selected_documents": [
+      34,
+      22,
+      1,
+      25,
+      24
+    ],
+    "top_sections": [
+      {
+        "document_id": 34,
+        "heading": "דברי הסבר"
+      },
+      {
+        "document_id": 24,
+        "heading": "8(ו) לתקנות הפיקוח על שירותים פיננסיים (קופות גמל) (העברת כספים בין קופות גמל), התשס\"ח-"
+      },
+      {
+        "document_id": 25,
+        "heading": "כללי"
+      }
+    ],
+    "expected_documents": [
+      15,
+      22
+    ]
+  },
+  {
+    "id": "member-rights-section-25",
+    "question": "האם זכויות עמית בקופת גמל ניתנות להעברה, לשעבוד או לעיקול? השב לפי סעיף 25 בחוק הפיקוח.",
+    "selected_documents": [
+      19,
+      6,
+      34,
+      32,
+      30
+    ],
+    "top_sections": [
+      {
+        "document_id": 30,
+        "heading": "כללי"
+      },
+      {
+        "document_id": 30,
+        "heading": "דברי הסבר"
+      },
+      {
+        "document_id": 34,
+        "heading": "אופן הצגת העלות השנתית הצפויה לעמית או למבוטח"
+      }
+    ],
+    "expected_documents": [
+      18
+    ]
+  },
+  {
+    "id": "training-fund-withdrawal-employee-self-employed",
+    "question": "מהם כללי המשיכה מקרן השתלמות לשכיר ולעצמאי, כולל תקופות הוותק והחריגים?",
+    "selected_documents": [
+      30,
+      38,
+      37,
+      36,
+      35
+    ],
+    "top_sections": [
+      {
+        "document_id": 37,
+        "heading": "פקודת מס הכנסה — סעיפים 9(16א) ו־9(16ב) — משיכת כספים מקרן השתלמות"
+      },
+      {
+        "document_id": 37,
+        "heading": "1984-) תשמ\"ד59 ' (תיקון מס1975-) תשל\"ה22 '(תיקון מס"
+      },
+      {
+        "document_id": 37,
+        "heading": "2002-) תשס\"ב132 ' (תיקון מס1995-) תשנ\"ו108 '(תיקון מס"
+      }
+    ],
+    "expected_documents": [
+      37
+    ]
+  },
+  {
+    "id": "loan-training-fund-section-8d",
+    "question": "מהם התנאים הרגולטוריים להלוואה כנגד קרן השתלמות לפי סעיף 8(ד)?",
+    "selected_documents": [
+      32,
+      30,
+      38,
+      37,
+      36
+    ],
+    "top_sections": [
+      {
+        "document_id": 37,
+        "heading": "2007-) תשס\"ז154 ' (תיקון מס1975-) תשל\"ה22 '(תיקון מס"
+      },
+      {
+        "document_id": 37,
+        "heading": "; לחוק האמור1א83 התנאים שנקבעו לפי סעיף"
+      },
+      {
+        "document_id": 37,
+        "heading": "2012-) תשע\"ב190 '(תיקון מס"
+      }
+    ],
+    "expected_documents": [
+      36
+    ]
+  },
+  {
+    "id": "withdrawal-and-tax-parameter-synthesis",
+    "question": "מהם כללי המשיכה מקרן השתלמות לעצמאי ומהי תקרת ההפקדה המוטבת לשנת 2026?",
+    "selected_documents": [
+      30,
+      38,
+      37,
+      36,
+      35
+    ],
+    "top_sections": [
+      {
+        "document_id": 37,
+        "heading": "א), לרבות הפרשי הצמדה, וכן ריבית ורווחים אחרים שמקורם בהפקדה5(17"
+      },
+      {
+        "document_id": 37,
+        "heading": "פקודת מס הכנסה — סעיפים 9(16א) ו־9(16ב) — משיכת כספים מקרן השתלמות"
+      },
+      {
+        "document_id": 37,
+        "heading": "2002-) תשס\"ב132 ' (תיקון מס1995-) תשנ\"ו108 '(תיקון מס"
+      }
+    ],
+    "expected_documents": [
+      37
+    ]
+  },
+  {
+    "id": "missing-explicit-section-abstention",
+    "question": "מה קובע סעיף 999 בחוק הפיקוח על שירותים פיננסיים (קופות גמל)?",
+    "selected_documents": [
+      19,
+      6,
+      24,
+      22,
+      1
+    ],
+    "top_sections": [
+      {
+        "document_id": 22,
+        "heading": "סיווג: כללי"
+      },
+      {
+        "document_id": 22,
+        "heading": "(1) לגבי עמית הרוכש כיסויים ביטוחיים במסגרת הקופה המקבלת -"
+      },
+      {
+        "document_id": 22,
+        "heading": "בקשת העברה"
+      }
+    ],
+    "expected_documents": [
+      18
+    ]
+  }
+]
