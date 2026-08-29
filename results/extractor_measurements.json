@@ -1,0 +1,28 @@
+[
+  {
+    "path": "/Users/guygabovich/Downloads/regulation_h_2016-9-11.docx",
+    "kind": "docx",
+    "paragraphs": 298,
+    "chars": 31977,
+    "hebrew_chars": 24137,
+    "elapsed_s": 0.083
+  },
+  {
+    "path": "/tmp/age-3.pdf",
+    "kind": "pdf",
+    "pages": 18,
+    "chars": 27665,
+    "hebrew_chars": 19574,
+    "nonempty_pages": 18,
+    "elapsed_s": 0.043
+  },
+  {
+    "path": "/Users/guygabovich/Downloads/LegalInformation_kesher_פקודת מס הכנסה [נוסח חדש] - לא מרובד.pdf",
+    "kind": "pdf",
+    "pages": 312,
+    "chars": 801197,
+    "hebrew_chars": 553287,
+    "nonempty_pages": 304,
+    "elapsed_s": 1.099
+  }
+]
