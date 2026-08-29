@@ -9,6 +9,7 @@ async def get_db() -> aiosqlite.Connection:
     db = await aiosqlite.connect(DB_PATH)
     db.row_factory = aiosqlite.Row
     await db.execute("PRAGMA journal_mode=WAL")
+    await db.execute("PRAGMA foreign_keys=ON")
     return db
 
 
@@ -100,6 +101,7 @@ async def init_db():
         await _migrate_chunk_citation_columns(db)
         await _migrate_document_validity_columns(db)
         await _migrate_regulatory_parameters(db)
+        await _migrate_hierarchical_retrieval_schema(db)
         await db.commit()
     finally:
         await db.close()
@@ -193,6 +195,106 @@ async def _migrate_document_validity_columns(db: aiosqlite.Connection):
                 (extracted, row["id"]),
             )
 
+
+
+async def _migrate_hierarchical_retrieval_schema(db: aiosqlite.Connection):
+    """Create additive profile/node tables without touching the flat index."""
+    await db.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS document_profiles (
+            document_id             INTEGER PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
+            canonical_title         TEXT NOT NULL,
+            official_number         TEXT,
+            issuer                  TEXT,
+            publication_date        TEXT,
+            effective_date          TEXT,
+            valid_until             TEXT,
+            lifecycle_status        TEXT,
+            supersedes_document_id  INTEGER REFERENCES documents(id),
+            profile_summary         TEXT,
+            scope_in_json           TEXT NOT NULL DEFAULT '[]',
+            scope_out_json          TEXT NOT NULL DEFAULT '[]',
+            topics_json             TEXT NOT NULL DEFAULT '[]',
+            keywords_json           TEXT NOT NULL DEFAULT '[]',
+            heading_outline_json    TEXT NOT NULL DEFAULT '[]',
+            identity_evidence_json  TEXT NOT NULL DEFAULT '[]',
+            profile_embedding       TEXT,
+            integrity_status        TEXT NOT NULL DEFAULT 'pending'
+                                      CHECK (integrity_status IN ('pending', 'verified', 'warning', 'failed')),
+            integrity_reasons_json  TEXT NOT NULL DEFAULT '[]',
+            review_status           TEXT NOT NULL DEFAULT 'machine'
+                                      CHECK (review_status IN ('machine', 'human_verified')),
+            profile_version         INTEGER NOT NULL DEFAULT 1,
+            created_at              DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS document_nodes (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            document_id     INTEGER NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+            parent_id       INTEGER REFERENCES document_nodes(id) ON DELETE CASCADE,
+            node_type       TEXT NOT NULL
+                              CHECK (node_type IN ('document', 'chapter', 'section', 'subsection', 'paragraph', 'table', 'appendix')),
+            node_path       TEXT NOT NULL,
+            section_label   TEXT,
+            heading         TEXT,
+            raw_text        TEXT NOT NULL,
+            retrieval_text  TEXT NOT NULL,
+            page_start      INTEGER,
+            page_end        INTEGER,
+            ordinal         INTEGER NOT NULL,
+            text_hash       TEXT NOT NULL,
+            embedding       TEXT,
+            is_evidence     INTEGER NOT NULL DEFAULT 1 CHECK (is_evidence IN (0, 1)),
+            index_version   INTEGER NOT NULL DEFAULT 1,
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(document_id, index_version, node_path, ordinal)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_document_nodes_doc_version
+            ON document_nodes(document_id, index_version, ordinal);
+        CREATE INDEX IF NOT EXISTS idx_document_nodes_parent
+            ON document_nodes(parent_id);
+        CREATE INDEX IF NOT EXISTS idx_document_nodes_section
+            ON document_nodes(document_id, section_label, index_version);
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS document_profiles_fts USING fts5(
+            document_id UNINDEXED,
+            canonical_title,
+            official_number,
+            issuer,
+            topics,
+            keywords,
+            profile_summary,
+            tokenize = 'unicode61'
+        );
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS document_nodes_fts USING fts5(
+            node_id UNINDEXED,
+            document_id UNINDEXED,
+            heading,
+            section_label,
+            retrieval_text,
+            tokenize = 'unicode61'
+        );
+
+        CREATE TRIGGER IF NOT EXISTS trg_document_nodes_parent_document_insert
+        BEFORE INSERT ON document_nodes
+        WHEN NEW.parent_id IS NOT NULL
+             AND (SELECT document_id FROM document_nodes WHERE id = NEW.parent_id) != NEW.document_id
+        BEGIN
+            SELECT RAISE(ABORT, 'parent document mismatch');
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_document_nodes_parent_document_update
+        BEFORE UPDATE OF parent_id, document_id ON document_nodes
+        WHEN NEW.parent_id IS NOT NULL
+             AND (SELECT document_id FROM document_nodes WHERE id = NEW.parent_id) != NEW.document_id
+        BEGIN
+            SELECT RAISE(ABORT, 'parent document mismatch');
+        END;
+        """
+    )
 
 
 async def _migrate_regulatory_parameters(db: aiosqlite.Connection):
