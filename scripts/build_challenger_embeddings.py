@@ -180,6 +180,8 @@ async def embed_missing(
     texts: list[str],
     existing: dict[str, list[float]],
     progress_label: str,
+    *,
+    on_batch: object | None = None,
 ) -> dict[str, list[float]]:
     """Embed only texts missing from the existing hash map, saving every batch."""
     import time
@@ -205,6 +207,8 @@ async def embed_missing(
             ),
             flush=True,
         )
+        if on_batch is not None:
+            on_batch(results)
         time.sleep(BATCH_SLEEP_SECONDS)
     return results
 
@@ -215,13 +219,30 @@ def main() -> int:
     nodes = build_nodes(docs)
 
     existing = load_existing()
-    profile_embeddings = await_or_run(
-        embed_missing([profile_text(p) for p in profiles], existing["profile_hashes"], "profiles")
-    )
-    node_embeddings = await_or_run(
-        embed_missing([node_text(n) for n in nodes], existing["node_hashes"], "nodes")
-    )
-    save_progress(profiles, nodes, profile_embeddings, node_embeddings)
+    profile_embeddings = dict(existing["profile_hashes"])
+    node_embeddings = dict(existing["node_hashes"])
+
+    async def run() -> None:
+        nonlocal profile_embeddings, node_embeddings
+        profile_embeddings = await embed_missing(
+            [profile_text(p) for p in profiles],
+            profile_embeddings,
+            "profiles",
+            on_batch=lambda results: save_progress(
+                profiles, nodes, results, node_embeddings
+            ),
+        )
+        node_embeddings = await embed_missing(
+            [node_text(n) for n in nodes],
+            node_embeddings,
+            "nodes",
+            on_batch=lambda results: save_progress(
+                profiles, nodes, profile_embeddings, results
+            ),
+        )
+        save_progress(profiles, nodes, profile_embeddings, node_embeddings)
+
+    asyncio.run(run())
 
     print(
         json.dumps(
