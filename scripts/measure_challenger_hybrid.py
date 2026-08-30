@@ -31,6 +31,7 @@ async def evaluate_hybrid(
     cases: list[dict],
     embed_queries: Callable[[list[str]], Awaitable[list[list[float]]]],
     *,
+    document_sections: dict[int, list[str]] | None = None,
     top_k: int = 5,
 ) -> dict:
     """Evaluate every unique question once and require full multi-source recall."""
@@ -41,7 +42,7 @@ async def evaluate_hybrid(
         raise ValueError("Embedding provider returned an unexpected query-vector count")
     query_vectors = dict(zip(unique_questions, vectors))
 
-    lexical = DocumentRetriever(profiles, document_sections={})
+    lexical = DocumentRetriever(profiles, document_sections=document_sections or {})
     rows = []
     for case in scored_cases:
         question = case["question"]
@@ -116,17 +117,40 @@ async def _embed_queries(questions: list[str]) -> list[list[float]]:
     return await embed_texts(questions)
 
 
+def section_index_from_nodes(nodes: list[dict]) -> dict[int, list[str]]:
+    """Project cached hierarchical nodes into document-level lexical evidence."""
+    index: dict[int, list[str]] = {}
+    for node in nodes:
+        document_id = int(node["document_id"])
+        values = index.setdefault(document_id, [])
+        heading = str(node.get("heading") or "").strip()
+        raw_text = str(node.get("raw_text") or "").strip()
+        if heading:
+            values.append(heading)
+        if raw_text:
+            values.append(raw_text)
+    return index
+
+
 def main() -> int:
     if not CACHE.exists():
         print(json.dumps({"error": "cache missing; run build_challenger_embeddings.py first"}))
         return 1
-    profiles = json.loads(CACHE.read_text(encoding="utf-8"))["profiles"]
+    cache = json.loads(CACHE.read_text(encoding="utf-8"))
+    profiles = cache["profiles"]
     cases = [
         json.loads(line)
         for line in CASES.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
-    result = asyncio.run(evaluate_hybrid(profiles, cases, _embed_queries))
+    result = asyncio.run(
+        evaluate_hybrid(
+            profiles,
+            cases,
+            _embed_queries,
+            document_sections=section_index_from_nodes(cache["nodes"]),
+        )
+    )
     output = Path("results/challenger_hybrid_metrics.json")
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(result["metrics"], ensure_ascii=False, indent=2))

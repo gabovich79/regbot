@@ -45,3 +45,32 @@ def test_hybrid_evaluation_requires_every_document_for_multisource_case():
     assert row["required_recall_at_5"] == 0.5
     assert row["all_required_documents_at_5"] == 0
     assert result["metrics"]["all_required_documents_recall_at_5"] == 0.0
+
+
+def test_hybrid_evaluation_uses_section_evidence_for_exact_section_query():
+    profiles = [
+        {"document_id": 18, "title": "חוק הפיקוח", "embedding": [0.0, 1.0]},
+        {"document_id": 4, "title": "מסמך אחר", "embedding": [1.0, 0.0]},
+    ]
+    cases = [
+        {
+            "id": "section-25",
+            "question": "מה קובע סעיף 25 בחוק הפיקוח?",
+            "required_document_ids": [18],
+        }
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]  # dense intentionally prefers the wrong document
+
+    result = asyncio.run(
+        evaluate_hybrid(
+            profiles,
+            cases,
+            embed_queries,
+            document_sections={18: ["סעיף 25 זכויות עמית"], 4: []},
+            top_k=1,
+        )
+    )
+
+    assert result["rows"][0]["selected"] == [18]
