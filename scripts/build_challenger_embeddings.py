@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+import tiktoken
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from config import DATA_DIR, DOCUMENTS_DIR
@@ -17,6 +19,19 @@ from services.embeddings import embed_texts
 
 MANIFEST = Path("eval/production_corpus_manifest_2026-08-29.json")
 CACHE_PATH = Path("results/challenger_embeddings_cache.json")
+EMBEDDING_ENCODING = tiktoken.get_encoding("cl100k_base")
+MAX_NODE_EMBEDDING_TOKENS = 6_400
+
+
+def split_node_text_for_embedding(text: str) -> list[str]:
+    """Split an oversized node at provider-safe token boundaries losslessly."""
+    tokens = EMBEDDING_ENCODING.encode(text)
+    if len(tokens) <= MAX_NODE_EMBEDDING_TOKENS:
+        return [text]
+    return [
+        EMBEDDING_ENCODING.decode(tokens[start:start + MAX_NODE_EMBEDDING_TOKENS])
+        for start in range(0, len(tokens), MAX_NODE_EMBEDDING_TOKENS)
+    ]
 
 
 def text_root() -> Path:
@@ -47,37 +62,43 @@ def build_profiles(docs: list[dict]) -> list[dict]:
 
 def build_nodes(docs: list[dict]) -> list[dict]:
     nodes = []
-    original_to_new: dict[int, int] = {}
     node_id = 1
     for item in docs:
         doc = item["doc"]
         paragraphs = [line for line in item["text"].splitlines() if line.strip()]
         tree = build_legal_tree(paragraphs, doc)
+        # Stack carries the nearest persisted ancestor. A short heading may be
+        # skipped as an embedding node, but its children must still be visited.
         stack = [(tree, None)]
         while stack:
-            node, parent_original = stack.pop()
+            node, persisted_parent_id = stack.pop()
             raw_text = node.get("raw_text", "")
-            # Only embed nodes with substantive body text; a bare heading is
-            # already covered by its profile/outline and adds noise.
-            if len(raw_text.strip()) < 60:
-                continue
-            new_id = node_id
-            original_to_new[id(node)] = new_id
-            parent_new = original_to_new.get(id(parent_original)) if parent_original is not None else None
-            nodes.append(
-                {
-                    "id": new_id,
-                    "document_id": int(node.get("document_id", doc["id"])),
-                    "parent_id": parent_new,
-                    "node_type": node.get("node_type", "section"),
-                    "heading": node.get("heading", ""),
-                    "raw_text": raw_text,
-                    "page_start": None,
-                }
-            )
-            node_id += 1
+            persisted_node_id = persisted_parent_id
+            if len(raw_text.strip()) >= 60:
+                parts = split_node_text_for_embedding(raw_text)
+                first_persisted_id = None
+                for part_index, part_text in enumerate(parts, 1):
+                    persisted_node_id = node_id
+                    if first_persisted_id is None:
+                        first_persisted_id = persisted_node_id
+                    heading = node.get("heading", "")
+                    if len(parts) > 1:
+                        heading = f"{heading} — חלק {part_index}/{len(parts)}"
+                    nodes.append(
+                        {
+                            "id": persisted_node_id,
+                            "document_id": int(node.get("document_id", doc["id"])),
+                            "parent_id": persisted_parent_id,
+                            "node_type": node.get("node_type", "section"),
+                            "heading": heading,
+                            "raw_text": part_text,
+                            "page_start": None,
+                        }
+                    )
+                    node_id += 1
+                persisted_node_id = first_persisted_id
             for child in reversed(node.get("children", [])):
-                stack.append((child, node))
+                stack.append((child, persisted_node_id))
     return nodes
 
 
