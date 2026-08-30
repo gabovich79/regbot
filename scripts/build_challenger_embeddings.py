@@ -24,10 +24,16 @@ from services.legal_parser import build_legal_tree
 from services.embeddings import embed_texts
 
 MANIFEST = Path("eval/production_corpus_manifest_2026-08-29.json")
-CACHE_PATH = Path("results/challenger_embeddings_cache.json")
+CACHE_PATH = Path(
+    os.environ.get(
+        "CHALLENGER_CACHE_PATH",
+        str(Path("results/challenger_embeddings_cache.json")),
+    )
+)
 EMBEDDING_ENCODING = tiktoken.get_encoding("cl100k_base")
 MAX_NODE_EMBEDDING_TOKENS = 6_400
-BATCH_SIZE = 32
+BATCH_SIZE = 16
+BATCH_SLEEP_SECONDS = 1.0
 
 
 def split_node_text_for_embedding(text: str) -> list[str]:
@@ -176,6 +182,8 @@ async def embed_missing(
     progress_label: str,
 ) -> dict[str, list[float]]:
     """Embed only texts missing from the existing hash map, saving every batch."""
+    import time
+
     results = dict(existing)
     missing = [
         (text, _hash(text)) for text in texts if _hash(text) not in existing
@@ -197,6 +205,7 @@ async def embed_missing(
             ),
             flush=True,
         )
+        time.sleep(BATCH_SLEEP_SECONDS)
     return results
 
 
