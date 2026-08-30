@@ -34,6 +34,9 @@ EMBEDDING_ENCODING = tiktoken.get_encoding("cl100k_base")
 MAX_NODE_EMBEDDING_TOKENS = 6_400
 BATCH_SIZE = 16
 BATCH_SLEEP_SECONDS = 1.0
+# Stop cleanly after this many seconds so a disconnected shell never kills the
+# process mid-write; re-running resumes from the atomic cache.
+BUILD_TIME_BUDGET_SECONDS = float(os.environ.get("BUILD_TIME_BUDGET_SECONDS", "0"))
 
 
 def split_node_text_for_embedding(text: str) -> list[str]:
@@ -176,15 +179,18 @@ def save_progress(
             if _hash(node_text(node)) in node_embeddings
         ],
     }
-    CACHE_PATH.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    # Atomic write: never leave a partially-written cache behind if the
+    # process is killed mid-write.
+    CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = CACHE_PATH.with_suffix(".tmp")
+    tmp_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    tmp_path.replace(CACHE_PATH)
 
 
 async def embed_missing(
     texts: list[str],
     existing: dict[str, list[float]],
     progress_label: str,
-    *,
-    on_batch: object | None = None,
 ) -> dict[str, list[float]]:
     """Embed only texts missing from the existing hash map, saving every batch."""
     import time
@@ -195,6 +201,7 @@ async def embed_missing(
     ]
     if not missing:
         return results
+    started_at = time.monotonic()
     for start in range(0, len(missing), BATCH_SIZE):
         batch = missing[start:start + BATCH_SIZE]
         vectors = await embed_texts([text for text, _ in batch])
@@ -210,8 +217,14 @@ async def embed_missing(
             ),
             flush=True,
         )
-        if on_batch is not None:
-            on_batch(results)
+        if BUILD_TIME_BUDGET_SECONDS and (
+            time.monotonic() - started_at >= BUILD_TIME_BUDGET_SECONDS
+        ):
+            print(
+                json.dumps({"stopped": progress_label, "reason": "time_budget"}),
+                flush=True,
+            )
+            break
         time.sleep(BATCH_SLEEP_SECONDS)
     return results
 
@@ -231,17 +244,11 @@ def main() -> int:
             [profile_text(p) for p in profiles],
             profile_embeddings,
             "profiles",
-            on_batch=lambda results: save_progress(
-                profiles, nodes, results, node_embeddings
-            ),
         )
         node_embeddings = await embed_missing(
             [node_text(n) for n in nodes],
             node_embeddings,
             "nodes",
-            on_batch=lambda results: save_progress(
-                profiles, nodes, profile_embeddings, results
-            ),
         )
         save_progress(profiles, nodes, profile_embeddings, node_embeddings)
 
