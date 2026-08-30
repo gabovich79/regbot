@@ -11,11 +11,18 @@ from typing import Awaitable, Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import os
+
 import numpy as np
 
 from services.document_retriever import DocumentRetriever, _terms
 
-CACHE = Path("results/challenger_embeddings_cache.json")
+CACHE = Path(
+    os.environ.get(
+        "CHALLENGER_CACHE_PATH",
+        str(Path("results/challenger_embeddings_cache.json")),
+    )
+)
 CASES = Path("eval/hierarchical_cases.jsonl")
 RRF_K = 60
 

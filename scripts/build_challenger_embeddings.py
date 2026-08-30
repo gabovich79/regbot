@@ -48,7 +48,10 @@ def split_node_text_for_embedding(text: str) -> list[str]:
 
 
 def text_root() -> Path:
-    """Use the deployed documents dir when DATA_DIR is /var/data (Render)."""
+    """Resolve document text files: repo bundle > deploy disk > local cache."""
+    repo_bundle = Path("eval/corpus-texts")
+    if repo_bundle.exists() and any(repo_bundle.glob("*.txt")):
+        return repo_bundle
     if os.environ.get("DATA_DIR"):
         return Path(DOCUMENTS_DIR)
     return Path("/tmp/regbot-hierarchical-corpus/texts")
