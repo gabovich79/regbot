@@ -27,6 +27,7 @@ def test_hybrid_evaluation_embeds_each_unique_question_once():
     assert result["rows"][0]["diagnostics"] == {
         "lexical_top_5": [38, 22],
         "dense_top_5": [38, 22],
+        "node_lexical_top_5": [],
         "fused_top_5": [38, 22],
     }
 
@@ -50,6 +51,47 @@ def test_hybrid_evaluation_requires_every_document_for_multisource_case():
     assert row["required_recall_at_5"] == 0.5
     assert row["all_required_documents_at_5"] == 0
     assert result["metrics"]["all_required_documents_recall_at_5"] == 0.0
+
+
+def test_hybrid_evaluation_uses_node_evidence_when_profile_is_insufficient():
+    profiles = [
+        {"document_id": 18, "title": "חוק הפיקוח", "embedding": [0.0, 1.0]},
+        {"document_id": 4, "title": "מסמך אחר", "embedding": [1.0, 0.0]},
+    ]
+    cases = [
+        {
+            "id": "section-25",
+            "question": "האם זכויות עמית ניתנות להעברה, לשעבוד או לעיקול?",
+            "required_document_ids": [18],
+        }
+    ]
+    nodes = [
+        {
+            "document_id": 18,
+            "heading": "סעיף 25",
+            "raw_text": "זכויות עמית אינן ניתנות להעברה, לשעבוד או לעיקול.",
+        },
+        {
+            "document_id": 4,
+            "heading": "מסמך כללי",
+            "raw_text": "מידע כללי בלבד.",
+        },
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]  # dense intentionally prefers the wrong document
+
+    result = asyncio.run(
+        evaluate_hybrid(
+            profiles,
+            cases,
+            embed_queries,
+            nodes=nodes,
+            top_k=1,
+        )
+    )
+
+    assert result["rows"][0]["selected"] == [18]
 
 
 def test_hybrid_evaluation_uses_section_evidence_for_exact_section_query():

@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 
-from services.document_retriever import DocumentRetriever
+from services.document_retriever import DocumentRetriever, _terms
 
 CACHE = Path("results/challenger_embeddings_cache.json")
 CASES = Path("eval/hierarchical_cases.jsonl")
@@ -26,12 +26,34 @@ def cosine(a: list[float], b: list[float]) -> float:
     return float(np.dot(va, vb) / denominator) if denominator else 0.0
 
 
+def node_document_ranks(question: str, nodes: list[dict], document_ids: set[int]) -> dict[int, int]:
+    """Rank documents by their single strongest raw legal node."""
+    query_terms = _terms(question)
+    best_scores: dict[int, float] = {}
+    for node in nodes:
+        document_id = int(node["document_id"])
+        if document_id not in document_ids:
+            continue
+        heading_terms = _terms(str(node.get("heading") or ""))
+        raw_terms = _terms(str(node.get("raw_text") or ""))
+        score = 2 * len(query_terms & heading_terms) + len(query_terms & raw_terms)
+        if score:
+            best_scores[document_id] = max(best_scores.get(document_id, 0.0), score)
+    ranked_ids = sorted(
+        best_scores,
+        key=lambda document_id: (best_scores[document_id], document_id),
+        reverse=True,
+    )
+    return {document_id: rank for rank, document_id in enumerate(ranked_ids, 1)}
+
+
 async def evaluate_hybrid(
     profiles: list[dict],
     cases: list[dict],
     embed_queries: Callable[[list[str]], Awaitable[list[list[float]]]],
     *,
     document_sections: dict[int, list[str]] | None = None,
+    nodes: list[dict] | None = None,
     top_k: int = 5,
 ) -> dict:
     """Evaluate every unique question once and require full multi-source recall."""
@@ -61,11 +83,18 @@ async def evaluate_hybrid(
             int(profile["document_id"]): rank
             for rank, (_, profile) in enumerate(dense_results, 1)
         }
+        all_document_ids = {int(profile["document_id"]) for profile in profiles}
+        node_rank = node_document_ranks(question, nodes or [], all_document_ids)
         fused = sorted(
             (
                 (
                     1 / (RRF_K + lexical_rank[int(profile["document_id"])])
-                    + 1 / (RRF_K + dense_rank[int(profile["document_id"])]),
+                    + 1 / (RRF_K + dense_rank[int(profile["document_id"])])
+                    + (
+                        2 / (RRF_K + node_rank[int(profile["document_id"])])
+                        if int(profile["document_id"]) in node_rank
+                        else 0
+                    ),
                     int(profile["document_id"]),
                 )
                 for profile in profiles
@@ -98,6 +127,12 @@ async def evaluate_hybrid(
                     "dense_top_5": [
                         int(profile["document_id"])
                         for _, profile in dense_results[:5]
+                    ],
+                    "node_lexical_top_5": [
+                        document_id
+                        for document_id, _ in sorted(
+                            node_rank.items(), key=lambda item: item[1]
+                        )[:5]
                     ],
                     "fused_top_5": selected,
                 },
@@ -160,6 +195,7 @@ def main() -> int:
             cases,
             _embed_queries,
             document_sections=section_index_from_nodes(cache["nodes"]),
+            nodes=cache["nodes"],
         )
     )
     output = Path("results/challenger_hybrid_metrics.json")
