@@ -1,8 +1,14 @@
-"""Build embeddings cache for hierarchical challenger (profiles + nodes)."""
+"""Build embeddings cache for hierarchical challenger (profiles + nodes).
+
+Resumable: the cache is saved after every batch, keyed by text hash, so a
+disconnected shell can simply re-run the same command and continue where the
+previous run stopped.
+"""
 
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import sys
@@ -21,6 +27,7 @@ MANIFEST = Path("eval/production_corpus_manifest_2026-08-29.json")
 CACHE_PATH = Path("results/challenger_embeddings_cache.json")
 EMBEDDING_ENCODING = tiktoken.get_encoding("cl100k_base")
 MAX_NODE_EMBEDDING_TOKENS = 6_400
+BATCH_SIZE = 32
 
 
 def split_node_text_for_embedding(text: str) -> list[str]:
@@ -102,54 +109,126 @@ def build_nodes(docs: list[dict]) -> list[dict]:
     return nodes
 
 
+def profile_text(profile: dict) -> str:
+    return " | ".join(
+        str(profile.get(field) or "")
+        for field in ("canonical_title", "official_number", "topics", "profile_summary")
+    )
+
+
+def node_text(node: dict) -> str:
+    return " | ".join(str(node.get(field) or "") for field in ("heading", "raw_text"))
+
+
+def _hash(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def load_existing() -> dict:
+    if not CACHE_PATH.exists():
+        return {"profiles": [], "nodes": [], "profile_hashes": {}, "node_hashes": {}}
+    try:
+        data = json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+        profile_hashes = {
+            _hash(profile_text(profile)): profile["embedding"]
+            for profile in data.get("profiles", [])
+            if profile.get("embedding")
+        }
+        node_hashes = {
+            _hash(node_text(node)): node["embedding"]
+            for node in data.get("nodes", [])
+            if node.get("embedding")
+        }
+        return {
+            "profiles": data.get("profiles", []),
+            "nodes": data.get("nodes", []),
+            "profile_hashes": profile_hashes,
+            "node_hashes": node_hashes,
+        }
+    except Exception:
+        return {"profiles": [], "nodes": [], "profile_hashes": {}, "node_hashes": {}}
+
+
+def save_progress(
+    profiles: list[dict],
+    nodes: list[dict],
+    profile_embeddings: dict[str, list[float]],
+    node_embeddings: dict[str, list[float]],
+) -> None:
+    data = {
+        "profiles": [
+            {**profile, "embedding": profile_embeddings[_hash(profile_text(profile))]}
+            for profile in profiles
+            if _hash(profile_text(profile)) in profile_embeddings
+        ],
+        "nodes": [
+            {**node, "embedding": node_embeddings[_hash(node_text(node))]}
+            for node in nodes
+            if _hash(node_text(node)) in node_embeddings
+        ],
+    }
+    CACHE_PATH.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+
+async def embed_missing(
+    texts: list[str],
+    existing: dict[str, list[float]],
+    progress_label: str,
+) -> dict[str, list[float]]:
+    """Embed only texts missing from the existing hash map, saving every batch."""
+    results = dict(existing)
+    missing = [
+        (text, _hash(text)) for text in texts if _hash(text) not in existing
+    ]
+    if not missing:
+        return results
+    for start in range(0, len(missing), BATCH_SIZE):
+        batch = missing[start:start + BATCH_SIZE]
+        vectors = await embed_texts([text for text, _ in batch])
+        for (text, text_hash), vector in zip(batch, vectors):
+            results[text_hash] = vector
+        print(
+            json.dumps(
+                {
+                    "progress": progress_label,
+                    "done": len(results),
+                    "pending": len(texts) - len(results),
+                }
+            ),
+            flush=True,
+        )
+    return results
+
+
 def main() -> int:
     docs = load_documents()
     profiles = build_profiles(docs)
     nodes = build_nodes(docs)
 
-    profile_texts = [
-        " | ".join(
-            str(profile.get(field) or "")
-            for field in ("canonical_title", "official_number", "topics", "profile_summary")
-        )
-        for profile in profiles
-    ]
-    node_texts = [
-        " | ".join(str(node.get(field) or "") for field in ("heading", "raw_text"))
-        for node in nodes
-    ]
-
-    async def run() -> tuple[list[list[float]], list[list[float]]]:
-        profile_vectors = await embed_texts(profile_texts)
-        node_vectors = await embed_texts(node_texts)
-        return profile_vectors, node_vectors
-
-    profile_vectors, node_vectors = asyncio.run(run())
-
-    CACHE_PATH.write_text(
-        json.dumps(
-            {
-                "profiles": [
-                    {**profile, "embedding": profile_vectors[i]} for i, profile in enumerate(profiles)
-                ],
-                "nodes": [
-                    {**node, "embedding": node_vectors[i]} for i, node in enumerate(nodes)
-                ],
-            },
-            ensure_ascii=False,
-        ),
-        encoding="utf-8",
+    existing = load_existing()
+    profile_embeddings = await_or_run(
+        embed_missing([profile_text(p) for p in profiles], existing["profile_hashes"], "profiles")
     )
+    node_embeddings = await_or_run(
+        embed_missing([node_text(n) for n in nodes], existing["node_hashes"], "nodes")
+    )
+    save_progress(profiles, nodes, profile_embeddings, node_embeddings)
+
     print(
         json.dumps(
             {
                 "profiles": len(profiles),
                 "nodes": len(nodes),
                 "cache": str(CACHE_PATH),
+                "embedded_nodes": len(node_embeddings),
             }
         )
     )
     return 0
+
+
+def await_or_run(coro):
+    return asyncio.run(coro)
 
 
 if __name__ == "__main__":
