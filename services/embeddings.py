@@ -26,6 +26,7 @@ async def embed_texts(texts: list[str], batch_size: int = 32) -> list[list[float
         response = await client.embeddings.create(
             model=EMBEDDING_MODEL,
             input=batch,
+            dimensions=1024,
         )
         vectors.extend(item.embedding for item in response.data)
     return vectors
