@@ -90,6 +90,17 @@ async def evaluate_hybrid(
                 "required_recall_at_5": round(len(retrieved_required) / len(required), 3),
                 "all_required_documents_at_3": int(required <= set(selected[:3])),
                 "all_required_documents_at_5": int(required <= set(selected)),
+                "diagnostics": {
+                    "lexical_top_5": [
+                        int(document["document_id"])
+                        for document in lexical_results[:5]
+                    ],
+                    "dense_top_5": [
+                        int(profile["document_id"])
+                        for _, profile in dense_results[:5]
+                    ],
+                    "fused_top_5": selected,
+                },
             }
         )
 

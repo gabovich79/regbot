@@ -24,6 +24,11 @@ def test_hybrid_evaluation_embeds_each_unique_question_once():
     assert calls == [["מסלולי השקעה", "העברת כספים"]]
     assert result["metrics"]["document_recall_at_5"] == 1.0
     assert result["metrics"]["all_required_documents_recall_at_5"] == 1.0
+    assert result["rows"][0]["diagnostics"] == {
+        "lexical_top_5": [38, 22],
+        "dense_top_5": [38, 22],
+        "fused_top_5": [38, 22],
+    }
 
 
 def test_hybrid_evaluation_requires_every_document_for_multisource_case():
