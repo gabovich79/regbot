@@ -48,7 +48,7 @@ export CHALLENGER_CACHE_PATH="$CACHE"
 
 printf 'Building the local challenger cache...\n'
 "$PYTHON" scripts/build_challenger_embeddings.py
-printf '\nMeasuring hybrid retrieval...\n'
-"$PYTHON" scripts/measure_challenger_hybrid.py
-printf '\nFull results:\n'
-"$PYTHON" -m json.tool results/challenger_hybrid_metrics.json
+printf '\nRunning candidate-fusion ablations...\n'
+"$PYTHON" scripts/run_challenger_ablations.py
+printf '\nFull ablation results:\n'
+"$PYTHON" -m json.tool results/challenger_ablation_results.json

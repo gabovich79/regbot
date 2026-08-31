@@ -63,6 +63,7 @@ async def evaluate_hybrid(
     nodes: list[dict] | None = None,
     top_k: int = 5,
     candidate_depth: int = 5,
+    node_rrf_weight: float = 2.0,
 ) -> dict:
     """Evaluate every unique question once and require full multi-source recall."""
     scored_cases = [case for case in cases if case.get("required_document_ids")]
@@ -115,7 +116,7 @@ async def evaluate_hybrid(
                     1 / (RRF_K + lexical_rank[document_id])
                     + 1 / (RRF_K + dense_rank[document_id])
                     + (
-                        2 / (RRF_K + node_rank[document_id])
+                        node_rrf_weight / (RRF_K + node_rank[document_id])
                         if document_id in node_rank
                         else 0
                     ),

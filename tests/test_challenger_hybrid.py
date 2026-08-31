@@ -90,6 +90,47 @@ def test_hybrid_preserves_dense_candidate_against_broad_node_candidates():
     assert 22 in row["diagnostics"]["candidate_union"]
 
 
+def test_hybrid_can_limit_broad_node_channel_without_losing_dense_candidate():
+    profiles = [
+        {"document_id": 22, "title": "מסמך יעד", "embedding": [1.0, 0.0]},
+        *[
+            {"document_id": doc_id, "title": f"מסמך {doc_id}", "embedding": [0.0, 1.0]}
+            for doc_id in range(1, 6)
+        ],
+    ]
+    nodes = [
+        {
+            "document_id": doc_id,
+            "heading": "הוראות כלליות",
+            "raw_text": "העברת כספים בהתאם להוראות כלליות.",
+        }
+        for doc_id in range(1, 6)
+    ]
+    cases = [
+        {
+            "id": "dense-survives-node-limit",
+            "question": "העברת כספים",
+            "required_document_ids": [22],
+        }
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]
+
+    result = asyncio.run(
+        evaluate_hybrid(
+            profiles,
+            cases,
+            embed_queries,
+            nodes=nodes,
+            top_k=5,
+            node_rrf_weight=0,
+        )
+    )
+
+    assert 22 in result["rows"][0]["selected"]
+
+
 def test_hybrid_evaluation_uses_node_evidence_when_profile_is_insufficient():
     profiles = [
         {"document_id": 18, "title": "חוק הפיקוח", "embedding": [0.0, 1.0]},
