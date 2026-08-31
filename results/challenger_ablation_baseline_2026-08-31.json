@@ -1,0 +1,41 @@
+{
+  "run_date": "2026-08-31",
+  "scope": "read-only local Mac challenger baseline; no production path changed",
+  "cache": {
+    "profiles": 36,
+    "nodes": 6669,
+    "embedding_dimensions": 1024,
+    "nodes_missing_embedding": 0,
+    "unique_embedding_texts": 6572,
+    "duplicate_content_nodes": 97
+  },
+  "configuration": {
+    "channels": [
+      "profile_lexical",
+      "profile_dense",
+      "node_lexical"
+    ],
+    "fusion": "rrf",
+    "rrf_k": 60,
+    "node_rrf_weight": 2,
+    "candidate_cutoff": 5,
+    "candidate_policy": "all profiles are ranked directly by RRF; no per-channel union"
+  },
+  "metrics": {
+    "cases": 7,
+    "document_recall_at_3": 0.786,
+    "document_recall_at_5": 0.929,
+    "all_required_documents_recall_at_3": 0.714,
+    "all_required_documents_recall_at_5": 0.857
+  },
+  "blocking_cases": [
+    {
+      "id": "transfer-funds-multisource",
+      "required_document_ids": [15, 22],
+      "selected_document_ids": [24, 15, 28, 20, 13],
+      "dense_top_5": [22, 28, 15, 24, 5],
+      "node_lexical_top_5": [24, 15, 13, 4, 1],
+      "diagnosis": "A strong dense-only document was discarded by the final RRF cutoff."
+    }
+  ]
+}
