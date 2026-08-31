@@ -6,17 +6,35 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-if [[ -x .venv/bin/python ]]; then
-  PYTHON=.venv/bin/python
-else
-  PYTHON=python3
+# Prefer the known-good Python 3.11 project environment. The local .venv may
+# have been created with Python 3.14, for which this project's pinned PyMuPDF
+# lacks a prebuilt wheel and attempts an unnecessary source compilation.
+CANDIDATES=()
+[[ -n "${REGBOT_PYTHON:-}" ]] && CANDIDATES+=("$REGBOT_PYTHON")
+CANDIDATES+=("/tmp/regbot-clean/.venv/bin/python" "$ROOT/.venv/bin/python")
+PYTHON=""
+for candidate in "${CANDIDATES[@]}"; do
+  if [[ -x "$candidate" ]] && "$candidate" -c 'import fitz, openai, numpy, tiktoken' >/dev/null 2>&1; then
+    PYTHON="$candidate"
+    break
+  fi
+done
+
+if [[ -z "$PYTHON" ]]; then
+  cat >&2 <<'EOF'
+No compatible project Python environment was found.
+Use Python 3.11 (not 3.14) and install requirements once, then rerun:
+  /opt/homebrew/bin/python3.11 -m venv /tmp/regbot-clean/.venv
+  /tmp/regbot-clean/.venv/bin/python -m pip install -r requirements.txt
+EOF
+  exit 2
 fi
 
-if ! "$PYTHON" -c 'import openai, numpy, tiktoken' >/dev/null 2>&1; then
-  echo "Creating a local Python environment and installing project dependencies..."
-  python3 -m venv .venv
-  PYTHON=.venv/bin/python
-  "$PYTHON" -m pip install -q -r requirements.txt
+if [[ "${1:-}" == "--preflight" ]]; then
+  echo "Python: $($PYTHON --version)"
+  echo "PyMuPDF: OK"
+  echo "Runner Python: $PYTHON"
+  exit 0
 fi
 
 if [[ -z "${OPENAI_API_KEY:-}" ]]; then
