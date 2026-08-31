@@ -1,6 +1,29 @@
 import pytest
 
-from services.document_retriever import DocumentRetriever
+from services.document_retriever import DocumentRetriever, catalog_entity_ranks
+
+
+def test_catalog_entity_ranks_explicit_law_title_above_unrelated_documents():
+    documents = [
+        {
+            "document_id": 18,
+            "canonical_title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשס״ה–2005",
+            "official_number": None,
+        },
+        {
+            "document_id": 4,
+            "canonical_title": "הכרעה עקרונית בדמי ניהול",
+            "official_number": None,
+        },
+    ]
+
+    ranks = catalog_entity_ranks(
+        "מה קובע סעיף 999 בחוק הפיקוח על שירותים פיננסיים קופות גמל?",
+        documents,
+    )
+
+    assert ranks[18] == 1
+    assert 4 not in ranks
 
 
 @pytest.fixture

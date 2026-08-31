@@ -38,6 +38,38 @@ def _terms(text: str) -> set[str]:
     }
 
 
+def _document_id(document: dict[str, Any]) -> int:
+    raw_document_id = document.get("document_id")
+    if raw_document_id is None:
+        raw_document_id = document["id"]
+    return int(raw_document_id)
+
+
+def catalog_entity_ranks(question: str, documents: list[dict[str, Any]]) -> dict[int, int]:
+    """Rank source-derived catalog matches for explicit law/circular references.
+
+    This is a narrow entity channel: it only emits a document when an official
+    number matches exactly or at least two normalized title terms are present in
+    the query. It intentionally does not rank generic topical overlap.
+    """
+    query_terms = _terms(question)
+    query_numbers = set(re.findall(r"\d{4}-\d{1,2}-\d{1,3}", question))
+    scored: list[tuple[float, int]] = []
+    for document in documents:
+        title = str(document.get("canonical_title") or document.get("title") or "")
+        title_terms = _terms(title)
+        official_number = str(document.get("official_number") or "").replace("–", "-")
+        number_match = bool(official_number and official_number in query_numbers)
+        matched_title_terms = query_terms & title_terms
+        if not number_match and len(matched_title_terms) < 2:
+            continue
+        coverage = len(matched_title_terms) / max(len(title_terms), 1)
+        score = (100.0 if number_match else 0.0) + len(matched_title_terms) + coverage
+        scored.append((score, _document_id(document)))
+    scored.sort(reverse=True)
+    return {document_id: rank for rank, (_, document_id) in enumerate(scored, 1)}
+
+
 class DocumentRetriever:
     """Rank documents by profile text overlap; no embeddings, deterministic."""
 

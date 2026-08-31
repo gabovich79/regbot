@@ -29,6 +29,7 @@ def test_hybrid_evaluation_embeds_each_unique_question_once():
         "lexical_top_5": [38, 22],
         "dense_top_5": [38, 22],
         "node_lexical_top_5": [],
+        "catalog_top_5": [38],
         "fused_top_5": [38, 22],
     }
 
@@ -52,6 +53,42 @@ def test_hybrid_evaluation_requires_every_document_for_multisource_case():
     assert row["required_recall_at_5"] == 0.5
     assert row["all_required_documents_at_5"] == 0
     assert result["metrics"]["all_required_documents_recall_at_5"] == 0.0
+
+
+def test_hybrid_uses_catalog_entity_candidate_for_explicit_law_title():
+    profiles = [
+        {
+            "document_id": 18,
+            "canonical_title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשס״ה–2005",
+            "embedding": [0.0, 1.0],
+        },
+        {"document_id": 4, "canonical_title": "הכרעה עקרונית בדמי ניהול", "embedding": [1.0, 0.0]},
+    ]
+    cases = [
+        {
+            "id": "missing-section-catalog",
+            "question": "מה קובע סעיף 999 בחוק הפיקוח על שירותים פיננסיים קופות גמל?",
+            "required_document_ids": [18],
+        }
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]  # Dense intentionally prefers the wrong document.
+
+    result = asyncio.run(
+        evaluate_hybrid(
+            profiles,
+            cases,
+            embed_queries,
+            nodes=[{"document_id": 4, "heading": "סעיף 999", "raw_text": "מידע כללי"}],
+            top_k=1,
+            catalog_rrf_weight=2,
+        )
+    )
+
+    row = result["rows"][0]
+    assert row["diagnostics"]["catalog_top_5"] == [18]
+    assert row["selected"] == [18]
 
 
 def test_hybrid_preserves_dense_candidate_against_broad_node_candidates():

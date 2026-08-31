@@ -15,7 +15,11 @@ import os
 
 import numpy as np
 
-from services.document_retriever import DocumentRetriever, _terms
+from services.document_retriever import (
+    DocumentRetriever,
+    _terms,
+    catalog_entity_ranks,
+)
 
 CACHE = Path(
     os.environ.get(
@@ -64,6 +68,7 @@ async def evaluate_hybrid(
     top_k: int = 5,
     candidate_depth: int = 5,
     node_rrf_weight: float = 2.0,
+    catalog_rrf_weight: float = 1.0,
 ) -> dict:
     """Evaluate every unique question once and require full multi-source recall."""
     scored_cases = [case for case in cases if case.get("required_document_ids")]
@@ -94,11 +99,16 @@ async def evaluate_hybrid(
         }
         all_document_ids = {int(profile["document_id"]) for profile in profiles}
         node_rank = node_document_ranks(question, nodes or [], all_document_ids)
+        catalog_rank = catalog_entity_ranks(question, profiles)
         lexical_ids = [int(document["document_id"]) for document in lexical_results]
         dense_ids = [int(profile["document_id"]) for _, profile in dense_results]
         node_ids = [
             document_id
             for document_id, _ in sorted(node_rank.items(), key=lambda item: item[1])
+        ]
+        catalog_ids = [
+            document_id
+            for document_id, _ in sorted(catalog_rank.items(), key=lambda item: item[1])
         ]
         # Recall policy: preserve the strongest candidates from every signal.
         # Fusion orders this union; it must not silently erase a dense-only or
@@ -108,6 +118,7 @@ async def evaluate_hybrid(
                 lexical_ids[:candidate_depth]
                 + dense_ids[:candidate_depth]
                 + node_ids[:candidate_depth]
+                + catalog_ids[:candidate_depth]
             )
         )
         fused = sorted(
@@ -118,6 +129,11 @@ async def evaluate_hybrid(
                     + (
                         node_rrf_weight / (RRF_K + node_rank[document_id])
                         if document_id in node_rank
+                        else 0
+                    )
+                    + (
+                        catalog_rrf_weight / (RRF_K + catalog_rank[document_id])
+                        if document_id in catalog_rank
                         else 0
                     ),
                     document_id,
@@ -158,6 +174,12 @@ async def evaluate_hybrid(
                         document_id
                         for document_id, _ in sorted(
                             node_rank.items(), key=lambda item: item[1]
+                        )[:5]
+                    ],
+                    "catalog_top_5": [
+                        document_id
+                        for document_id, _ in sorted(
+                            catalog_rank.items(), key=lambda item: item[1]
                         )[:5]
                     ],
                     "fused_top_5": selected,

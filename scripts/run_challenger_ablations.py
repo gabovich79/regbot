@@ -23,10 +23,30 @@ from scripts.measure_challenger_hybrid import (
 OUTPUT = Path("results/challenger_ablation_results.json")
 
 DEFAULT_CONFIGS = [
-    {"id": "union-5-node-0", "candidate_depth": 5, "node_rrf_weight": 0.0},
-    {"id": "union-5-node-1", "candidate_depth": 5, "node_rrf_weight": 1.0},
-    {"id": "union-5-node-2", "candidate_depth": 5, "node_rrf_weight": 2.0},
-    {"id": "union-8-node-1", "candidate_depth": 8, "node_rrf_weight": 1.0},
+    {
+        "id": "union-5-node-1-catalog-0",
+        "candidate_depth": 5,
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 0.0,
+    },
+    {
+        "id": "union-5-node-1-catalog-1",
+        "candidate_depth": 5,
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 1.0,
+    },
+    {
+        "id": "union-5-node-1-catalog-2",
+        "candidate_depth": 5,
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 2.0,
+    },
+    {
+        "id": "union-8-node-1-catalog-1",
+        "candidate_depth": 8,
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 1.0,
+    },
 ]
 
 
@@ -64,6 +84,7 @@ async def run_ablations(
             nodes=nodes,
             candidate_depth=int(config["candidate_depth"]),
             node_rrf_weight=float(config["node_rrf_weight"]),
+            catalog_rrf_weight=float(config.get("catalog_rrf_weight", 0.0)),
         )
         runs.append({"configuration": config, **result})
     return {"runs": runs}
