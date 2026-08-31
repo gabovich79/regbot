@@ -25,6 +25,7 @@ def test_hybrid_evaluation_embeds_each_unique_question_once():
     assert result["metrics"]["document_recall_at_5"] == 1.0
     assert result["metrics"]["all_required_documents_recall_at_5"] == 1.0
     assert result["rows"][0]["diagnostics"] == {
+        "candidate_union": [38, 22],
         "lexical_top_5": [38, 22],
         "dense_top_5": [38, 22],
         "node_lexical_top_5": [],
@@ -51,6 +52,42 @@ def test_hybrid_evaluation_requires_every_document_for_multisource_case():
     assert row["required_recall_at_5"] == 0.5
     assert row["all_required_documents_at_5"] == 0
     assert result["metrics"]["all_required_documents_recall_at_5"] == 0.0
+
+
+def test_hybrid_preserves_dense_candidate_against_broad_node_candidates():
+    profiles = [
+        {"document_id": 22, "title": "מסמך יעד", "embedding": [1.0, 0.0]},
+        *[
+            {"document_id": doc_id, "title": f"מסמך {doc_id}", "embedding": [0.0, 1.0]}
+            for doc_id in range(1, 6)
+        ],
+    ]
+    nodes = [
+        {
+            "document_id": doc_id,
+            "heading": "הוראות כלליות",
+            "raw_text": "העברת כספים בהתאם להוראות כלליות.",
+        }
+        for doc_id in range(1, 6)
+    ]
+    cases = [
+        {
+            "id": "dense-only-candidate",
+            "question": "העברת כספים",
+            "required_document_ids": [22],
+        }
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]  # Dense identifies only document 22.
+
+    result = asyncio.run(
+        evaluate_hybrid(profiles, cases, embed_queries, nodes=nodes, top_k=5)
+    )
+
+    row = result["rows"][0]
+    assert row["diagnostics"]["dense_top_5"][0] == 22
+    assert 22 in row["diagnostics"]["candidate_union"]
 
 
 def test_hybrid_evaluation_uses_node_evidence_when_profile_is_insufficient():

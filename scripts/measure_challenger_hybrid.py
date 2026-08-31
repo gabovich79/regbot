@@ -62,6 +62,7 @@ async def evaluate_hybrid(
     document_sections: dict[int, list[str]] | None = None,
     nodes: list[dict] | None = None,
     top_k: int = 5,
+    candidate_depth: int = 5,
 ) -> dict:
     """Evaluate every unique question once and require full multi-source recall."""
     scored_cases = [case for case in cases if case.get("required_document_ids")]
@@ -92,19 +93,35 @@ async def evaluate_hybrid(
         }
         all_document_ids = {int(profile["document_id"]) for profile in profiles}
         node_rank = node_document_ranks(question, nodes or [], all_document_ids)
+        lexical_ids = [int(document["document_id"]) for document in lexical_results]
+        dense_ids = [int(profile["document_id"]) for _, profile in dense_results]
+        node_ids = [
+            document_id
+            for document_id, _ in sorted(node_rank.items(), key=lambda item: item[1])
+        ]
+        # Recall policy: preserve the strongest candidates from every signal.
+        # Fusion orders this union; it must not silently erase a dense-only or
+        # node-only candidate before section retrieval gets a chance to inspect it.
+        candidate_union = list(
+            dict.fromkeys(
+                lexical_ids[:candidate_depth]
+                + dense_ids[:candidate_depth]
+                + node_ids[:candidate_depth]
+            )
+        )
         fused = sorted(
             (
                 (
-                    1 / (RRF_K + lexical_rank[int(profile["document_id"])])
-                    + 1 / (RRF_K + dense_rank[int(profile["document_id"])])
+                    1 / (RRF_K + lexical_rank[document_id])
+                    + 1 / (RRF_K + dense_rank[document_id])
                     + (
-                        2 / (RRF_K + node_rank[int(profile["document_id"])])
-                        if int(profile["document_id"]) in node_rank
+                        2 / (RRF_K + node_rank[document_id])
+                        if document_id in node_rank
                         else 0
                     ),
-                    int(profile["document_id"]),
+                    document_id,
                 )
-                for profile in profiles
+                for document_id in candidate_union
             ),
             reverse=True,
         )
@@ -127,6 +144,7 @@ async def evaluate_hybrid(
                 "all_required_documents_at_3": int(required <= set(selected[:3])),
                 "all_required_documents_at_5": int(required <= set(selected)),
                 "diagnostics": {
+                    "candidate_union": candidate_union,
                     "lexical_top_5": [
                         int(document["document_id"])
                         for document in lexical_results[:5]
