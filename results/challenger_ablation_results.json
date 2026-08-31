@@ -2,465 +2,17 @@
   "runs": [
     {
       "configuration": {
-        "id": "union-5-node-0",
+        "id": "union-5-node-1-catalog-0",
         "candidate_depth": 5,
-        "node_rrf_weight": 0.0
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 0.0
       },
       "metrics": {
         "cases": 7,
-        "document_recall_at_3": 0.5,
-        "document_recall_at_5": 0.857,
-        "all_required_documents_recall_at_3": 0.429,
-        "all_required_documents_recall_at_5": 0.857
-      },
-      "rows": [
-        {
-          "id": "age-dependent-tracks-v2",
-          "required": [
-            38
-          ],
-          "selected": [
-            33,
-            38,
-            36,
-            34,
-            5
-          ],
-          "hit_at": 2,
-          "required_recall_at_3": 1.0,
-          "required_recall_at_5": 1.0,
-          "all_required_documents_at_3": 1,
-          "all_required_documents_at_5": 1,
-          "diagnostics": {
-            "candidate_union": [
-              19,
-              18,
-              35,
-              34,
-              33,
-              38,
-              36,
-              32,
-              5,
-              37
-            ],
-            "lexical_top_5": [
-              19,
-              18,
-              35,
-              34,
-              33
-            ],
-            "dense_top_5": [
-              38,
-              36,
-              33,
-              32,
-              5
-            ],
-            "node_lexical_top_5": [
-              19,
-              38,
-              37,
-              36,
-              35
-            ],
-            "fused_top_5": [
-              33,
-              38,
-              36,
-              34,
-              5
-            ]
-          }
-        },
-        {
-          "id": "transfer-funds-multisource",
-          "required": [
-            15,
-            22
-          ],
-          "selected": [
-            28,
-            22,
-            24,
-            25,
-            15
-          ],
-          "hit_at": 2,
-          "required_recall_at_3": 0.5,
-          "required_recall_at_5": 1.0,
-          "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 1,
-          "diagnostics": {
-            "candidate_union": [
-              34,
-              35,
-              33,
-              28,
-              25,
-              22,
-              15,
-              24,
-              5,
-              13,
-              4,
-              1
-            ],
-            "lexical_top_5": [
-              34,
-              35,
-              33,
-              28,
-              25
-            ],
-            "dense_top_5": [
-              22,
-              28,
-              15,
-              24,
-              5
-            ],
-            "node_lexical_top_5": [
-              24,
-              15,
-              13,
-              4,
-              1
-            ],
-            "fused_top_5": [
-              28,
-              22,
-              24,
-              25,
-              15
-            ]
-          }
-        },
-        {
-          "id": "member-rights-section-25",
-          "required": [
-            18
-          ],
-          "selected": [
-            37,
-            4,
-            7,
-            18,
-            15
-          ],
-          "hit_at": 4,
-          "required_recall_at_3": 0.0,
-          "required_recall_at_5": 1.0,
-          "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 1,
-          "diagnostics": {
-            "candidate_union": [
-              18,
-              7,
-              37,
-              34,
-              25,
-              4,
-              15,
-              5,
-              1,
-              28
-            ],
-            "lexical_top_5": [
-              18,
-              7,
-              37,
-              34,
-              25
-            ],
-            "dense_top_5": [
-              4,
-              37,
-              15,
-              5,
-              1
-            ],
-            "node_lexical_top_5": [
-              4,
-              18,
-              37,
-              28,
-              15
-            ],
-            "fused_top_5": [
-              37,
-              4,
-              7,
-              18,
-              15
-            ]
-          }
-        },
-        {
-          "id": "training-fund-withdrawal-employee-self-employed",
-          "required": [
-            37
-          ],
-          "selected": [
-            37,
-            5,
-            22,
-            36,
-            14
-          ],
-          "hit_at": 1,
-          "required_recall_at_3": 1.0,
-          "required_recall_at_5": 1.0,
-          "all_required_documents_at_3": 1,
-          "all_required_documents_at_5": 1,
-          "diagnostics": {
-            "candidate_union": [
-              18,
-              37,
-              22,
-              5,
-              38,
-              12,
-              1,
-              14,
-              15,
-              36,
-              35
-            ],
-            "lexical_top_5": [
-              18,
-              37,
-              22,
-              5,
-              38
-            ],
-            "dense_top_5": [
-              37,
-              12,
-              1,
-              14,
-              5
-            ],
-            "node_lexical_top_5": [
-              37,
-              15,
-              38,
-              36,
-              35
-            ],
-            "fused_top_5": [
-              37,
-              5,
-              22,
-              36,
-              14
-            ]
-          }
-        },
-        {
-          "id": "loan-training-fund-section-8d",
-          "required": [
-            36
-          ],
-          "selected": [
-            37,
-            5,
-            15,
-            22,
-            36
-          ],
-          "hit_at": 5,
-          "required_recall_at_3": 0.0,
-          "required_recall_at_5": 1.0,
-          "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 1,
-          "diagnostics": {
-            "candidate_union": [
-              18,
-              35,
-              22,
-              7,
-              37,
-              5,
-              4,
-              1,
-              6,
-              36,
-              19,
-              15
-            ],
-            "lexical_top_5": [
-              18,
-              35,
-              22,
-              7,
-              37
-            ],
-            "dense_top_5": [
-              37,
-              5,
-              4,
-              1,
-              6
-            ],
-            "node_lexical_top_5": [
-              37,
-              7,
-              36,
-              19,
-              15
-            ],
-            "fused_top_5": [
-              37,
-              5,
-              15,
-              22,
-              36
-            ]
-          }
-        },
-        {
-          "id": "withdrawal-and-tax-parameter-synthesis",
-          "required": [
-            37
-          ],
-          "selected": [
-            1,
-            37,
-            5,
-            22,
-            34
-          ],
-          "hit_at": 2,
-          "required_recall_at_3": 1.0,
-          "required_recall_at_5": 1.0,
-          "all_required_documents_at_3": 1,
-          "all_required_documents_at_5": 1,
-          "diagnostics": {
-            "candidate_union": [
-              18,
-              15,
-              5,
-              22,
-              24,
-              8,
-              1,
-              37,
-              32,
-              34,
-              14,
-              35
-            ],
-            "lexical_top_5": [
-              18,
-              15,
-              5,
-              22,
-              24
-            ],
-            "dense_top_5": [
-              8,
-              1,
-              37,
-              32,
-              34
-            ],
-            "node_lexical_top_5": [
-              37,
-              15,
-              14,
-              35,
-              18
-            ],
-            "fused_top_5": [
-              1,
-              37,
-              5,
-              22,
-              34
-            ]
-          }
-        },
-        {
-          "id": "missing-explicit-section-abstention",
-          "required": [
-            18
-          ],
-          "selected": [
-            37,
-            25,
-            35,
-            4,
-            34
-          ],
-          "hit_at": null,
-          "required_recall_at_3": 0.0,
-          "required_recall_at_5": 0.0,
-          "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 0,
-          "diagnostics": {
-            "candidate_union": [
-              35,
-              34,
-              25,
-              37,
-              32,
-              6,
-              5,
-              4,
-              2,
-              13,
-              7,
-              36,
-              28,
-              24,
-              20
-            ],
-            "lexical_top_5": [
-              35,
-              34,
-              25,
-              37,
-              32
-            ],
-            "dense_top_5": [
-              6,
-              5,
-              4,
-              2,
-              13
-            ],
-            "node_lexical_top_5": [
-              7,
-              36,
-              28,
-              24,
-              20
-            ],
-            "fused_top_5": [
-              37,
-              25,
-              35,
-              4,
-              34
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "configuration": {
-        "id": "union-5-node-1",
-        "candidate_depth": 5,
-        "node_rrf_weight": 1.0
-      },
-      "metrics": {
-        "cases": 7,
-        "document_recall_at_3": 0.786,
-        "document_recall_at_5": 0.857,
-        "all_required_documents_recall_at_3": 0.714,
-        "all_required_documents_recall_at_5": 0.857
+        "document_recall_at_3": 0.929,
+        "document_recall_at_5": 1.0,
+        "all_required_documents_recall_at_3": 0.857,
+        "all_required_documents_recall_at_5": 1.0
       },
       "rows": [
         {
@@ -514,6 +66,7 @@
               36,
               35
             ],
+            "catalog_top_5": [],
             "fused_top_5": [
               38,
               33,
@@ -554,7 +107,8 @@
               5,
               13,
               4,
-              1
+              1,
+              7
             ],
             "lexical_top_5": [
               34,
@@ -576,6 +130,13 @@
               13,
               4,
               1
+            ],
+            "catalog_top_5": [
+              22,
+              15,
+              28,
+              24,
+              7
             ],
             "fused_top_5": [
               24,
@@ -614,7 +175,9 @@
               15,
               5,
               1,
-              28
+              28,
+              13,
+              2
             ],
             "lexical_top_5": [
               18,
@@ -636,6 +199,13 @@
               37,
               28,
               15
+            ],
+            "catalog_top_5": [
+              7,
+              18,
+              15,
+              13,
+              2
             ],
             "fused_top_5": [
               37,
@@ -698,6 +268,9 @@
               36,
               35
             ],
+            "catalog_top_5": [
+              37
+            ],
             "fused_top_5": [
               37,
               36,
@@ -737,7 +310,8 @@
               6,
               36,
               19,
-              15
+              15,
+              8
             ],
             "lexical_top_5": [
               18,
@@ -759,6 +333,9 @@
               36,
               19,
               15
+            ],
+            "catalog_top_5": [
+              8
             ],
             "fused_top_5": [
               37,
@@ -822,6 +399,9 @@
               35,
               18
             ],
+            "catalog_top_5": [
+              37
+            ],
             "fused_top_5": [
               37,
               15,
@@ -838,16 +418,16 @@
           ],
           "selected": [
             28,
+            18,
             7,
-            37,
-            4,
-            25
+            15,
+            37
           ],
-          "hit_at": null,
-          "required_recall_at_3": 0.0,
-          "required_recall_at_5": 0.0,
-          "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 0,
+          "hit_at": 2,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
           "diagnostics": {
             "candidate_union": [
               35,
@@ -856,15 +436,17 @@
               37,
               32,
               6,
-              5,
               4,
+              5,
               2,
               13,
               7,
               36,
               28,
               24,
-              20
+              20,
+              18,
+              15
             ],
             "lexical_top_5": [
               35,
@@ -875,8 +457,8 @@
             ],
             "dense_top_5": [
               6,
-              5,
               4,
+              5,
               2,
               13
             ],
@@ -887,12 +469,19 @@
               24,
               20
             ],
+            "catalog_top_5": [
+              7,
+              18,
+              15,
+              13,
+              2
+            ],
             "fused_top_5": [
               28,
+              18,
               7,
-              37,
-              4,
-              25
+              15,
+              37
             ]
           }
         }
@@ -900,16 +489,17 @@
     },
     {
       "configuration": {
-        "id": "union-5-node-2",
+        "id": "union-5-node-1-catalog-1",
         "candidate_depth": 5,
-        "node_rrf_weight": 2.0
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 1.0
       },
       "metrics": {
         "cases": 7,
-        "document_recall_at_3": 0.786,
-        "document_recall_at_5": 0.786,
-        "all_required_documents_recall_at_3": 0.714,
-        "all_required_documents_recall_at_5": 0.714
+        "document_recall_at_3": 0.929,
+        "document_recall_at_5": 1.0,
+        "all_required_documents_recall_at_3": 0.857,
+        "all_required_documents_recall_at_5": 1.0
       },
       "rows": [
         {
@@ -919,10 +509,10 @@
           ],
           "selected": [
             38,
-            36,
             33,
+            36,
             19,
-            37
+            34
           ],
           "hit_at": 1,
           "required_recall_at_3": 1.0,
@@ -963,12 +553,13 @@
               36,
               35
             ],
+            "catalog_top_5": [],
             "fused_top_5": [
               38,
-              36,
               33,
+              36,
               19,
-              37
+              34
             ]
           }
         },
@@ -980,16 +571,16 @@
           ],
           "selected": [
             24,
-            15,
             28,
-            13,
-            1
+            15,
+            22,
+            13
           ],
-          "hit_at": 2,
+          "hit_at": 3,
           "required_recall_at_3": 0.5,
-          "required_recall_at_5": 0.5,
+          "required_recall_at_5": 1.0,
           "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 0,
+          "all_required_documents_at_5": 1,
           "diagnostics": {
             "candidate_union": [
               34,
@@ -1003,7 +594,8 @@
               5,
               13,
               4,
-              1
+              1,
+              7
             ],
             "lexical_top_5": [
               34,
@@ -1026,12 +618,19 @@
               4,
               1
             ],
-            "fused_top_5": [
-              24,
+            "catalog_top_5": [
+              22,
               15,
               28,
-              13,
-              1
+              24,
+              7
+            ],
+            "fused_top_5": [
+              24,
+              28,
+              15,
+              22,
+              13
             ]
           }
         },
@@ -1041,13 +640,13 @@
             18
           ],
           "selected": [
-            4,
-            37,
             18,
+            4,
+            7,
             15,
-            7
+            13
           ],
-          "hit_at": 3,
+          "hit_at": 1,
           "required_recall_at_3": 1.0,
           "required_recall_at_5": 1.0,
           "all_required_documents_at_3": 1,
@@ -1063,7 +662,9 @@
               15,
               5,
               1,
-              28
+              28,
+              13,
+              2
             ],
             "lexical_top_5": [
               18,
@@ -1086,12 +687,19 @@
               28,
               15
             ],
-            "fused_top_5": [
-              4,
-              37,
+            "catalog_top_5": [
+              7,
               18,
               15,
-              7
+              13,
+              2
+            ],
+            "fused_top_5": [
+              18,
+              4,
+              7,
+              15,
+              13
             ]
           }
         },
@@ -1102,10 +710,10 @@
           ],
           "selected": [
             37,
-            15,
             36,
-            38,
-            35
+            15,
+            22,
+            5
           ],
           "hit_at": 1,
           "required_recall_at_3": 1.0,
@@ -1147,12 +755,15 @@
               36,
               35
             ],
+            "catalog_top_5": [
+              37
+            ],
             "fused_top_5": [
               37,
-              15,
               36,
-              38,
-              35
+              15,
+              22,
+              5
             ]
           }
         },
@@ -1163,12 +774,12 @@
           ],
           "selected": [
             37,
-            36,
             5,
+            36,
             15,
             19
           ],
-          "hit_at": 2,
+          "hit_at": 3,
           "required_recall_at_3": 1.0,
           "required_recall_at_5": 1.0,
           "all_required_documents_at_3": 1,
@@ -1186,7 +797,8 @@
               6,
               36,
               19,
-              15
+              15,
+              8
             ],
             "lexical_top_5": [
               18,
@@ -1209,10 +821,13 @@
               19,
               15
             ],
+            "catalog_top_5": [
+              8
+            ],
             "fused_top_5": [
               37,
-              36,
               5,
+              36,
               15,
               19
             ]
@@ -1226,9 +841,9 @@
           "selected": [
             37,
             15,
+            34,
             35,
-            18,
-            34
+            18
           ],
           "hit_at": 1,
           "required_recall_at_3": 1.0,
@@ -1271,12 +886,15 @@
               35,
               18
             ],
+            "catalog_top_5": [
+              37
+            ],
             "fused_top_5": [
               37,
               15,
+              34,
               35,
-              18,
-              34
+              18
             ]
           }
         },
@@ -1286,17 +904,17 @@
             18
           ],
           "selected": [
+            18,
             7,
+            15,
             28,
-            36,
-            20,
-            24
+            4
           ],
-          "hit_at": null,
-          "required_recall_at_3": 0.0,
-          "required_recall_at_5": 0.0,
-          "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 0,
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
           "diagnostics": {
             "candidate_union": [
               35,
@@ -1305,15 +923,17 @@
               37,
               32,
               6,
-              5,
               4,
+              5,
               2,
               13,
               7,
               36,
               28,
               24,
-              20
+              20,
+              18,
+              15
             ],
             "lexical_top_5": [
               35,
@@ -1324,8 +944,8 @@
             ],
             "dense_top_5": [
               6,
-              5,
               4,
+              5,
               2,
               13
             ],
@@ -1336,12 +956,19 @@
               24,
               20
             ],
-            "fused_top_5": [
+            "catalog_top_5": [
               7,
+              18,
+              15,
+              13,
+              2
+            ],
+            "fused_top_5": [
+              18,
+              7,
+              15,
               28,
-              36,
-              20,
-              24
+              4
             ]
           }
         }
@@ -1349,16 +976,504 @@
     },
     {
       "configuration": {
-        "id": "union-8-node-1",
+        "id": "union-5-node-1-catalog-2",
+        "candidate_depth": 5,
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 2.0
+      },
+      "metrics": {
+        "cases": 7,
+        "document_recall_at_3": 0.786,
+        "document_recall_at_5": 1.0,
+        "all_required_documents_recall_at_3": 0.714,
+        "all_required_documents_recall_at_5": 1.0
+      },
+      "rows": [
+        {
+          "id": "age-dependent-tracks-v2",
+          "required": [
+            38
+          ],
+          "selected": [
+            38,
+            33,
+            36,
+            19,
+            34
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              19,
+              18,
+              35,
+              34,
+              33,
+              38,
+              36,
+              32,
+              5,
+              37
+            ],
+            "lexical_top_5": [
+              19,
+              18,
+              35,
+              34,
+              33
+            ],
+            "dense_top_5": [
+              38,
+              36,
+              33,
+              32,
+              5
+            ],
+            "node_lexical_top_5": [
+              19,
+              38,
+              37,
+              36,
+              35
+            ],
+            "catalog_top_5": [],
+            "fused_top_5": [
+              38,
+              33,
+              36,
+              19,
+              34
+            ]
+          }
+        },
+        {
+          "id": "transfer-funds-multisource",
+          "required": [
+            15,
+            22
+          ],
+          "selected": [
+            24,
+            28,
+            15,
+            22,
+            13
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 0.5,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              34,
+              35,
+              33,
+              28,
+              25,
+              22,
+              15,
+              24,
+              5,
+              13,
+              4,
+              1,
+              7
+            ],
+            "lexical_top_5": [
+              34,
+              35,
+              33,
+              28,
+              25
+            ],
+            "dense_top_5": [
+              22,
+              28,
+              15,
+              24,
+              5
+            ],
+            "node_lexical_top_5": [
+              24,
+              15,
+              13,
+              4,
+              1
+            ],
+            "catalog_top_5": [
+              22,
+              15,
+              28,
+              24,
+              7
+            ],
+            "fused_top_5": [
+              24,
+              28,
+              15,
+              22,
+              13
+            ]
+          }
+        },
+        {
+          "id": "member-rights-section-25",
+          "required": [
+            18
+          ],
+          "selected": [
+            18,
+            7,
+            4,
+            15,
+            13
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              7,
+              37,
+              34,
+              25,
+              4,
+              15,
+              5,
+              1,
+              28,
+              13,
+              2
+            ],
+            "lexical_top_5": [
+              18,
+              7,
+              37,
+              34,
+              25
+            ],
+            "dense_top_5": [
+              4,
+              37,
+              15,
+              5,
+              1
+            ],
+            "node_lexical_top_5": [
+              4,
+              18,
+              37,
+              28,
+              15
+            ],
+            "catalog_top_5": [
+              7,
+              18,
+              15,
+              13,
+              2
+            ],
+            "fused_top_5": [
+              18,
+              7,
+              4,
+              15,
+              13
+            ]
+          }
+        },
+        {
+          "id": "training-fund-withdrawal-employee-self-employed",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            36,
+            15,
+            22,
+            5
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              37,
+              22,
+              5,
+              38,
+              12,
+              1,
+              14,
+              15,
+              36,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              37,
+              22,
+              5,
+              38
+            ],
+            "dense_top_5": [
+              37,
+              12,
+              1,
+              14,
+              5
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              38,
+              36,
+              35
+            ],
+            "catalog_top_5": [
+              37
+            ],
+            "fused_top_5": [
+              37,
+              36,
+              15,
+              22,
+              5
+            ]
+          }
+        },
+        {
+          "id": "loan-training-fund-section-8d",
+          "required": [
+            36
+          ],
+          "selected": [
+            8,
+            37,
+            5,
+            36,
+            15
+          ],
+          "hit_at": 4,
+          "required_recall_at_3": 0.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              35,
+              22,
+              7,
+              37,
+              5,
+              4,
+              1,
+              6,
+              36,
+              19,
+              15,
+              8
+            ],
+            "lexical_top_5": [
+              18,
+              35,
+              22,
+              7,
+              37
+            ],
+            "dense_top_5": [
+              37,
+              5,
+              4,
+              1,
+              6
+            ],
+            "node_lexical_top_5": [
+              37,
+              7,
+              36,
+              19,
+              15
+            ],
+            "catalog_top_5": [
+              8
+            ],
+            "fused_top_5": [
+              8,
+              37,
+              5,
+              36,
+              15
+            ]
+          }
+        },
+        {
+          "id": "withdrawal-and-tax-parameter-synthesis",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            15,
+            34,
+            35,
+            18
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              15,
+              5,
+              22,
+              24,
+              8,
+              1,
+              37,
+              32,
+              34,
+              14,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              15,
+              5,
+              22,
+              24
+            ],
+            "dense_top_5": [
+              8,
+              1,
+              37,
+              32,
+              34
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              14,
+              35,
+              18
+            ],
+            "catalog_top_5": [
+              37
+            ],
+            "fused_top_5": [
+              37,
+              15,
+              34,
+              35,
+              18
+            ]
+          }
+        },
+        {
+          "id": "missing-explicit-section-abstention",
+          "required": [
+            18
+          ],
+          "selected": [
+            7,
+            18,
+            15,
+            28,
+            13
+          ],
+          "hit_at": 2,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              35,
+              34,
+              25,
+              37,
+              32,
+              6,
+              4,
+              5,
+              2,
+              13,
+              7,
+              36,
+              28,
+              24,
+              20,
+              18,
+              15
+            ],
+            "lexical_top_5": [
+              35,
+              34,
+              25,
+              37,
+              32
+            ],
+            "dense_top_5": [
+              6,
+              4,
+              5,
+              2,
+              13
+            ],
+            "node_lexical_top_5": [
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "catalog_top_5": [
+              7,
+              18,
+              15,
+              13,
+              2
+            ],
+            "fused_top_5": [
+              7,
+              18,
+              15,
+              28,
+              13
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "configuration": {
+        "id": "union-8-node-1-catalog-1",
         "candidate_depth": 8,
-        "node_rrf_weight": 1.0
+        "node_rrf_weight": 1.0,
+        "catalog_rrf_weight": 1.0
       },
       "metrics": {
         "cases": 7,
         "document_recall_at_3": 0.929,
-        "document_recall_at_5": 0.929,
+        "document_recall_at_5": 1.0,
         "all_required_documents_recall_at_3": 0.857,
-        "all_required_documents_recall_at_5": 0.857
+        "all_required_documents_recall_at_5": 1.0
       },
       "rows": [
         {
@@ -1417,6 +1532,7 @@
               36,
               35
             ],
+            "catalog_top_5": [],
             "fused_top_5": [
               38,
               33,
@@ -1436,14 +1552,14 @@
             24,
             28,
             15,
-            20,
+            22,
             13
           ],
           "hit_at": 3,
           "required_recall_at_3": 0.5,
-          "required_recall_at_5": 0.5,
+          "required_recall_at_5": 1.0,
           "all_required_documents_at_3": 0,
-          "all_required_documents_at_5": 0,
+          "all_required_documents_at_5": 1,
           "diagnostics": {
             "candidate_union": [
               34,
@@ -1461,7 +1577,8 @@
               4,
               1,
               37,
-              18
+              18,
+              7
             ],
             "lexical_top_5": [
               34,
@@ -1484,11 +1601,18 @@
               4,
               1
             ],
+            "catalog_top_5": [
+              22,
+              15,
+              28,
+              24,
+              7
+            ],
             "fused_top_5": [
               24,
               28,
               15,
-              20,
+              22,
               13
             ]
           }
@@ -1499,13 +1623,13 @@
             18
           ],
           "selected": [
-            37,
-            4,
             18,
+            4,
             7,
-            15
+            15,
+            13
           ],
-          "hit_at": 3,
+          "hit_at": 1,
           "required_recall_at_3": 1.0,
           "required_recall_at_5": 1.0,
           "all_required_documents_at_3": 1,
@@ -1526,7 +1650,8 @@
               14,
               13,
               6,
-              28
+              28,
+              2
             ],
             "lexical_top_5": [
               18,
@@ -1549,12 +1674,19 @@
               28,
               15
             ],
-            "fused_top_5": [
-              37,
-              4,
-              18,
+            "catalog_top_5": [
               7,
-              15
+              18,
+              15,
+              13,
+              2
+            ],
+            "fused_top_5": [
+              18,
+              4,
+              7,
+              15,
+              13
             ]
           }
         },
@@ -1613,6 +1745,9 @@
               36,
               35
             ],
+            "catalog_top_5": [
+              37
+            ],
             "fused_top_5": [
               37,
               36,
@@ -1657,7 +1792,8 @@
               23,
               36,
               15,
-              11
+              11,
+              8
             ],
             "lexical_top_5": [
               18,
@@ -1679,6 +1815,9 @@
               36,
               19,
               15
+            ],
+            "catalog_top_5": [
+              8
             ],
             "fused_top_5": [
               37,
@@ -1748,6 +1887,9 @@
               35,
               18
             ],
+            "catalog_top_5": [
+              37
+            ],
             "fused_top_5": [
               37,
               15,
@@ -1763,13 +1905,13 @@
             18
           ],
           "selected": [
-            28,
             18,
-            19,
             7,
-            15
+            15,
+            28,
+            4
           ],
-          "hit_at": 2,
+          "hit_at": 1,
           "required_recall_at_3": 1.0,
           "required_recall_at_5": 1.0,
           "all_required_documents_at_3": 1,
@@ -1785,8 +1927,8 @@
               28,
               26,
               6,
-              5,
               4,
+              5,
               2,
               13,
               15,
@@ -1808,8 +1950,8 @@
             ],
             "dense_top_5": [
               6,
-              5,
               4,
+              5,
               2,
               13
             ],
@@ -1820,12 +1962,19 @@
               24,
               20
             ],
-            "fused_top_5": [
-              28,
-              18,
-              19,
+            "catalog_top_5": [
               7,
-              15
+              18,
+              15,
+              13,
+              2
+            ],
+            "fused_top_5": [
+              18,
+              7,
+              15,
+              28,
+              4
             ]
           }
         }
