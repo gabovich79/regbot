@@ -3,5 +3,6 @@ __pycache__/
 *.pyc
 data/regbot.db
 data/documents/*.txt
+results/challenger_embeddings_cache*.json
 .venv/
 venv/
