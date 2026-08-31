@@ -1,0 +1,1835 @@
+{
+  "runs": [
+    {
+      "configuration": {
+        "id": "union-5-node-0",
+        "candidate_depth": 5,
+        "node_rrf_weight": 0.0
+      },
+      "metrics": {
+        "cases": 7,
+        "document_recall_at_3": 0.5,
+        "document_recall_at_5": 0.857,
+        "all_required_documents_recall_at_3": 0.429,
+        "all_required_documents_recall_at_5": 0.857
+      },
+      "rows": [
+        {
+          "id": "age-dependent-tracks-v2",
+          "required": [
+            38
+          ],
+          "selected": [
+            33,
+            38,
+            36,
+            34,
+            5
+          ],
+          "hit_at": 2,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              19,
+              18,
+              35,
+              34,
+              33,
+              38,
+              36,
+              32,
+              5,
+              37
+            ],
+            "lexical_top_5": [
+              19,
+              18,
+              35,
+              34,
+              33
+            ],
+            "dense_top_5": [
+              38,
+              36,
+              33,
+              32,
+              5
+            ],
+            "node_lexical_top_5": [
+              19,
+              38,
+              37,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              33,
+              38,
+              36,
+              34,
+              5
+            ]
+          }
+        },
+        {
+          "id": "transfer-funds-multisource",
+          "required": [
+            15,
+            22
+          ],
+          "selected": [
+            28,
+            22,
+            24,
+            25,
+            15
+          ],
+          "hit_at": 2,
+          "required_recall_at_3": 0.5,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              34,
+              35,
+              33,
+              28,
+              25,
+              22,
+              15,
+              24,
+              5,
+              13,
+              4,
+              1
+            ],
+            "lexical_top_5": [
+              34,
+              35,
+              33,
+              28,
+              25
+            ],
+            "dense_top_5": [
+              22,
+              28,
+              15,
+              24,
+              5
+            ],
+            "node_lexical_top_5": [
+              24,
+              15,
+              13,
+              4,
+              1
+            ],
+            "fused_top_5": [
+              28,
+              22,
+              24,
+              25,
+              15
+            ]
+          }
+        },
+        {
+          "id": "member-rights-section-25",
+          "required": [
+            18
+          ],
+          "selected": [
+            37,
+            4,
+            7,
+            18,
+            15
+          ],
+          "hit_at": 4,
+          "required_recall_at_3": 0.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              7,
+              37,
+              34,
+              25,
+              4,
+              15,
+              5,
+              1,
+              28
+            ],
+            "lexical_top_5": [
+              18,
+              7,
+              37,
+              34,
+              25
+            ],
+            "dense_top_5": [
+              4,
+              37,
+              15,
+              5,
+              1
+            ],
+            "node_lexical_top_5": [
+              4,
+              18,
+              37,
+              28,
+              15
+            ],
+            "fused_top_5": [
+              37,
+              4,
+              7,
+              18,
+              15
+            ]
+          }
+        },
+        {
+          "id": "training-fund-withdrawal-employee-self-employed",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            5,
+            22,
+            36,
+            14
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              37,
+              22,
+              5,
+              38,
+              12,
+              1,
+              14,
+              15,
+              36,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              37,
+              22,
+              5,
+              38
+            ],
+            "dense_top_5": [
+              37,
+              12,
+              1,
+              14,
+              5
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              38,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              37,
+              5,
+              22,
+              36,
+              14
+            ]
+          }
+        },
+        {
+          "id": "loan-training-fund-section-8d",
+          "required": [
+            36
+          ],
+          "selected": [
+            37,
+            5,
+            15,
+            22,
+            36
+          ],
+          "hit_at": 5,
+          "required_recall_at_3": 0.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              35,
+              22,
+              7,
+              37,
+              5,
+              4,
+              1,
+              6,
+              36,
+              19,
+              15
+            ],
+            "lexical_top_5": [
+              18,
+              35,
+              22,
+              7,
+              37
+            ],
+            "dense_top_5": [
+              37,
+              5,
+              4,
+              1,
+              6
+            ],
+            "node_lexical_top_5": [
+              37,
+              7,
+              36,
+              19,
+              15
+            ],
+            "fused_top_5": [
+              37,
+              5,
+              15,
+              22,
+              36
+            ]
+          }
+        },
+        {
+          "id": "withdrawal-and-tax-parameter-synthesis",
+          "required": [
+            37
+          ],
+          "selected": [
+            1,
+            37,
+            5,
+            22,
+            34
+          ],
+          "hit_at": 2,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              15,
+              5,
+              22,
+              24,
+              8,
+              1,
+              37,
+              32,
+              34,
+              14,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              15,
+              5,
+              22,
+              24
+            ],
+            "dense_top_5": [
+              8,
+              1,
+              37,
+              32,
+              34
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              14,
+              35,
+              18
+            ],
+            "fused_top_5": [
+              1,
+              37,
+              5,
+              22,
+              34
+            ]
+          }
+        },
+        {
+          "id": "missing-explicit-section-abstention",
+          "required": [
+            18
+          ],
+          "selected": [
+            37,
+            25,
+            35,
+            4,
+            34
+          ],
+          "hit_at": null,
+          "required_recall_at_3": 0.0,
+          "required_recall_at_5": 0.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 0,
+          "diagnostics": {
+            "candidate_union": [
+              35,
+              34,
+              25,
+              37,
+              32,
+              6,
+              5,
+              4,
+              2,
+              13,
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "lexical_top_5": [
+              35,
+              34,
+              25,
+              37,
+              32
+            ],
+            "dense_top_5": [
+              6,
+              5,
+              4,
+              2,
+              13
+            ],
+            "node_lexical_top_5": [
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "fused_top_5": [
+              37,
+              25,
+              35,
+              4,
+              34
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "configuration": {
+        "id": "union-5-node-1",
+        "candidate_depth": 5,
+        "node_rrf_weight": 1.0
+      },
+      "metrics": {
+        "cases": 7,
+        "document_recall_at_3": 0.786,
+        "document_recall_at_5": 0.857,
+        "all_required_documents_recall_at_3": 0.714,
+        "all_required_documents_recall_at_5": 0.857
+      },
+      "rows": [
+        {
+          "id": "age-dependent-tracks-v2",
+          "required": [
+            38
+          ],
+          "selected": [
+            38,
+            33,
+            36,
+            19,
+            34
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              19,
+              18,
+              35,
+              34,
+              33,
+              38,
+              36,
+              32,
+              5,
+              37
+            ],
+            "lexical_top_5": [
+              19,
+              18,
+              35,
+              34,
+              33
+            ],
+            "dense_top_5": [
+              38,
+              36,
+              33,
+              32,
+              5
+            ],
+            "node_lexical_top_5": [
+              19,
+              38,
+              37,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              38,
+              33,
+              36,
+              19,
+              34
+            ]
+          }
+        },
+        {
+          "id": "transfer-funds-multisource",
+          "required": [
+            15,
+            22
+          ],
+          "selected": [
+            24,
+            28,
+            15,
+            13,
+            22
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 0.5,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              34,
+              35,
+              33,
+              28,
+              25,
+              22,
+              15,
+              24,
+              5,
+              13,
+              4,
+              1
+            ],
+            "lexical_top_5": [
+              34,
+              35,
+              33,
+              28,
+              25
+            ],
+            "dense_top_5": [
+              22,
+              28,
+              15,
+              24,
+              5
+            ],
+            "node_lexical_top_5": [
+              24,
+              15,
+              13,
+              4,
+              1
+            ],
+            "fused_top_5": [
+              24,
+              28,
+              15,
+              13,
+              22
+            ]
+          }
+        },
+        {
+          "id": "member-rights-section-25",
+          "required": [
+            18
+          ],
+          "selected": [
+            37,
+            4,
+            18,
+            7,
+            15
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              7,
+              37,
+              34,
+              25,
+              4,
+              15,
+              5,
+              1,
+              28
+            ],
+            "lexical_top_5": [
+              18,
+              7,
+              37,
+              34,
+              25
+            ],
+            "dense_top_5": [
+              4,
+              37,
+              15,
+              5,
+              1
+            ],
+            "node_lexical_top_5": [
+              4,
+              18,
+              37,
+              28,
+              15
+            ],
+            "fused_top_5": [
+              37,
+              4,
+              18,
+              7,
+              15
+            ]
+          }
+        },
+        {
+          "id": "training-fund-withdrawal-employee-self-employed",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            36,
+            15,
+            22,
+            5
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              37,
+              22,
+              5,
+              38,
+              12,
+              1,
+              14,
+              15,
+              36,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              37,
+              22,
+              5,
+              38
+            ],
+            "dense_top_5": [
+              37,
+              12,
+              1,
+              14,
+              5
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              38,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              37,
+              36,
+              15,
+              22,
+              5
+            ]
+          }
+        },
+        {
+          "id": "loan-training-fund-section-8d",
+          "required": [
+            36
+          ],
+          "selected": [
+            37,
+            5,
+            36,
+            15,
+            19
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              35,
+              22,
+              7,
+              37,
+              5,
+              4,
+              1,
+              6,
+              36,
+              19,
+              15
+            ],
+            "lexical_top_5": [
+              18,
+              35,
+              22,
+              7,
+              37
+            ],
+            "dense_top_5": [
+              37,
+              5,
+              4,
+              1,
+              6
+            ],
+            "node_lexical_top_5": [
+              37,
+              7,
+              36,
+              19,
+              15
+            ],
+            "fused_top_5": [
+              37,
+              5,
+              36,
+              15,
+              19
+            ]
+          }
+        },
+        {
+          "id": "withdrawal-and-tax-parameter-synthesis",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            15,
+            34,
+            35,
+            18
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              15,
+              5,
+              22,
+              24,
+              8,
+              1,
+              37,
+              32,
+              34,
+              14,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              15,
+              5,
+              22,
+              24
+            ],
+            "dense_top_5": [
+              8,
+              1,
+              37,
+              32,
+              34
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              14,
+              35,
+              18
+            ],
+            "fused_top_5": [
+              37,
+              15,
+              34,
+              35,
+              18
+            ]
+          }
+        },
+        {
+          "id": "missing-explicit-section-abstention",
+          "required": [
+            18
+          ],
+          "selected": [
+            28,
+            7,
+            37,
+            4,
+            25
+          ],
+          "hit_at": null,
+          "required_recall_at_3": 0.0,
+          "required_recall_at_5": 0.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 0,
+          "diagnostics": {
+            "candidate_union": [
+              35,
+              34,
+              25,
+              37,
+              32,
+              6,
+              5,
+              4,
+              2,
+              13,
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "lexical_top_5": [
+              35,
+              34,
+              25,
+              37,
+              32
+            ],
+            "dense_top_5": [
+              6,
+              5,
+              4,
+              2,
+              13
+            ],
+            "node_lexical_top_5": [
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "fused_top_5": [
+              28,
+              7,
+              37,
+              4,
+              25
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "configuration": {
+        "id": "union-5-node-2",
+        "candidate_depth": 5,
+        "node_rrf_weight": 2.0
+      },
+      "metrics": {
+        "cases": 7,
+        "document_recall_at_3": 0.786,
+        "document_recall_at_5": 0.786,
+        "all_required_documents_recall_at_3": 0.714,
+        "all_required_documents_recall_at_5": 0.714
+      },
+      "rows": [
+        {
+          "id": "age-dependent-tracks-v2",
+          "required": [
+            38
+          ],
+          "selected": [
+            38,
+            36,
+            33,
+            19,
+            37
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              19,
+              18,
+              35,
+              34,
+              33,
+              38,
+              36,
+              32,
+              5,
+              37
+            ],
+            "lexical_top_5": [
+              19,
+              18,
+              35,
+              34,
+              33
+            ],
+            "dense_top_5": [
+              38,
+              36,
+              33,
+              32,
+              5
+            ],
+            "node_lexical_top_5": [
+              19,
+              38,
+              37,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              38,
+              36,
+              33,
+              19,
+              37
+            ]
+          }
+        },
+        {
+          "id": "transfer-funds-multisource",
+          "required": [
+            15,
+            22
+          ],
+          "selected": [
+            24,
+            15,
+            28,
+            13,
+            1
+          ],
+          "hit_at": 2,
+          "required_recall_at_3": 0.5,
+          "required_recall_at_5": 0.5,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 0,
+          "diagnostics": {
+            "candidate_union": [
+              34,
+              35,
+              33,
+              28,
+              25,
+              22,
+              15,
+              24,
+              5,
+              13,
+              4,
+              1
+            ],
+            "lexical_top_5": [
+              34,
+              35,
+              33,
+              28,
+              25
+            ],
+            "dense_top_5": [
+              22,
+              28,
+              15,
+              24,
+              5
+            ],
+            "node_lexical_top_5": [
+              24,
+              15,
+              13,
+              4,
+              1
+            ],
+            "fused_top_5": [
+              24,
+              15,
+              28,
+              13,
+              1
+            ]
+          }
+        },
+        {
+          "id": "member-rights-section-25",
+          "required": [
+            18
+          ],
+          "selected": [
+            4,
+            37,
+            18,
+            15,
+            7
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              7,
+              37,
+              34,
+              25,
+              4,
+              15,
+              5,
+              1,
+              28
+            ],
+            "lexical_top_5": [
+              18,
+              7,
+              37,
+              34,
+              25
+            ],
+            "dense_top_5": [
+              4,
+              37,
+              15,
+              5,
+              1
+            ],
+            "node_lexical_top_5": [
+              4,
+              18,
+              37,
+              28,
+              15
+            ],
+            "fused_top_5": [
+              4,
+              37,
+              18,
+              15,
+              7
+            ]
+          }
+        },
+        {
+          "id": "training-fund-withdrawal-employee-self-employed",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            15,
+            36,
+            38,
+            35
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              37,
+              22,
+              5,
+              38,
+              12,
+              1,
+              14,
+              15,
+              36,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              37,
+              22,
+              5,
+              38
+            ],
+            "dense_top_5": [
+              37,
+              12,
+              1,
+              14,
+              5
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              38,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              37,
+              15,
+              36,
+              38,
+              35
+            ]
+          }
+        },
+        {
+          "id": "loan-training-fund-section-8d",
+          "required": [
+            36
+          ],
+          "selected": [
+            37,
+            36,
+            5,
+            15,
+            19
+          ],
+          "hit_at": 2,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              35,
+              22,
+              7,
+              37,
+              5,
+              4,
+              1,
+              6,
+              36,
+              19,
+              15
+            ],
+            "lexical_top_5": [
+              18,
+              35,
+              22,
+              7,
+              37
+            ],
+            "dense_top_5": [
+              37,
+              5,
+              4,
+              1,
+              6
+            ],
+            "node_lexical_top_5": [
+              37,
+              7,
+              36,
+              19,
+              15
+            ],
+            "fused_top_5": [
+              37,
+              36,
+              5,
+              15,
+              19
+            ]
+          }
+        },
+        {
+          "id": "withdrawal-and-tax-parameter-synthesis",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            15,
+            35,
+            18,
+            34
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              15,
+              5,
+              22,
+              24,
+              8,
+              1,
+              37,
+              32,
+              34,
+              14,
+              35
+            ],
+            "lexical_top_5": [
+              18,
+              15,
+              5,
+              22,
+              24
+            ],
+            "dense_top_5": [
+              8,
+              1,
+              37,
+              32,
+              34
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              14,
+              35,
+              18
+            ],
+            "fused_top_5": [
+              37,
+              15,
+              35,
+              18,
+              34
+            ]
+          }
+        },
+        {
+          "id": "missing-explicit-section-abstention",
+          "required": [
+            18
+          ],
+          "selected": [
+            7,
+            28,
+            36,
+            20,
+            24
+          ],
+          "hit_at": null,
+          "required_recall_at_3": 0.0,
+          "required_recall_at_5": 0.0,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 0,
+          "diagnostics": {
+            "candidate_union": [
+              35,
+              34,
+              25,
+              37,
+              32,
+              6,
+              5,
+              4,
+              2,
+              13,
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "lexical_top_5": [
+              35,
+              34,
+              25,
+              37,
+              32
+            ],
+            "dense_top_5": [
+              6,
+              5,
+              4,
+              2,
+              13
+            ],
+            "node_lexical_top_5": [
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "fused_top_5": [
+              7,
+              28,
+              36,
+              20,
+              24
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "configuration": {
+        "id": "union-8-node-1",
+        "candidate_depth": 8,
+        "node_rrf_weight": 1.0
+      },
+      "metrics": {
+        "cases": 7,
+        "document_recall_at_3": 0.929,
+        "document_recall_at_5": 0.929,
+        "all_required_documents_recall_at_3": 0.857,
+        "all_required_documents_recall_at_5": 0.857
+      },
+      "rows": [
+        {
+          "id": "age-dependent-tracks-v2",
+          "required": [
+            38
+          ],
+          "selected": [
+            38,
+            33,
+            36,
+            19,
+            34
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              19,
+              18,
+              35,
+              34,
+              33,
+              13,
+              7,
+              38,
+              36,
+              32,
+              5,
+              22,
+              25,
+              37,
+              23
+            ],
+            "lexical_top_5": [
+              19,
+              18,
+              35,
+              34,
+              33
+            ],
+            "dense_top_5": [
+              38,
+              36,
+              33,
+              32,
+              5
+            ],
+            "node_lexical_top_5": [
+              19,
+              38,
+              37,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              38,
+              33,
+              36,
+              19,
+              34
+            ]
+          }
+        },
+        {
+          "id": "transfer-funds-multisource",
+          "required": [
+            15,
+            22
+          ],
+          "selected": [
+            24,
+            28,
+            15,
+            20,
+            13
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 0.5,
+          "required_recall_at_5": 0.5,
+          "all_required_documents_at_3": 0,
+          "all_required_documents_at_5": 0,
+          "diagnostics": {
+            "candidate_union": [
+              34,
+              35,
+              33,
+              28,
+              25,
+              24,
+              22,
+              20,
+              15,
+              5,
+              14,
+              13,
+              4,
+              1,
+              37,
+              18
+            ],
+            "lexical_top_5": [
+              34,
+              35,
+              33,
+              28,
+              25
+            ],
+            "dense_top_5": [
+              22,
+              28,
+              15,
+              24,
+              5
+            ],
+            "node_lexical_top_5": [
+              24,
+              15,
+              13,
+              4,
+              1
+            ],
+            "fused_top_5": [
+              24,
+              28,
+              15,
+              20,
+              13
+            ]
+          }
+        },
+        {
+          "id": "member-rights-section-25",
+          "required": [
+            18
+          ],
+          "selected": [
+            37,
+            4,
+            18,
+            7,
+            15
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              7,
+              37,
+              34,
+              25,
+              22,
+              4,
+              35,
+              15,
+              5,
+              1,
+              14,
+              13,
+              6,
+              28
+            ],
+            "lexical_top_5": [
+              18,
+              7,
+              37,
+              34,
+              25
+            ],
+            "dense_top_5": [
+              4,
+              37,
+              15,
+              5,
+              1
+            ],
+            "node_lexical_top_5": [
+              4,
+              18,
+              37,
+              28,
+              15
+            ],
+            "fused_top_5": [
+              37,
+              4,
+              18,
+              7,
+              15
+            ]
+          }
+        },
+        {
+          "id": "training-fund-withdrawal-employee-self-employed",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            36,
+            15,
+            33,
+            22
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              37,
+              22,
+              5,
+              38,
+              36,
+              35,
+              33,
+              12,
+              1,
+              14,
+              15,
+              32,
+              34
+            ],
+            "lexical_top_5": [
+              18,
+              37,
+              22,
+              5,
+              38
+            ],
+            "dense_top_5": [
+              37,
+              12,
+              1,
+              14,
+              5
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              38,
+              36,
+              35
+            ],
+            "fused_top_5": [
+              37,
+              36,
+              15,
+              33,
+              22
+            ]
+          }
+        },
+        {
+          "id": "loan-training-fund-section-8d",
+          "required": [
+            36
+          ],
+          "selected": [
+            37,
+            5,
+            36,
+            14,
+            15
+          ],
+          "hit_at": 3,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              35,
+              22,
+              7,
+              37,
+              14,
+              33,
+              19,
+              5,
+              4,
+              1,
+              6,
+              25,
+              23,
+              36,
+              15,
+              11
+            ],
+            "lexical_top_5": [
+              18,
+              35,
+              22,
+              7,
+              37
+            ],
+            "dense_top_5": [
+              37,
+              5,
+              4,
+              1,
+              6
+            ],
+            "node_lexical_top_5": [
+              37,
+              7,
+              36,
+              19,
+              15
+            ],
+            "fused_top_5": [
+              37,
+              5,
+              36,
+              14,
+              15
+            ]
+          }
+        },
+        {
+          "id": "withdrawal-and-tax-parameter-synthesis",
+          "required": [
+            37
+          ],
+          "selected": [
+            37,
+            15,
+            34,
+            35,
+            18
+          ],
+          "hit_at": 1,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              18,
+              15,
+              5,
+              22,
+              24,
+              19,
+              2,
+              1,
+              8,
+              37,
+              32,
+              34,
+              36,
+              3,
+              14,
+              35,
+              7,
+              38
+            ],
+            "lexical_top_5": [
+              18,
+              15,
+              5,
+              22,
+              24
+            ],
+            "dense_top_5": [
+              8,
+              1,
+              37,
+              32,
+              34
+            ],
+            "node_lexical_top_5": [
+              37,
+              15,
+              14,
+              35,
+              18
+            ],
+            "fused_top_5": [
+              37,
+              15,
+              34,
+              35,
+              18
+            ]
+          }
+        },
+        {
+          "id": "missing-explicit-section-abstention",
+          "required": [
+            18
+          ],
+          "selected": [
+            28,
+            18,
+            19,
+            7,
+            15
+          ],
+          "hit_at": 2,
+          "required_recall_at_3": 1.0,
+          "required_recall_at_5": 1.0,
+          "all_required_documents_at_3": 1,
+          "all_required_documents_at_5": 1,
+          "diagnostics": {
+            "candidate_union": [
+              35,
+              34,
+              25,
+              37,
+              32,
+              30,
+              28,
+              26,
+              6,
+              5,
+              4,
+              2,
+              13,
+              15,
+              18,
+              14,
+              7,
+              36,
+              24,
+              20,
+              19,
+              17
+            ],
+            "lexical_top_5": [
+              35,
+              34,
+              25,
+              37,
+              32
+            ],
+            "dense_top_5": [
+              6,
+              5,
+              4,
+              2,
+              13
+            ],
+            "node_lexical_top_5": [
+              7,
+              36,
+              28,
+              24,
+              20
+            ],
+            "fused_top_5": [
+              28,
+              18,
+              19,
+              7,
+              15
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
