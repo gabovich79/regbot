@@ -52,3 +52,5 @@ printf '\nRunning candidate-fusion ablations...\n'
 "$PYTHON" scripts/run_challenger_ablations.py
 printf '\nFull ablation results:\n'
 "$PYTHON" -m json.tool results/challenger_ablation_results.json
+printf '\nRunning promotion gate (tuning + held-out + legacy)...\n'
+"$PYTHON" scripts/measure_challenger_gate.py

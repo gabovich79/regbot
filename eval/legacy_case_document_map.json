@@ -1,0 +1,19 @@
+{
+  "fees-management": [19],
+  "transfer-funds": [24, 22],
+  "fund-mobility": [28],
+  "uniform-interface": [20],
+  "age-dependent-tracks": [38],
+  "mortality-tables": [23],
+  "identity-verification": [27],
+  "annual-cost-disclosure": [25, 34],
+  "emergency-rules": [35],
+  "periodic-reports": [29],
+  "statistical-collection": [30],
+  "operations-by-institution": [26],
+  "asset-management": [33],
+  "illiquid-assets": [32],
+  "personal-managed-fund": [13],
+  "reservist-deposits": [9],
+  "severance-continuity": [12]
+}
