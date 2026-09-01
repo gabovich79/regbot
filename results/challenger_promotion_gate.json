@@ -1,0 +1,45 @@
+{
+  "winner_config": {
+    "candidate_depth": 5,
+    "node_rrf_weight": 1.0,
+    "catalog_rrf_weight": 1.0
+  },
+  "metrics": {
+    "tuning": {
+      "cases": 7,
+      "document_recall_at_3": 0.929,
+      "document_recall_at_5": 1.0,
+      "all_required_documents_recall_at_3": 0.857,
+      "all_required_documents_recall_at_5": 1.0
+    },
+    "heldout": {
+      "cases": 4,
+      "document_recall_at_3": 0.75,
+      "document_recall_at_5": 0.75,
+      "all_required_documents_recall_at_3": 0.75,
+      "all_required_documents_recall_at_5": 0.75
+    },
+    "legacy": {
+      "cases": 17,
+      "document_recall_at_3": 0.824,
+      "document_recall_at_5": 0.824,
+      "all_required_documents_recall_at_3": 0.824,
+      "all_required_documents_recall_at_5": 0.824
+    }
+  },
+  "failed_all_required_at_5": {
+    "tuning": [],
+    "heldout": [
+      "heldout-amendment-15"
+    ],
+    "legacy": [
+      "fund-mobility",
+      "identity-verification",
+      "severance-continuity"
+    ]
+  },
+  "promotion": false,
+  "reasons": [
+    "heldout failures: ['heldout-amendment-15']"
+  ]
+}

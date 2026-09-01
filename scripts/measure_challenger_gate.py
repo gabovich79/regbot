@@ -52,6 +52,16 @@ def load_legacy_cases() -> list[dict]:
     return cases
 
 
+def promotion_decision(metrics: dict, failed: dict[str, list[str]]) -> bool:
+    tuning = metrics["tuning"]
+    return (
+        tuning["all_required_documents_recall_at_5"] == 1.0
+        and tuning["all_required_documents_recall_at_3"] >= 0.857
+        and not failed["heldout"]
+        and not failed["legacy"]
+    )
+
+
 async def run() -> dict:
     cache = json.loads(CACHE.read_text(encoding="utf-8"))
     profiles = cache["profiles"]
@@ -105,12 +115,24 @@ async def run() -> dict:
 
     tuning_all5 = metrics["tuning"]["all_required_documents_recall_at_5"]
     tuning_all3 = metrics["tuning"]["all_required_documents_recall_at_3"]
-    promotion = tuning_all5 == 1.0 and tuning_all3 >= 0.857 and not failed["heldout"]
+    promotion = promotion_decision(metrics, failed)
 
     gate = {
         "winner_config": WINNER,
         "metrics": metrics,
         "failed_all_required_at_5": failed,
+        "rows": {
+            name: [
+                {
+                    "id": row["id"],
+                    "required": row["required"],
+                    "selected": row["selected"],
+                    "diagnostics": row.get("diagnostics", {}),
+                }
+                for row in results[name]["rows"]
+            ]
+            for name in results
+        },
         "promotion": promotion,
         "reasons": [] if promotion else [
             reason
@@ -118,6 +140,7 @@ async def run() -> dict:
                 "tuning all-required@5 below 1.0" if tuning_all5 < 1.0 else None,
                 "tuning all-required@3 below 0.857" if tuning_all3 < 0.857 else None,
                 f"heldout failures: {failed['heldout']}" if failed["heldout"] else None,
+                f"legacy failures: {failed['legacy']}" if failed["legacy"] else None,
             )
             if reason
         ],
