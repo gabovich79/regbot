@@ -237,7 +237,13 @@ def build_document_profile(document: dict[str, Any], text: str) -> dict[str, Any
     }
 
 
-async def save_document_profile(db, profile: dict[str, Any], integrity: dict[str, Any]) -> None:
+async def save_document_profile(
+    db,
+    profile: dict[str, Any],
+    integrity: dict[str, Any],
+    *,
+    commit: bool = True,
+) -> None:
     """Atomically upsert a profile and its FTS projection."""
     serialized = {
         "scope_in_json": json.dumps(profile["scope_in"], ensure_ascii=False),
@@ -332,7 +338,8 @@ async def save_document_profile(db, profile: dict[str, Any], integrity: dict[str
             ),
         )
         await db.execute("RELEASE SAVEPOINT document_profile_upsert")
-        await db.commit()
+        if commit:
+            await db.commit()
     except BaseException:
         await db.execute("ROLLBACK TO SAVEPOINT document_profile_upsert")
         await db.execute("RELEASE SAVEPOINT document_profile_upsert")

@@ -278,6 +278,17 @@ async def _migrate_hierarchical_retrieval_schema(db: aiosqlite.Connection):
             tokenize = 'unicode61'
         );
 
+        CREATE TABLE IF NOT EXISTS document_ingestion_receipts (
+            document_id             INTEGER PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
+            status                  TEXT NOT NULL
+                                      CHECK (status IN ('validated', 'needs_human_review', 'needs_reupload', 'failed')),
+            receipt_json            TEXT NOT NULL,
+            validation_errors_json  TEXT NOT NULL DEFAULT '[]',
+            pipeline_version        INTEGER NOT NULL,
+            validated_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at              DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE TRIGGER IF NOT EXISTS trg_document_nodes_parent_document_insert
         BEFORE INSERT ON document_nodes
         WHEN NEW.parent_id IS NOT NULL
