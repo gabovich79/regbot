@@ -1,0 +1,1023 @@
+{
+  "documents": [
+    {
+      "document_id": 38,
+      "title": "רשימת מסלולי השקעה – תיקון (2024-1471)",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "/tmp/age-3.pdf"
+      },
+      "text_origin": "original_pdf_extraction",
+      "canonical_title": "רשימת מסלולי השקעה – תיקון (2024-1471)",
+      "official_number": null,
+      "identity_evidence": [
+        "2024",
+        "2024-1471",
+        "רשימת מסלולי השקעה"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 30213,
+        "estimated_tokens": 35421,
+        "meaningful_nodes": 125,
+        "fts_profile_records": 1,
+        "fts_node_records": 125
+      }
+    },
+    {
+      "document_id": 37,
+      "title": "פקודת מס הכנסה — סעיפים 9(16א) ו־9(16ב) — משיכת כספים מקרן השתלמות",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "/Users/guygabovich/Downloads/LegalInformation_kesher_פקודת מס הכנסה [נוסח חדש] - לא מרובד.pdf"
+      },
+      "text_origin": "original_pdf_extraction",
+      "canonical_title": "פקודת מס הכנסה — סעיפים 9(16א) ו־9(16ב) — משיכת כספים מקרן השתלמות",
+      "official_number": null,
+      "identity_evidence": [
+        "או כלי טיס הוראות מיוחדות לעניין חכירת כלי שיטGo"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 836411,
+        "estimated_tokens": 997495,
+        "meaningful_nodes": 3213,
+        "fts_profile_records": 1,
+        "fts_node_records": 3213
+      }
+    },
+    {
+      "document_id": 36,
+      "title": "כללי_השקעה_החלים_גופים מוסדיים_2016-9-17.pdf",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/36.pdf"
+      },
+      "text_origin": "original_pdf_extraction",
+      "canonical_title": "כללי השקעה החלים על גופים מוסדיים",
+      "official_number": "2016-9-17",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים2016-9-17",
+        "כללי השקעה החלים על גופים מוסדיים",
+        "לחוק הפיקוח על שירותים פיננסיים (קופות גמל), התשס\"ה-"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 32256,
+        "estimated_tokens": 38367,
+        "meaningful_nodes": 131,
+        "fts_profile_records": 1,
+        "fts_node_records": 131
+      }
+    },
+    {
+      "document_id": 35,
+      "title": "הוראות הממונה על שוק ההון לשעת חירום — אוקטובר 2023 (notice-2023-031)",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/35.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "הוראות הממונה על שוק ההון לשעת חירום — אוקטובר 2023 (notice-2023-031)",
+      "official_number": "2023-9-7",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2023-9-7",
+        "הוראות הממונה על שוק ההון ביטוח וחיסכון לשעת חירום - אוקטובר 2023",
+        "תיקון החוזרים"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 45702,
+        "estimated_tokens": 56161,
+        "meaningful_nodes": 67,
+        "fts_profile_records": 1,
+        "fts_node_records": 67
+      }
+    },
+    {
+      "document_id": 34,
+      "title": "חוזר אופן הצגת העלות השנתית הצפויה לעמית — יישום 2023 (notice-2023-010)",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/34.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר אופן הצגת העלות השנתית הצפויה לעמית — יישום 2023 (notice-2023-010)",
+      "official_number": "2023-9-6",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2023-9-6",
+        "אופן הצגת העלות השנתית הצפויה לעמית או למבוטח",
+        "בכל מקום שבו קיימת חובה על פי דין להציג לעמית או למבוטח את דמי הניהול, תוצג לעמית או למבוטח גם העלות השנתית הצפויה."
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 16279,
+        "estimated_tokens": 20313,
+        "meaningful_nodes": 16,
+        "fts_profile_records": 1,
+        "fts_node_records": 16
+      }
+    },
+    {
+      "document_id": 33,
+      "title": "תיקון הוראות החוזר המאוחד — פרק ניהול נכסי השקעה (דצמבר 2022)",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/33.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "תיקון הוראות החוזר המאוחד — פרק ניהול נכסי השקעה (דצמבר 2022)",
+      "official_number": "2022-9-28",
+      "identity_evidence": [
+        "בנוסף, ביום 28 בספטמבר 2022 פורסמו הוראות חוזר מסלולי השקעה בקופות גמל - תיקון (חוזר גופים מוסדיים שמספרו 2022-9-28), במסגרתו חלה על הגופים חובה להקים מסלול השקעה עוקב מדדים גמיש. ברשימת המסלולים שמצורפת לחוזר הנדון, נקבע שההשקעה במסלול עוקב מדדים גמיש תתבצע לכל הפחות בשלושה מדדים. לאור האמור, מוצע לתקן את ההוראות שחלות על השקעה באמצעות סלי השקעה המופיעות בסעיף 4 שבחוזר המאוחד ולאפשר לגוף מוסדי להקים סל השקעה ייעודי לטובת ניהול של השקעות בנכסים עוקבי מדדים.",
+        "תיקון החוזר המאוחד",
+        "בפרק 4, חלק 2 שער 5 בחוזר המאוחד שכותרתו \"ניהול נכסי השקעה\", יחולו תיקונים בסעיפים 4 ו-9 לפרק, כמפורט בנספחים לחוזר זה."
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 22379,
+        "estimated_tokens": 27853,
+        "meaningful_nodes": 20,
+        "fts_profile_records": 1,
+        "fts_node_records": 20
+      }
+    },
+    {
+      "document_id": 32,
+      "title": "נכסים לטווח ארוך / נכסים לא סחירים — השקעות גופים מוסדיים 2024",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/32.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "נכסים לטווח ארוך / נכסים לא סחירים — השקעות גופים מוסדיים 2024",
+      "official_number": "2024-9-1",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2024-9-1",
+        "חוזר גופים מוסדיים 2023-9-1 \"סך נכסי החיסכון לטווח ארוך ליום 30.09.2022\" מיום 1 בינואר 2023 – בטל."
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 2962,
+        "estimated_tokens": 3659,
+        "meaningful_nodes": 5,
+        "fts_profile_records": 1,
+        "fts_node_records": 5
+      }
+    },
+    {
+      "document_id": 30,
+      "title": "חוזר גמל 2019-9-3 איסוף מידע סטטיסטי — פניות ציבור",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/30.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2019-9-3 איסוף מידע סטטיסטי — פניות ציבור",
+      "official_number": "2019-9-3",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2019-9-3",
+        "הוראות לעניין סיווג פניות",
+        "גוף מוסדי יאסוף וישמור את נתוני הפניות של השנה הקודמת, בהתאם לנספח לחוזר זה."
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 13246,
+        "estimated_tokens": 16432,
+        "meaningful_nodes": 10,
+        "fts_profile_records": 1,
+        "fts_node_records": 10
+      }
+    },
+    {
+      "document_id": 29,
+      "title": "חוזר גמל דוחות תקופתיים — כללי עריכת דוחות לעמיתים (2023)",
+      "action_status": "needs_human_review",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/29.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל דוחות תקופתיים — כללי עריכת דוחות לעמיתים (2023)",
+      "official_number": null,
+      "identity_evidence": [
+        "הנדון: דוחות מיוחדים הנדרשים מרואי חשבון",
+        "בנוסף, קיימים עוד דוחות מיוחדים מרואי חשבון שגופים מוסדיים מבקשים לקבל לצרכים אחרים.",
+        "סוגי הדוחות שרואה חשבון רשאי לתת בתחום עיסוקו מפורטים במסגרת הדינים והתקנים החלים על רואי חשבון."
+      ],
+      "integrity_status": "warning",
+      "integrity_reasons": [
+        "title_body_mismatch"
+      ],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 1148,
+        "estimated_tokens": 1439,
+        "meaningful_nodes": 2,
+        "fts_profile_records": 1,
+        "fts_node_records": 2
+      }
+    },
+    {
+      "document_id": 28,
+      "title": "חוזר גמל 2022-9-3 ניוד בין קופות",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/28.pdf"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2022-9-3 ניוד בין קופות",
+      "official_number": "2022-9-3",
+      "identity_evidence": [
+        "י",
+        "2",
+        "חוזר גופים מוסדיים2022-9-3"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 9242,
+        "estimated_tokens": 10631,
+        "meaningful_nodes": 38,
+        "fts_profile_records": 1,
+        "fts_node_records": 38
+      }
+    },
+    {
+      "document_id": 27,
+      "title": "חוזר גמל 2013-9-10 אימות זהות לקוח",
+      "action_status": "needs_source_fetch",
+      "source_availability": {
+        "status": "fetchable_url",
+        "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-1620/he/regulation_2013-9-10new.doc"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "חוזר גמל 2013-9-10 אימות זהות לקוח",
+      "official_number": "2013-9-10",
+      "identity_evidence": [],
+      "integrity_status": "warning",
+      "integrity_reasons": [
+        "extraction_binary",
+        "title_body_mismatch",
+        "identity_evidence_missing"
+      ],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing",
+        "identity_evidence_missing"
+      ],
+      "counts": {
+        "text_characters": 42538,
+        "estimated_tokens": 40340,
+        "meaningful_nodes": 96,
+        "fts_profile_records": 1,
+        "fts_node_records": 96
+      }
+    },
+    {
+      "document_id": 26,
+      "title": "חוזר גמל 2015-9-30 ביצוע פעולות על ידי גוף מוסדי",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/26.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2015-9-30 ביצוע פעולות על ידי גוף מוסדי",
+      "official_number": "2015-9-30",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2015-9-30",
+        "העברת מידע וביצוע פעולות בין מעסיק לגוף מוסדי",
+        "צירוף עובד לקרן ברירת מחדל לפי סעיף 20(ב) לחוק הפיקוח על קופות גמל;"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 4424,
+        "estimated_tokens": 5514,
+        "meaningful_nodes": 9,
+        "fts_profile_records": 1,
+        "fts_node_records": 9
+      }
+    },
+    {
+      "document_id": 25,
+      "title": "חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה",
+      "action_status": "needs_human_review",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/25.docx"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה",
+      "official_number": "2019-9-14",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2019-9-14",
+        "אופן הפקדת תשלומים לקופת גמל - תיקון",
+        "הוראות"
+      ],
+      "integrity_status": "warning",
+      "integrity_reasons": [
+        "title_body_mismatch"
+      ],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 19565,
+        "estimated_tokens": 24227,
+        "meaningful_nodes": 27,
+        "fts_profile_records": 1,
+        "fts_node_records": 27
+      }
+    },
+    {
+      "document_id": 24,
+      "title": "חוזר גמל 2020-9-2 העברת כספים",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/24.pdf"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2020-9-2 העברת כספים",
+      "official_number": "2020-9-2",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים2020-9-2",
+        "העברת כספים מקופת גמל מרכזית לפיצויים-",
+        "תיקון"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 46953,
+        "estimated_tokens": 56170,
+        "meaningful_nodes": 195,
+        "fts_profile_records": 1,
+        "fts_node_records": 195
+      }
+    },
+    {
+      "document_id": 23,
+      "title": "חוזר גמל 2024-9-8",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/23.pdf"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2024-9-8",
+      "official_number": "2024-9-8",
+      "identity_evidence": [
+        "4",
+        "2024",
+        "חוזר גופים מוסדיים2024-9-8"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 269143,
+        "estimated_tokens": 241537,
+        "meaningful_nodes": 676,
+        "fts_profile_records": 1,
+        "fts_node_records": 676
+      }
+    },
+    {
+      "document_id": 22,
+      "title": "העברת כספים בין קופות גמל - תיקון",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "/Users/guygabovich/Downloads/regulation_h_2016-9-11.docx"
+      },
+      "text_origin": "original_docx_extraction",
+      "canonical_title": "העברת כספים בין קופות גמל - תיקון",
+      "official_number": "2016-9-11",
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2016-9-11",
+        "העברת כספים בין קופות גמל - תיקון",
+        "בהוראות אלה -"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 32080,
+        "estimated_tokens": 39375,
+        "meaningful_nodes": 36,
+        "fts_profile_records": 1,
+        "fts_node_records": 36
+      }
+    },
+    {
+      "document_id": 21,
+      "title": "חוזר גופים מוסדיים2024-9-7 עדכון הוראות החוזר המאוחד",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/21.pdf"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גופים מוסדיים2024-9-7 עדכון הוראות החוזר המאוחד",
+      "official_number": "2024-9-7",
+      "identity_evidence": [
+        "4",
+        "חוזר גופים מוסדיים2024-9-7",
+        "עדכון הוראות החוזר המאוחד-"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 5527,
+        "estimated_tokens": 6205,
+        "meaningful_nodes": 16,
+        "fts_profile_records": 1,
+        "fts_node_records": 16
+      }
+    },
+    {
+      "document_id": 20,
+      "title": "חוזר גמל 2020-9-3 מבנה אחיד העברת מידע",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/20.pdf"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2020-9-3 מבנה אחיד העברת מידע",
+      "official_number": "2020-9-3",
+      "identity_evidence": [
+        "א",
+        "חוזר גופים מוסדיים2020-9-3",
+        "מבנה אחיד להעברת מידע ונתונים בשוק החיסכון הפנסיוני-"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 61774,
+        "estimated_tokens": 72763,
+        "meaningful_nodes": 259,
+        "fts_profile_records": 1,
+        "fts_node_records": 259
+      }
+    },
+    {
+      "document_id": 19,
+      "title": "חוזר גמל 2016-9-8 דמי ניהול",
+      "action_status": "ready_for_reingest",
+      "source_availability": {
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/19.pdf"
+      },
+      "text_origin": "recovered_source_text",
+      "canonical_title": "חוזר גמל 2016-9-8 דמי ניהול",
+      "official_number": "2016-9-8",
+      "identity_evidence": [
+        "8",
+        "1",
+        "חוזר גופים מוסדיים2016-9-8"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 15398,
+        "estimated_tokens": 18118,
+        "meaningful_nodes": 67,
+        "fts_profile_records": 1,
+        "fts_node_records": 67
+      }
+    },
+    {
+      "document_id": 18,
+      "title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשסה–2005.docx",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשס״ה–2005",
+      "official_number": null,
+      "identity_evidence": [
+        "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשס״ה–2005",
+        "פרק א׳: הוראות כלליות",
+        "סימן ד׳: תשלומים לקופת גמל ומשיכת כספים ממנה"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 108604,
+        "estimated_tokens": 134325,
+        "meaningful_nodes": 86,
+        "fts_profile_records": 1,
+        "fts_node_records": 86
+      }
+    },
+    {
+      "document_id": 17,
+      "title": "תיקון 15.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "ספר החוקים",
+      "official_number": null,
+      "identity_evidence": [
+        "ספר החוקים",
+        ". . . . . . . . . . . . . . . . . . . 2016-חוק להגנת הספרות והסופרים בישראל (הוראת שעה) (תיקון), התשע\"ו",
+        ". . . . . . . . . . . . . . . . . . .2016-), התשע\"ו15 'חוק הפיקוח על שירותים פיננסיים (קופות גמל) (תיקון מס"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 7676,
+        "estimated_tokens": 8843,
+        "meaningful_nodes": 25,
+        "fts_profile_records": 1,
+        "fts_node_records": 25
+      }
+    },
+    {
+      "document_id": 16,
+      "title": "חוק פיקוח על שירותים פיננסיים קופות גמל 2015.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "ספר החוקים",
+      "official_number": null,
+      "identity_evidence": [
+        "ספר החוקים",
+        ". . . . . . . . . . . . . . . . . . . 2016-חוק להגנת הספרות והסופרים בישראל (הוראת שעה) (תיקון), התשע\"ו",
+        ". . . . . . . . . . . . . . . . . . .2016-), התשע\"ו15 'חוק הפיקוח על שירותים פיננסיים (קופות גמל) (תיקון מס"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 7676,
+        "estimated_tokens": 8843,
+        "meaningful_nodes": 25,
+        "fts_profile_records": 1,
+        "fts_node_records": 25
+      }
+    },
+    {
+      "document_id": 15,
+      "title": "תקנות הפיקוח על שירותים פיננסיים (קופות גמל) (העברת כספים בין קופות גמל), תשסח-2008.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "תקנות הפיקוח על שירותים פיננסיים )קופות גמל( )העברת כספים בין קופות גמל(, תשס\"ח-",
+      "official_number": null,
+      "identity_evidence": [
+        "תקנות הפיקוח על שירותים פיננסיים )קופות גמל( )העברת כספים בין קופות גמל(, תשס\"ח-",
+        "שירותים פיננסיים",
+        "לקצבה גמל לקופת כספים העברת"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 23722,
+        "estimated_tokens": 27787,
+        "meaningful_nodes": 92,
+        "fts_profile_records": 1,
+        "fts_node_records": 92
+      }
+    },
+    {
+      "document_id": 14,
+      "title": "תקנות מס הכנסה (כללים לאישור ולניהול קופות גמל), תשכד-1964.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "תקנות מס הכנסה )כללים לאישור ולניהול קופות גמל(, תשכ\"ד-",
+      "official_number": null,
+      "identity_evidence": [
+        "תקנות מס הכנסה )כללים לאישור ולניהול קופות גמל(, תשכ\"ד-",
+        "התקנון תיקון"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 141443,
+        "estimated_tokens": 155907,
+        "meaningful_nodes": 487,
+        "fts_profile_records": 1,
+        "fts_node_records": 487
+      }
+    },
+    {
+      "document_id": 13,
+      "title": "תקנות הפיקוח על שירותים פיננסיים (קופות גמל) (קופת גמל בניהול אישי), תשע-2009.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "ע\"תש ,(אישי בניהול גמל קופת) (גמל קופות) פיננסיים שירותים על הפיקוח תקנות-",
+      "official_number": null,
+      "identity_evidence": [
+        "ע\"תש ,(אישי בניהול גמל קופת) (גמל קופות) פיננסיים שירותים על הפיקוח תקנות-",
+        "גמל קופות"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 18159,
+        "estimated_tokens": 21298,
+        "meaningful_nodes": 68,
+        "fts_profile_records": 1,
+        "fts_node_records": 68
+      }
+    },
+    {
+      "document_id": 12,
+      "title": "תיקון 173-רצף זכויות פיצויים-2011.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "חוזר‏מס‏הכנסה",
+      "official_number": null,
+      "identity_evidence": [
+        "‏",
+        "חוזר‏מס‏הכנסה"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 5199,
+        "estimated_tokens": 6320,
+        "meaningful_nodes": 24,
+        "fts_profile_records": 1,
+        "fts_node_records": 24
+      }
+    },
+    {
+      "document_id": 11,
+      "title": "תיקון 12 לחוק הפיקוח 2015.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "ספר החוקים",
+      "official_number": null,
+      "identity_evidence": [
+        "ספר החוקים",
+        "2015-), התשע\"ה12 'חוק הפיקוח על שירותים פיננסיים (קופות גמל) (תיקון מס",
+        "2015-), התשע\"ה14 'חוק הסיוע המשפטי (תיקון מס"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 28726,
+        "estimated_tokens": 34283,
+        "meaningful_nodes": 120,
+        "fts_profile_records": 1,
+        "fts_node_records": 120
+      }
+    },
+    {
+      "document_id": 9,
+      "title": "סיווג הפקדות משרתי מילואים 2024-קבוצתי.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "סיווג הפקדות משרתי מילואים 2024-קבוצתי.pdf",
+      "official_number": null,
+      "identity_evidence": [
+        "מ",
+        "א"
+      ],
+      "integrity_status": "warning",
+      "integrity_reasons": [
+        "extraction_hebrew_reversed",
+        "title_body_mismatch"
+      ],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 366,
+        "estimated_tokens": 412,
+        "meaningful_nodes": 1,
+        "fts_profile_records": 1,
+        "fts_node_records": 1
+      }
+    },
+    {
+      "document_id": 8,
+      "title": "סיווג הפקדות חרבות ברזל קרן השתלמות 2024.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "סיווג הפקדות חרבות ברזל קרן השתלמות 2024.pdf",
+      "official_number": null,
+      "identity_evidence": [
+        "ת",
+        "מ",
+        "ב"
+      ],
+      "integrity_status": "warning",
+      "integrity_reasons": [
+        "extraction_hebrew_reversed",
+        "title_body_mismatch"
+      ],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 356,
+        "estimated_tokens": 398,
+        "meaningful_nodes": 1,
+        "fts_profile_records": 1,
+        "fts_node_records": 1
+      }
+    },
+    {
+      "document_id": 7,
+      "title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), תשסה-2005.pdf",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "ה\"תשס ,(גמל קופות) פיננסיים שירותים על הפיקוח חוק-",
+      "official_number": null,
+      "identity_evidence": [
+        "ה\"תשס ,(גמל קופות) פיננסיים שירותים על הפיקוח חוק-",
+        "כלליות הוראות :'א פרק",
+        "בחוק זה –"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 110864,
+        "estimated_tokens": 131464,
+        "meaningful_nodes": 433,
+        "fts_profile_records": 1,
+        "fts_node_records": 433
+      }
+    },
+    {
+      "document_id": 6,
+      "title": "תקנות הפיקוח על שירותים פיננסיים (קופות גמל)(קופת גמל בניהול אישי)(תיקון , התשע\"ג- 1023",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "תקנות הפיקוח על שירותים פיננסיים (קופות גמל)(קופת גמל בניהול אישי)(תיקון , התשע\"ג- 1023",
+      "official_number": null,
+      "identity_evidence": [
+        "1",
+        ", התשע\"ג-",
+        "1023"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 5699,
+        "estimated_tokens": 6414,
+        "meaningful_nodes": 8,
+        "fts_profile_records": 1,
+        "fts_node_records": 8
+      }
+    },
+    {
+      "document_id": 5,
+      "title": "2015-תקנות הפיקוח על שירותים פיננסיים (קופות גמל)(קופת גמל בניהול אישי)(תיקון), התשע\"ו",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "2015-תקנות הפיקוח על שירותים פיננסיים (קופות גמל)(קופת גמל בניהול אישי)(תיקון), התשע\"ו",
+      "official_number": null,
+      "identity_evidence": [
+        "1",
+        "2015-תקנות הפיקוח על שירותים פיננסיים (קופות גמל)(קופת גמל בניהול אישי)(תיקון), התשע\"ו",
+        "‏לחוק‏הפיקוח‏על‏שירותים‏פיננסיים‏(קופות‏60‏-,‏ו57,‏55,‏33,‏32,‏23,‏22בתוקף‏סמכותי‏לפי‏סעיפים‏"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 11797,
+        "estimated_tokens": 16373,
+        "meaningful_nodes": 39,
+        "fts_profile_records": 1,
+        "fts_node_records": 39
+      }
+    },
+    {
+      "document_id": 3,
+      "title": "חוזר גופים מוסדיים2017-9-15 דמי ניהול במכשירי החיסכון הפנסיוני-  תיקון",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "חוזר גופים מוסדיים2017-9-15 דמי ניהול במכשירי החיסכון הפנסיוני-  תיקון",
+      "official_number": "2017-9-15",
+      "identity_evidence": [
+        "י",
+        "סכון",
+        "7"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 10940,
+        "estimated_tokens": 12796,
+        "meaningful_nodes": 44,
+        "fts_profile_records": 1,
+        "fts_node_records": 44
+      }
+    },
+    {
+      "document_id": 4,
+      "title": "הכרעה עקרונית בנוגע לפרשנות סעיף52  ,)(א) לחוק הפיקוח על שירותים פיננסיים (קופות גמל התשס\"ה- 5002",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "הכרעה עקרונית בנוגע לפרשנות סעיף52  ,)(א) לחוק הפיקוח על שירותים פיננסיים (קופות גמל התשס\"ה- 5002",
+      "official_number": null,
+      "identity_evidence": [
+        "חוזר הכרעות עקרוניות5102-68",
+        "הכרעה עקרונית בנוגע לפרשנות סעיף52",
+        ",)(א) לחוק הפיקוח על שירותים פיננסיים (קופות גמל"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 1663,
+        "estimated_tokens": 1914,
+        "meaningful_nodes": 6,
+        "fts_profile_records": 1,
+        "fts_node_records": 6
+      }
+    },
+    {
+      "document_id": 2,
+      "title": "תקנות הפיקוח על שירותים פיננסיים)(קופות גמל) (דמי ניהול) (תיקון , התש פ\"א- 2020",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "תקנות הפיקוח על שירותים פיננסיים)(קופות גמל) (דמי ניהול) (תיקון , התש פ\"א- 2020",
+      "official_number": null,
+      "identity_evidence": [
+        "טיוטת תקנות",
+        "2",
+        "א. שם התקנות המוצעות"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 5916,
+        "estimated_tokens": 6497,
+        "meaningful_nodes": 25,
+        "fts_profile_records": 1,
+        "fts_node_records": 25
+      }
+    },
+    {
+      "document_id": 1,
+      "title": "חוזר גופים מוסדיים 2021-9- 5 חוזר הצטרפות לקרן פנסיה או לקופת גמל-",
+      "action_status": "needs_reupload",
+      "source_availability": {
+        "status": "needs_reupload"
+      },
+      "text_origin": "legacy_text_export",
+      "canonical_title": "חוזר גופים מוסדיים 2021-9- 5 חוזר הצטרפות לקרן פנסיה או לקופת גמל-",
+      "official_number": "2016-9-21",
+      "identity_evidence": [
+        "1",
+        "י",
+        "חוזר גופים מוסדיים2021-9-"
+      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [
+        "original_source_missing",
+        "source_checksum_missing"
+      ],
+      "counts": {
+        "text_characters": 53405,
+        "estimated_tokens": 61328,
+        "meaningful_nodes": 170,
+        "fts_profile_records": 1,
+        "fts_node_records": 170
+      }
+    }
+  ],
+  "summary": {
+    "needs_human_review": 2,
+    "needs_reupload": 17,
+    "needs_source_fetch": 1,
+    "ready_for_reingest": 16
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "apply": true,
+  "summary": {
+    "recovered": 14,
+    "recovery_failed": 1
+  },
+  "documents": [
+    {
+      "document_id": 35,
+      "title": "הוראות הממונה על שוק ההון לשעת חירום — אוקטובר 2023 (notice-2023-031)",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2023-031/he/Instructions_of_the_Capital_Market.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/35.docx",
+      "text_path": "artifacts/recovered_sources/35.txt",
+      "checksum": "cc4e7a833d51300b574af57e6376d52f3869fca552bc01e66a9fd7b07e2301e5",
+      "text_characters": 45702,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 34,
+      "title": "חוזר אופן הצגת העלות השנתית הצפויה לעמית — יישום 2023 (notice-2023-010)",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2023-010/he/Presentation-of-the-expected-yearly-costs-for-pension-fund-members-and-life-insurance-policy-holders-WORD.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/34.docx",
+      "text_path": "artifacts/recovered_sources/34.txt",
+      "checksum": "6bce7832468cb13c155ceda8c659beac25b4c7cc9e9f3825b535b1e4ef6509a8",
+      "text_characters": 16279,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 33,
+      "title": "תיקון הוראות החוזר המאוחד — פרק ניהול נכסי השקעה (דצמבר 2022)",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2022_12_15/he/amending_the_provisions_of_the_consolidated_circular_investment_property_management_chapter_word.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/33.docx",
+      "text_path": "artifacts/recovered_sources/33.txt",
+      "checksum": "4ec02d2ef19ba2372bdb3d600146cd687ffee4335924bef77912b931a51dca43",
+      "text_characters": 22379,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 32,
+      "title": "נכסים לטווח ארוך / נכסים לא סחירים — השקעות גופים מוסדיים 2024",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2023-048/he/long_term_assets_word.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/32.docx",
+      "text_path": "artifacts/recovered_sources/32.txt",
+      "checksum": "a450d427d369c447a0cac8a8c5c070f4a06d79b97de0b5355f151a3dd91ef242",
+      "text_characters": 2962,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 30,
+      "title": "חוזר גמל 2019-9-3 איסוף מידע סטטיסטי — פניות ציבור",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-610/he/regulation_h_2019-9-3.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/30.docx",
+      "text_path": "artifacts/recovered_sources/30.txt",
+      "checksum": "0db6135ae91bc89af1b1f6a72ce7f81f59a774a2b845e2b7322e890b4ac0ba0d",
+      "text_characters": 13246,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 29,
+      "title": "חוזר גמל דוחות תקופתיים — כללי עריכת דוחות לעמיתים (2023)",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2023-022/he/Special-reports-word.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/29.docx",
+      "text_path": "artifacts/recovered_sources/29.txt",
+      "checksum": "3c348d3a83d781d6200733da8c02fad27b287d5340d8810712c27ea1da92ddc0",
+      "text_characters": 1148,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 28,
+      "title": "חוזר גמל 2022-9-3 ניוד בין קופות",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2022-9-3/he/notice-2022-9-3-pdf.pdf",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/28.pdf",
+      "text_path": "artifacts/recovered_sources/28.txt",
+      "checksum": "bc2cb3c3099844e91391da0b4cd245d9da908b739cc34afff3b6e1685906eeb8",
+      "text_characters": 9242,
+      "page_count": 7,
+      "source_type": "pdf"
+    },
+    {
+      "document_id": 27,
+      "title": "חוזר גמל 2013-9-10 אימות זהות לקוח",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-1620/he/regulation_2013-9-10new.doc",
+      "status": "recovery_failed",
+      "error": "legacy .doc URL requires manual conversion before page-aware re-ingestion"
+    },
+    {
+      "document_id": 26,
+      "title": "חוזר גמל 2015-9-30 ביצוע פעולות על ידי גוף מוסדי",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-1170/he/regulation_h_2015-9-30.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/26.docx",
+      "text_path": "artifacts/recovered_sources/26.txt",
+      "checksum": "d10f9ad2bef4326cd1f71409248e241f25183a846ca80be0a0ea911704b94165",
+      "text_characters": 4424,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 25,
+      "title": "חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-542/he/regulation_h_2019-9-14.docx",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/25.docx",
+      "text_path": "artifacts/recovered_sources/25.txt",
+      "checksum": "19ad03cc4126b18a19621e100af2291eba8fcf6c5070bd33abef46598b648db7",
+      "text_characters": 19565,
+      "page_count": null,
+      "source_type": "docx"
+    },
+    {
+      "document_id": 24,
+      "title": "חוזר גמל 2020-9-2 העברת כספים",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-530/he/regulation_h_2020-9-2-clean.pdf",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/24.pdf",
+      "text_path": "artifacts/recovered_sources/24.txt",
+      "checksum": "39634e9af8cbdd600e3ba0325c1c0cdf3bbc4b3b9844be3575e0850355b2443c",
+      "text_characters": 46953,
+      "page_count": 28,
+      "source_type": "pdf"
+    },
+    {
+      "document_id": 23,
+      "title": "חוזר גמל 2024-9-8",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2024-111/he/2024-9-8_pdf.pdf",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/23.pdf",
+      "text_path": "artifacts/recovered_sources/23.txt",
+      "checksum": "9fe93564bc2d34f9b2ac27883363a59c38cc3c3860dfd71237038fd495c0aabc",
+      "text_characters": 269143,
+      "page_count": 127,
+      "source_type": "pdf"
+    },
+    {
+      "document_id": 21,
+      "title": "חוזר גופים מוסדיים2024-9-7 עדכון הוראות החוזר המאוחד",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice-2024-103/he/2024-9-7.pdf",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/21.pdf",
+      "text_path": "artifacts/recovered_sources/21.txt",
+      "checksum": "51f0bce076943eb402daa7cd7bd19524b37afe2a6be99288f0845a34e83b2ba6",
+      "text_characters": 5527,
+      "page_count": 3,
+      "source_type": "pdf"
+    },
+    {
+      "document_id": 20,
+      "title": "חוזר גמל 2020-9-3 מבנה אחיד העברת מידע",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulations12/he/regulation_h_2020-9-3.pdf",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/20.pdf",
+      "text_path": "artifacts/recovered_sources/20.txt",
+      "checksum": "0dd6541b3297964fa9bf215c4d297f7aa9acc15147f3b85388ef846ce412ccf8",
+      "text_characters": 61774,
+      "page_count": 34,
+      "source_type": "pdf"
+    },
+    {
+      "document_id": 19,
+      "title": "חוזר גמל 2016-9-8 דמי ניהול",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-1092/he/regulation_h_2016-9-8.pdf",
+      "status": "recovered",
+      "artifact_path": "artifacts/recovered_sources/19.pdf",
+      "text_path": "artifacts/recovered_sources/19.txt",
+      "checksum": "ac89d252b7bcf2c2de3550d93e78a61eba9e31047e3996ad36e486377bd043b7",
+      "text_characters": 15398,
+      "page_count": 8,
+      "source_type": "pdf"
+    }
+  ]
+}
