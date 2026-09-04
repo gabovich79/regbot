@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from scripts.corpus_scope import active_cases, blocked_cases, load_active_document_ids, load_cases
 from scripts.measure_challenger_hybrid import (
     CACHE,
     _embed_queries,
@@ -35,20 +36,23 @@ def load_jsonl(path: Path) -> list[dict]:
     ]
 
 
-def load_legacy_cases() -> list[dict]:
+def load_legacy_cases(active_ids: set[str] | None = None) -> list[dict]:
     mapping = json.loads(LEGACY_MAP.read_text(encoding="utf-8"))
     cases = []
     for case in load_jsonl(LEGACY_CASES):
         required = mapping.get(case["id"])
         if not required:
             continue
-        cases.append(
-            {
-                "id": case["id"],
-                "question": case["question"],
-                "required_document_ids": required,
-            }
-        )
+        scoped = {
+            "id": case["id"],
+            "question": case["question"],
+            "required_document_ids": required,
+        }
+        if active_ids is not None:
+            from scripts.corpus_scope import annotate_case_blocked
+
+            annotate_case_blocked(scoped, active_ids)
+        cases.append(scoped)
     return cases
 
 
@@ -69,10 +73,11 @@ async def run() -> dict:
     document_sections = section_index_from_nodes(nodes)
 
     # Embed all questions across all three groups in one batch.
+    active_ids = load_active_document_ids()
     groups = {
-        "tuning": load_jsonl(TUNING_CASES),
-        "heldout": load_jsonl(HELDOUT_CASES),
-        "legacy": load_legacy_cases(),
+        "tuning": load_cases(TUNING_CASES, active_ids),
+        "heldout": load_cases(HELDOUT_CASES, active_ids),
+        "legacy": load_legacy_cases(active_ids),
     }
     all_questions = list(
         dict.fromkeys(
@@ -91,9 +96,10 @@ async def run() -> dict:
 
     results = {}
     for group_name, cases in groups.items():
+        scoped_cases = active_cases(cases)
         result = await evaluate_hybrid(
             profiles,
-            cases,
+            scoped_cases,
             cached_queries,
             document_sections=document_sections,
             nodes=nodes,
@@ -101,6 +107,10 @@ async def run() -> dict:
             node_rrf_weight=WINNER["node_rrf_weight"],
             catalog_rrf_weight=WINNER["catalog_rrf_weight"],
         )
+        result["blocked_cases"] = [
+            {"id": case["id"], "reason": case.get("blocked_reason")}
+            for case in blocked_cases(cases)
+        ]
         results[group_name] = result
 
     metrics = {name: results[name]["metrics"] for name in results}
@@ -131,6 +141,10 @@ async def run() -> dict:
                 }
                 for row in results[name]["rows"]
             ]
+            for name in results
+        },
+        "blocked_cases": {
+            name: results[name].get("blocked_cases", [])
             for name in results
         },
         "promotion": promotion,

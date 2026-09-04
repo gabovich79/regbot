@@ -62,12 +62,65 @@ def text_root() -> Path:
 
 def load_documents() -> list[dict]:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    decisions = load_corpus_decisions()
     root = text_root()
     docs = []
     for doc in manifest:
-        text = (root / f"{doc['id']}.txt").read_text(encoding="utf-8", errors="replace")
+        if not is_doc_active(doc, decisions):
+            continue
+        text = resolved_document_text(doc, root)
         docs.append({"doc": doc, "text": text})
     return docs
+
+
+def load_corpus_decisions() -> dict:
+    path = Path("eval/corpus_decisions.json")
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return {}
+
+
+def is_doc_active(doc: dict, decisions: dict) -> bool:
+    """Apply the approved corpus decisions to cache construction."""
+    doc_id = str(doc["id"])
+    if doc_id in decisions.get("excluded_from_corpus", {}):
+        return False
+    if doc_id in decisions.get("duplicates", {}):
+        return False
+    unresolved = decisions.get("unresolved_source", {})
+    if doc_id in unresolved:
+        return False
+    pending = decisions.get("metadata_review_pending", {})
+    if doc_id in pending:
+        return False
+    return True
+
+
+def resolved_document_text(doc: dict, fallback_root: Path) -> str:
+    """Prefer the recovered original extraction, then the repo text export."""
+    recovered = Path("artifacts/recovered_sources")
+    candidates = [
+        recovered / f"{doc['id']}.pdf",
+        recovered / f"{doc['id']}.docx",
+        recovered / f"{doc['id']}.doc",
+    ]
+    for artifact in candidates:
+        if artifact.is_file():
+            from services.document_service import extract_docx, extract_pdf
+
+            suffix = artifact.suffix.lower()
+            if suffix == ".pdf":
+                return extract_pdf(str(artifact))
+            if suffix == ".docx":
+                return extract_docx(str(artifact))
+            if suffix == ".doc":
+                converted = artifact.with_suffix(".docx")
+                if converted.is_file():
+                    return extract_docx(str(converted))
+    text_path = fallback_root / f"{doc['id']}.txt"
+    if text_path.exists():
+        return text_path.read_text(encoding="utf-8", errors="replace")
+    return ""
 
 
 def build_profiles(docs: list[dict]) -> list[dict]:

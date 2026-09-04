@@ -16,12 +16,10 @@
     "7": {"reason": "consolidated rendering, official is HTML only", "action": "try_official_recovery_else_historical"}
   },
   "metadata_review_pending": {
-    "25": {"reason": "title_body_mismatch"},
-    "29": {"reason": "title_body_mismatch"}
+    "25": {"reason": "title_body_mismatch", "action": "fix_metadata_then_activate"},
+    "29": {"reason": "title_body_mismatch", "action": "fix_metadata_then_activate"}
   },
   "keeper": {
-    "17": {"reason": "official Amendment 15, Reshumot"},
-    "25": {"status": "ready_for_reingest", "note": "stays ready; title metadata pending fix"},
-    "29": {"status": "ready_for_reingest", "note": "stays ready; title metadata pending fix"}
+    "17": {"reason": "official Amendment 15, Reshumot, active"}
   }
 }
