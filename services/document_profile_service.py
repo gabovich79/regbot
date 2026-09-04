@@ -26,6 +26,11 @@ def _clean_lines(text: str) -> list[str]:
     ]
 
 
+def _strip_file_extension(title: str) -> str:
+    """Remove a trailing upload filename extension so identity can use the title."""
+    return re.sub(r"\.(?:pdf|docx?|txt)$", "", title.strip(), flags=re.IGNORECASE)
+
+
 def _extract_official_number(title: str, text: str) -> str | None:
     sample = text or ""
     candidates: list[tuple[int, str, bool]] = []
@@ -91,7 +96,7 @@ def _looks_like_identity_title(line: str) -> bool:
 
 def _extract_canonical_title(stored_title: str, text: str, official_number: str | None) -> str:
     lines = _clean_lines(text)[:40]
-    stored = stored_title.strip()
+    stored = _strip_file_extension(stored_title).strip()
     # A curator-chosen stored title is authoritative unless it is a raw
     # filename; integrity checks later compare it against the body text.
     looks_like_filename = (
@@ -99,7 +104,7 @@ def _extract_canonical_title(stored_title: str, text: str, official_number: str 
         or stored.lower().endswith((".pdf", ".docx", ".doc"))
         or len(stored) < 5
     )
-    if stored and not looks_like_filename:
+    if stored and not looks_like_filename and _looks_like_identity_title(stored):
         return stored
     if official_number:
         normalized_number = official_number.replace("-", "[-–]")
