@@ -89,6 +89,27 @@ def _receipt_status(document: dict[str, Any], text: str, source: dict[str, str])
     )
 
 
+def apply_duplicate_source_review(rows: list[dict]) -> None:
+    """Flag rows that share an identical source checksum as needs_human_review.
+
+    Two distinct document IDs must never both become active from the same
+    original artifact without an explicit curator decision.
+    """
+    checksum_groups: dict[str, list[int]] = {}
+    for row in rows:
+        checksum = row.get("source_checksum")
+        if checksum:
+            checksum_groups.setdefault(checksum, []).append(row["document_id"])
+    for checksum, document_ids in checksum_groups.items():
+        if len(document_ids) < 2:
+            continue
+        for row in rows:
+            if row.get("source_checksum") == checksum:
+                row["action_status"] = "needs_human_review"
+                if "duplicate_source_checksum" not in row["integrity_reasons"]:
+                    row["integrity_reasons"].append("duplicate_source_checksum")
+
+
 def build_review(
     manifest: list[dict[str, Any]], text_root: Path, artifact_dirs: list[Path]
 ) -> dict[str, Any]:
@@ -114,6 +135,7 @@ def build_review(
                 "title": document["title"],
                 "action_status": action_status,
                 "source_availability": source,
+                "source_checksum": receipt["source"]["checksum"],
                 "text_origin": text_origin,
                 "canonical_title": receipt["profile"]["canonical_title"],
                 "official_number": receipt["profile"]["official_number"],
@@ -124,6 +146,7 @@ def build_review(
                 "counts": receipt["counts"],
             }
         )
+    apply_duplicate_source_review(rows)
     counts = Counter(row["action_status"] for row in rows)
     return {"documents": rows, "summary": dict(sorted(counts.items()))}
 
