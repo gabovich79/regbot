@@ -272,32 +272,28 @@
     {
       "document_id": 27,
       "title": "חוזר גמל 2013-9-10 אימות זהות לקוח",
-      "action_status": "needs_source_fetch",
+      "action_status": "ready_for_reingest",
       "source_availability": {
-        "status": "fetchable_url",
-        "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-1620/he/regulation_2013-9-10new.doc"
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/27.doc"
       },
-      "text_origin": "legacy_text_export",
+      "text_origin": "converted_docx_extraction",
       "canonical_title": "חוזר גמל 2013-9-10 אימות זהות לקוח",
       "official_number": "2013-9-10",
-      "identity_evidence": [],
-      "integrity_status": "warning",
-      "integrity_reasons": [
-        "extraction_binary",
-        "title_body_mismatch",
-        "identity_evidence_missing"
+      "identity_evidence": [
+        "חוזר גופים מוסדיים 2013-9-10",
+        "אימות זהות לקוח על ידי מערכת סליקה פנסיונית מרכזית באמצעות מערכת המידע המרכזית של מרשם האוכלוסין",
+        "אימות לקוח באמצעות מערכת אביב"
       ],
-      "validation_errors": [
-        "original_source_missing",
-        "source_checksum_missing",
-        "identity_evidence_missing"
-      ],
+      "integrity_status": "verified",
+      "integrity_reasons": [],
+      "validation_errors": [],
       "counts": {
-        "text_characters": 42538,
-        "estimated_tokens": 40340,
-        "meaningful_nodes": 96,
+        "text_characters": 2728,
+        "estimated_tokens": 3162,
+        "meaningful_nodes": 7,
         "fts_profile_records": 1,
-        "fts_node_records": 96
+        "fts_node_records": 7
       }
     },
     {
@@ -521,40 +517,39 @@
     {
       "document_id": 18,
       "title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשסה–2005.docx",
-      "action_status": "needs_reupload",
+      "action_status": "ready_for_reingest",
       "source_availability": {
-        "status": "needs_reupload"
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/18.pdf"
       },
-      "text_origin": "legacy_text_export",
-      "canonical_title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשס״ה–2005",
+      "text_origin": "original_pdf_extraction",
+      "canonical_title": "10.8.2005 ,, ה' באב התשס\"ה2024ספר החוקים889",
       "official_number": null,
       "identity_evidence": [
-        "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשס״ה–2005",
-        "פרק א׳: הוראות כלליות",
-        "סימן ד׳: תשלומים לקופת גמל ומשיכת כספים ממנה"
+        "10.8.2005 ,, ה' באב התשס\"ה2024ספר החוקים889",
+        "*2005―חוק הפיקוח על שירותים פיננסיים )קופות גמל(, התשס\"ה",
+        "פרק א': הוראות כלליות"
       ],
       "integrity_status": "verified",
       "integrity_reasons": [],
-      "validation_errors": [
-        "original_source_missing",
-        "source_checksum_missing"
-      ],
+      "validation_errors": [],
       "counts": {
-        "text_characters": 108604,
-        "estimated_tokens": 134325,
-        "meaningful_nodes": 86,
+        "text_characters": 65986,
+        "estimated_tokens": 79672,
+        "meaningful_nodes": 205,
         "fts_profile_records": 1,
-        "fts_node_records": 86
+        "fts_node_records": 205
       }
     },
     {
       "document_id": 17,
       "title": "תיקון 15.pdf",
-      "action_status": "needs_reupload",
+      "action_status": "ready_for_reingest",
       "source_availability": {
-        "status": "needs_reupload"
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/17.pdf"
       },
-      "text_origin": "legacy_text_export",
+      "text_origin": "original_pdf_extraction",
       "canonical_title": "ספר החוקים",
       "official_number": null,
       "identity_evidence": [
@@ -564,10 +559,7 @@
       ],
       "integrity_status": "verified",
       "integrity_reasons": [],
-      "validation_errors": [
-        "original_source_missing",
-        "source_checksum_missing"
-      ],
+      "validation_errors": [],
       "counts": {
         "text_characters": 7676,
         "estimated_tokens": 8843,
@@ -608,30 +600,28 @@
     {
       "document_id": 15,
       "title": "תקנות הפיקוח על שירותים פיננסיים (קופות גמל) (העברת כספים בין קופות גמל), תשסח-2008.pdf",
-      "action_status": "needs_reupload",
+      "action_status": "ready_for_reingest",
       "source_availability": {
-        "status": "needs_reupload"
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/15.docx"
       },
-      "text_origin": "legacy_text_export",
-      "canonical_title": "תקנות הפיקוח על שירותים פיננסיים )קופות גמל( )העברת כספים בין קופות גמל(, תשס\"ח-",
+      "text_origin": "original_docx_extraction",
+      "canonical_title": "תקנות הפיקוח על שירותים פיננסיים (קופות גמל)(העברת כספים בין קופות גמל) (תיקון), התשע\"ו-2016",
       "official_number": null,
       "identity_evidence": [
-        "תקנות הפיקוח על שירותים פיננסיים )קופות גמל( )העברת כספים בין קופות גמל(, תשס\"ח-",
-        "שירותים פיננסיים",
-        "לקצבה גמל לקופת כספים העברת"
+        "תקנות הפיקוח על שירותים פיננסיים (קופות גמל)(העברת כספים בין קופות גמל) (תיקון), התשע\"ו-2016",
+        "תיקון תקנה 1 ו-2:",
+        "תיקון תקנה 3:"
       ],
       "integrity_status": "verified",
       "integrity_reasons": [],
-      "validation_errors": [
-        "original_source_missing",
-        "source_checksum_missing"
-      ],
+      "validation_errors": [],
       "counts": {
-        "text_characters": 23722,
-        "estimated_tokens": 27787,
-        "meaningful_nodes": 92,
+        "text_characters": 4982,
+        "estimated_tokens": 6220,
+        "meaningful_nodes": 1,
         "fts_profile_records": 1,
-        "fts_node_records": 92
+        "fts_node_records": 1
       }
     },
     {
@@ -721,11 +711,12 @@
     {
       "document_id": 11,
       "title": "תיקון 12 לחוק הפיקוח 2015.pdf",
-      "action_status": "needs_reupload",
+      "action_status": "ready_for_reingest",
       "source_availability": {
-        "status": "needs_reupload"
+        "status": "local_original",
+        "path": "artifacts/recovered_sources/11.pdf"
       },
-      "text_origin": "legacy_text_export",
+      "text_origin": "original_pdf_extraction",
       "canonical_title": "ספר החוקים",
       "official_number": null,
       "identity_evidence": [
@@ -735,10 +726,7 @@
       ],
       "integrity_status": "verified",
       "integrity_reasons": [],
-      "validation_errors": [
-        "original_source_missing",
-        "source_checksum_missing"
-      ],
+      "validation_errors": [],
       "counts": {
         "text_characters": 28726,
         "estimated_tokens": 34283,
@@ -1016,8 +1004,7 @@
   ],
   "summary": {
     "needs_human_review": 2,
-    "needs_reupload": 17,
-    "needs_source_fetch": 1,
-    "ready_for_reingest": 16
+    "needs_reupload": 13,
+    "ready_for_reingest": 21
   }
 }

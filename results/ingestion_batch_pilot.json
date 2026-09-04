@@ -1,0 +1,565 @@
+{
+  "summary": {
+    "needs_human_review": 2,
+    "ready_for_activation": 18,
+    "ready_for_embedding": 3
+  },
+  "documents": [
+    {
+      "document_id": 38,
+      "title": "רשימת מסלולי השקעה – תיקון (2024-1471)",
+      "status": "ready_for_activation",
+      "text_origin": "original_pdf_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 30213,
+        "estimated_tokens": 35421,
+        "meaningful_nodes": 125,
+        "fts_profile_records": 1,
+        "fts_node_records": 125
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 125,
+        "fts_node_records": 125,
+        "embedded_node_records": 125
+      }
+    },
+    {
+      "document_id": 37,
+      "title": "פקודת מס הכנסה — סעיפים 9(16א) ו־9(16ב) — משיכת כספים מקרן השתלמות",
+      "status": "ready_for_activation",
+      "text_origin": "original_pdf_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 836411,
+        "estimated_tokens": 997495,
+        "meaningful_nodes": 3213,
+        "fts_profile_records": 1,
+        "fts_node_records": 3213
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 3213,
+        "fts_node_records": 3213,
+        "embedded_node_records": 3213
+      }
+    },
+    {
+      "document_id": 36,
+      "title": "כללי_השקעה_החלים_גופים מוסדיים_2016-9-17.pdf",
+      "status": "ready_for_activation",
+      "text_origin": "original_pdf_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 32256,
+        "estimated_tokens": 38367,
+        "meaningful_nodes": 131,
+        "fts_profile_records": 1,
+        "fts_node_records": 131
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 131,
+        "fts_node_records": 131,
+        "embedded_node_records": 131
+      }
+    },
+    {
+      "document_id": 35,
+      "title": "הוראות הממונה על שוק ההון לשעת חירום — אוקטובר 2023 (notice-2023-031)",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 45702,
+        "estimated_tokens": 56161,
+        "meaningful_nodes": 67,
+        "fts_profile_records": 1,
+        "fts_node_records": 67
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 67,
+        "fts_node_records": 67,
+        "embedded_node_records": 67
+      }
+    },
+    {
+      "document_id": 34,
+      "title": "חוזר אופן הצגת העלות השנתית הצפויה לעמית — יישום 2023 (notice-2023-010)",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 16279,
+        "estimated_tokens": 20313,
+        "meaningful_nodes": 16,
+        "fts_profile_records": 1,
+        "fts_node_records": 16
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 16,
+        "fts_node_records": 16,
+        "embedded_node_records": 16
+      }
+    },
+    {
+      "document_id": 33,
+      "title": "תיקון הוראות החוזר המאוחד — פרק ניהול נכסי השקעה (דצמבר 2022)",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 22379,
+        "estimated_tokens": 27853,
+        "meaningful_nodes": 20,
+        "fts_profile_records": 1,
+        "fts_node_records": 20
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 20,
+        "fts_node_records": 20,
+        "embedded_node_records": 20
+      }
+    },
+    {
+      "document_id": 32,
+      "title": "נכסים לטווח ארוך / נכסים לא סחירים — השקעות גופים מוסדיים 2024",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 2962,
+        "estimated_tokens": 3659,
+        "meaningful_nodes": 5,
+        "fts_profile_records": 1,
+        "fts_node_records": 5
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 5,
+        "fts_node_records": 5,
+        "embedded_node_records": 5
+      }
+    },
+    {
+      "document_id": 30,
+      "title": "חוזר גמל 2019-9-3 איסוף מידע סטטיסטי — פניות ציבור",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 13246,
+        "estimated_tokens": 16432,
+        "meaningful_nodes": 10,
+        "fts_profile_records": 1,
+        "fts_node_records": 10
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 10,
+        "fts_node_records": 10,
+        "embedded_node_records": 10
+      }
+    },
+    {
+      "document_id": 29,
+      "title": "חוזר גמל דוחות תקופתיים — כללי עריכת דוחות לעמיתים (2023)",
+      "status": "needs_human_review",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "warning",
+        "reasons": [
+          "title_body_mismatch"
+        ]
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 1148,
+        "estimated_tokens": 1439,
+        "meaningful_nodes": 2,
+        "fts_profile_records": 1,
+        "fts_node_records": 2
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 2,
+        "fts_node_records": 2,
+        "embedded_node_records": 2
+      }
+    },
+    {
+      "document_id": 28,
+      "title": "חוזר גמל 2022-9-3 ניוד בין קופות",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 9242,
+        "estimated_tokens": 10631,
+        "meaningful_nodes": 38,
+        "fts_profile_records": 1,
+        "fts_node_records": 38
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 38,
+        "fts_node_records": 38,
+        "embedded_node_records": 38
+      }
+    },
+    {
+      "document_id": 27,
+      "title": "חוזר גמל 2013-9-10 אימות זהות לקוח",
+      "status": "ready_for_embedding",
+      "text_origin": "converted_docx_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 2728,
+        "estimated_tokens": 3162,
+        "meaningful_nodes": 7,
+        "fts_profile_records": 1,
+        "fts_node_records": 7
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 7,
+        "fts_node_records": 7,
+        "embedded_node_records": 0
+      }
+    },
+    {
+      "document_id": 26,
+      "title": "חוזר גמל 2015-9-30 ביצוע פעולות על ידי גוף מוסדי",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 4424,
+        "estimated_tokens": 5514,
+        "meaningful_nodes": 9,
+        "fts_profile_records": 1,
+        "fts_node_records": 9
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 9,
+        "fts_node_records": 9,
+        "embedded_node_records": 9
+      }
+    },
+    {
+      "document_id": 25,
+      "title": "חוזר גמל 2019-9-14 גילוי עלות שנתית צפויה",
+      "status": "needs_human_review",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "warning",
+        "reasons": [
+          "title_body_mismatch"
+        ]
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 19565,
+        "estimated_tokens": 24227,
+        "meaningful_nodes": 27,
+        "fts_profile_records": 1,
+        "fts_node_records": 27
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 27,
+        "fts_node_records": 27,
+        "embedded_node_records": 27
+      }
+    },
+    {
+      "document_id": 24,
+      "title": "חוזר גמל 2020-9-2 העברת כספים",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 46953,
+        "estimated_tokens": 56170,
+        "meaningful_nodes": 195,
+        "fts_profile_records": 1,
+        "fts_node_records": 195
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 195,
+        "fts_node_records": 195,
+        "embedded_node_records": 195
+      }
+    },
+    {
+      "document_id": 23,
+      "title": "חוזר גמל 2024-9-8",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 269143,
+        "estimated_tokens": 241537,
+        "meaningful_nodes": 676,
+        "fts_profile_records": 1,
+        "fts_node_records": 676
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 676,
+        "fts_node_records": 676,
+        "embedded_node_records": 676
+      }
+    },
+    {
+      "document_id": 22,
+      "title": "העברת כספים בין קופות גמל - תיקון",
+      "status": "ready_for_activation",
+      "text_origin": "original_docx_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 32080,
+        "estimated_tokens": 39375,
+        "meaningful_nodes": 36,
+        "fts_profile_records": 1,
+        "fts_node_records": 36
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 36,
+        "fts_node_records": 36,
+        "embedded_node_records": 36
+      }
+    },
+    {
+      "document_id": 21,
+      "title": "חוזר גופים מוסדיים2024-9-7 עדכון הוראות החוזר המאוחד",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 5527,
+        "estimated_tokens": 6205,
+        "meaningful_nodes": 16,
+        "fts_profile_records": 1,
+        "fts_node_records": 16
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 16,
+        "fts_node_records": 16,
+        "embedded_node_records": 16
+      }
+    },
+    {
+      "document_id": 20,
+      "title": "חוזר גמל 2020-9-3 מבנה אחיד העברת מידע",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 61774,
+        "estimated_tokens": 72763,
+        "meaningful_nodes": 259,
+        "fts_profile_records": 1,
+        "fts_node_records": 259
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 259,
+        "fts_node_records": 259,
+        "embedded_node_records": 259
+      }
+    },
+    {
+      "document_id": 19,
+      "title": "חוזר גמל 2016-9-8 דמי ניהול",
+      "status": "ready_for_activation",
+      "text_origin": "recovered_source_text",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 15398,
+        "estimated_tokens": 18118,
+        "meaningful_nodes": 67,
+        "fts_profile_records": 1,
+        "fts_node_records": 67
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 67,
+        "fts_node_records": 67,
+        "embedded_node_records": 67
+      }
+    },
+    {
+      "document_id": 18,
+      "title": "חוק הפיקוח על שירותים פיננסיים (קופות גמל), התשסה–2005.docx",
+      "status": "ready_for_embedding",
+      "text_origin": "original_pdf_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 65986,
+        "estimated_tokens": 79672,
+        "meaningful_nodes": 205,
+        "fts_profile_records": 1,
+        "fts_node_records": 205
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 205,
+        "fts_node_records": 205,
+        "embedded_node_records": 0
+      }
+    },
+    {
+      "document_id": 17,
+      "title": "תיקון 15.pdf",
+      "status": "ready_for_activation",
+      "text_origin": "original_pdf_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 7676,
+        "estimated_tokens": 8843,
+        "meaningful_nodes": 25,
+        "fts_profile_records": 1,
+        "fts_node_records": 25
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 25,
+        "fts_node_records": 25,
+        "embedded_node_records": 25
+      }
+    },
+    {
+      "document_id": 15,
+      "title": "תקנות הפיקוח על שירותים פיננסיים (קופות גמל) (העברת כספים בין קופות גמל), תשסח-2008.pdf",
+      "status": "ready_for_embedding",
+      "text_origin": "original_docx_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 4982,
+        "estimated_tokens": 6220,
+        "meaningful_nodes": 1,
+        "fts_profile_records": 1,
+        "fts_node_records": 1
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 1,
+        "fts_node_records": 1,
+        "embedded_node_records": 0
+      }
+    },
+    {
+      "document_id": 11,
+      "title": "תיקון 12 לחוק הפיקוח 2015.pdf",
+      "status": "ready_for_activation",
+      "text_origin": "original_pdf_extraction",
+      "integrity": {
+        "status": "verified",
+        "reasons": []
+      },
+      "validation_errors": [],
+      "counts": {
+        "text_characters": 28726,
+        "estimated_tokens": 34283,
+        "meaningful_nodes": 120,
+        "fts_profile_records": 1,
+        "fts_node_records": 120
+      },
+      "persisted": {
+        "profile_records": 1,
+        "node_records": 120,
+        "fts_node_records": 120,
+        "embedded_node_records": 120
+      }
+    }
+  ]
+}

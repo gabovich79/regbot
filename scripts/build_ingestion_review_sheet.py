@@ -27,7 +27,13 @@ def classify_source_availability(
 ) -> dict[str, str]:
     """Classify provenance without pretending an extracted text is an original."""
     source_ref = str(document.get("source_ref") or "")
-    candidates = [Path(source_ref).name, f"{document['id']}.pdf", f"{document['id']}.docx", f"{document['id']}.html"]
+    candidates = [
+        Path(source_ref).name,
+        f"{document['id']}.pdf",
+        f"{document['id']}.doc",
+        f"{document['id']}.docx",
+        f"{document['id']}.html",
+    ]
     if document.get("original_path"):
         candidates.append(Path(str(document["original_path"])).name)
     for directory in artifact_dirs:
@@ -52,8 +58,13 @@ def source_text_for_review(
         suffix = artifact.suffix.lower()
         if suffix == ".pdf":
             return extract_pdf(str(artifact)), "original_pdf_extraction"
-        if suffix in {".docx", ".doc"}:
+        if suffix == ".docx":
             return extract_docx(str(artifact)), "original_docx_extraction"
+        if suffix == ".doc":
+            converted = artifact.with_suffix(".docx")
+            if converted.is_file():
+                return extract_docx(str(converted)), "converted_docx_extraction"
+            return "", "legacy_doc_requires_conversion"
     if fallback_path.exists():
         return fallback_path.read_text(encoding="utf-8", errors="replace"), "legacy_text_export"
     return "", "missing_text"

@@ -50,6 +50,23 @@ def test_classify_source_detects_recovered_artifact_by_document_id(tmp_path):
     assert result == {"status": "local_original", "path": str(recovered)}
 
 
+def test_review_preserves_doc_original_when_using_converted_docx(tmp_path):
+    original = tmp_path / "27.doc"
+    original.write_bytes(b"legacy doc")
+    converted = tmp_path / "27.docx"
+    converted.write_bytes(b"converted docx")
+    document = {
+        "id": 27,
+        "source_ref": "https://www.gov.il/example.doc",
+        "original_path": None,
+        "source_checksum": None,
+    }
+
+    source = classify_source_availability(document, [tmp_path])
+
+    assert source == {"status": "local_original", "path": str(original)}
+
+
 def test_review_uses_recovered_extracted_text_before_old_export(tmp_path):
     artifact = tmp_path / "35.docx"
     artifact.write_bytes(b"original")

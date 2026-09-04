@@ -11,7 +11,11 @@ cd "$ROOT"
 # lacks a prebuilt wheel and attempts an unnecessary source compilation.
 CANDIDATES=()
 [[ -n "${REGBOT_PYTHON:-}" ]] && CANDIDATES+=("$REGBOT_PYTHON")
-CANDIDATES+=("/tmp/regbot-clean/.venv/bin/python" "$ROOT/.venv/bin/python")
+CANDIDATES+=(
+  "$HOME/.hermes/hermes-agent/venv/bin/python"
+  "/tmp/regbot-clean/.venv/bin/python"
+  "$ROOT/.venv/bin/python"
+)
 PYTHON=""
 for candidate in "${CANDIDATES[@]}"; do
   if [[ -x "$candidate" ]] && "$candidate" -c 'import fitz, openai, numpy, tiktoken' >/dev/null 2>&1; then
