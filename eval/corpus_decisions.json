@@ -1,0 +1,27 @@
+{
+  "decisions_date": "2026-09-04",
+  "approved_by": "guy",
+  "duplicates": {
+    "16": {"duplicate_of": 17, "reason": "identical source artifact (Amendment 15 Reshumot PDF)", "action": "inactive_duplicate"}
+  },
+  "excluded_from_corpus": {
+    "8": {"reason": "internal Migdal operational form, not regulation", "action": "not_regulatory"},
+    "9": {"reason": "internal Migdal operational form, not regulation", "action": "not_regulatory"},
+    "4": {"reason": "draft ruling 2015, no official final source", "action": "draft_not_final"}
+  },
+  "unresolved_source": {
+    "12": {"reason": "Tax Authority circular 4/2011, official URL retired", "action": "try_official_recovery_else_historical"},
+    "13": {"reason": "KT 6820 2009, no official file located", "action": "try_official_recovery_else_historical"},
+    "6": {"reason": "draft-era, mirror only", "action": "try_official_recovery_else_historical"},
+    "7": {"reason": "consolidated rendering, official is HTML only", "action": "try_official_recovery_else_historical"}
+  },
+  "metadata_review_pending": {
+    "25": {"reason": "title_body_mismatch"},
+    "29": {"reason": "title_body_mismatch"}
+  },
+  "keeper": {
+    "17": {"reason": "official Amendment 15, Reshumot"},
+    "25": {"status": "ready_for_reingest", "note": "stays ready; title metadata pending fix"},
+    "29": {"status": "ready_for_reingest", "note": "stays ready; title metadata pending fix"}
+  }
+}
