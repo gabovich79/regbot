@@ -26,6 +26,25 @@ LEGACY_MAP = Path("eval/legacy_case_document_map.json")
 OUTPUT = Path("results/challenger_promotion_gate.json")
 
 WINNER = {"candidate_depth": 5, "node_rrf_weight": 1.0, "catalog_rrf_weight": 1.0}
+PROMOTION_TUNING_REVIEW_STATUS = "human_verified"
+MIN_TUNING_CASES_FOR_TOP3 = 7
+
+
+def split_promotion_tuning_cases(cases: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Separate verified promotion evidence from provisional tuning hypotheses."""
+    accepted = [
+        case for case in cases
+        if case.get("review_status") == PROMOTION_TUNING_REVIEW_STATUS
+    ]
+    excluded = [
+        {
+            "id": case["id"],
+            "reason": f"review_status:{case.get('review_status', 'missing')}",
+        }
+        for case in cases
+        if case.get("review_status") != PROMOTION_TUNING_REVIEW_STATUS
+    ]
+    return accepted, excluded
 
 
 def load_jsonl(path: Path) -> list[dict]:
@@ -56,11 +75,21 @@ def load_legacy_cases(active_ids: set[str] | None = None) -> list[dict]:
     return cases
 
 
-def promotion_decision(metrics: dict, failed: dict[str, list[str]]) -> bool:
+def promotion_decision(
+    metrics: dict,
+    failed: dict[str, list[str]],
+    *,
+    enforce_tuning_top3: bool = True,
+    sufficient_verified_tuning_cases: bool = True,
+) -> bool:
     tuning = metrics["tuning"]
     return (
-        tuning["all_required_documents_recall_at_5"] == 1.0
-        and tuning["all_required_documents_recall_at_3"] >= 0.857
+        sufficient_verified_tuning_cases
+        and tuning["all_required_documents_recall_at_5"] == 1.0
+        and (
+            not enforce_tuning_top3
+            or tuning["all_required_documents_recall_at_3"] >= 0.857
+        )
         and not failed["heldout"]
         and not failed["legacy"]
     )
@@ -79,6 +108,13 @@ async def run() -> dict:
         "heldout": load_cases(HELDOUT_CASES, active_ids),
         "legacy": load_legacy_cases(active_ids),
     }
+    groups["tuning"], excluded_tuning_cases = split_promotion_tuning_cases(
+        groups["tuning"]
+    )
+    sufficient_verified_tuning_cases = (
+        len(groups["tuning"]) >= MIN_TUNING_CASES_FOR_TOP3
+    )
+    enforce_tuning_top3 = sufficient_verified_tuning_cases
     all_questions = list(
         dict.fromkeys(
             question
@@ -125,10 +161,23 @@ async def run() -> dict:
 
     tuning_all5 = metrics["tuning"]["all_required_documents_recall_at_5"]
     tuning_all3 = metrics["tuning"]["all_required_documents_recall_at_3"]
-    promotion = promotion_decision(metrics, failed)
+    promotion = promotion_decision(
+        metrics,
+        failed,
+        enforce_tuning_top3=enforce_tuning_top3,
+        sufficient_verified_tuning_cases=sufficient_verified_tuning_cases,
+    )
 
     gate = {
         "winner_config": WINNER,
+        "promotion_policy": {
+            "tuning_review_status": PROMOTION_TUNING_REVIEW_STATUS,
+            "tuning_case_count": len(groups["tuning"]),
+            "sufficient_verified_tuning_cases": sufficient_verified_tuning_cases,
+            "top3_enforced": enforce_tuning_top3,
+            "top3_minimum_case_count": MIN_TUNING_CASES_FOR_TOP3,
+        },
+        "excluded_cases": {"tuning": excluded_tuning_cases},
         "metrics": metrics,
         "failed_all_required_at_5": failed,
         "rows": {
@@ -151,8 +200,18 @@ async def run() -> dict:
         "reasons": [] if promotion else [
             reason
             for reason in (
+                (
+                    "insufficient human-verified tuning cases: "
+                    f"{len(groups['tuning'])}<{MIN_TUNING_CASES_FOR_TOP3}"
+                    if not sufficient_verified_tuning_cases
+                    else None
+                ),
                 "tuning all-required@5 below 1.0" if tuning_all5 < 1.0 else None,
-                "tuning all-required@3 below 0.857" if tuning_all3 < 0.857 else None,
+                (
+                    "tuning all-required@3 below 0.857"
+                    if enforce_tuning_top3 and tuning_all3 < 0.857
+                    else None
+                ),
                 f"heldout failures: {failed['heldout']}" if failed["heldout"] else None,
                 f"legacy failures: {failed['legacy']}" if failed["legacy"] else None,
             )

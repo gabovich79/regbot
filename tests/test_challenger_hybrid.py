@@ -1,6 +1,47 @@
 import asyncio
 
-from scripts.measure_challenger_hybrid import evaluate_hybrid
+from scripts.measure_challenger_hybrid import (
+    combine_node_evidence_ranks,
+    evaluate_hybrid,
+)
+
+
+def test_node_evidence_combines_lexical_and_semantic_best_rank_without_double_counting():
+    assert combine_node_evidence_ranks({15: 3, 24: 1}, {15: 7, 20: 1}) == {
+        15: 3,
+        24: 1,
+        20: 1,
+    }
+
+
+def test_hybrid_does_not_award_rrf_to_zero_score_lexical_results():
+    profiles = [
+        *[
+            {
+                "document_id": document_id,
+                "title": f"מסמך לא קשור {document_id}",
+                "embedding": [0.0, 1.0],
+            }
+            for document_id in range(1, 6)
+        ],
+        {"document_id": 22, "title": "חוזר ייחודי", "embedding": [1.0, 0.0]},
+    ]
+    cases = [
+        {
+            "id": "semantic-without-keyword-overlap",
+            "question": "שאילתה סמנטית בלבד",
+            "required_document_ids": [22],
+        }
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]
+
+    result = asyncio.run(evaluate_hybrid(profiles, cases, embed_queries, top_k=1))
+
+    row = result["rows"][0]
+    assert row["diagnostics"]["lexical_top_5"] == []
+    assert row["selected"] == [22]
 
 
 def test_hybrid_evaluation_embeds_each_unique_question_once():
@@ -26,9 +67,10 @@ def test_hybrid_evaluation_embeds_each_unique_question_once():
     assert result["metrics"]["all_required_documents_recall_at_5"] == 1.0
     assert result["rows"][0]["diagnostics"] == {
         "candidate_union": [38, 22],
-        "lexical_top_5": [38, 22],
+        "lexical_top_5": [38],
         "dense_top_5": [38, 22],
         "node_lexical_top_5": [],
+        "node_dense_top_5": [],
         "catalog_top_5": [38],
         "fused_top_5": [38, 22],
     }
@@ -127,6 +169,50 @@ def test_hybrid_preserves_dense_candidate_against_broad_node_candidates():
     assert 22 in row["diagnostics"]["candidate_union"]
 
 
+def test_hybrid_keeps_dense_leader_when_broad_lexical_channels_fill_top_k():
+    profiles = [
+        {
+            "document_id": 22,
+            "canonical_title": "חוזר מקצועי ייחודי",
+            "embedding": [1.0, 0.0],
+        },
+        *[
+            {
+                "document_id": doc_id,
+                "canonical_title": f"ניוד כללי {doc_id}",
+                "embedding": [0.95, 0.31],
+            }
+            for doc_id in range(1, 6)
+        ],
+    ]
+    nodes = [
+        {
+            "document_id": doc_id,
+            "heading": "ניוד",
+            "raw_text": "הוראות ניוד כלליות.",
+        }
+        for doc_id in range(1, 6)
+    ]
+    cases = [
+        {
+            "id": "semantic-leader-coverage",
+            "question": "ניוד",
+            "required_document_ids": [22],
+        }
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]
+
+    result = asyncio.run(
+        evaluate_hybrid(profiles, cases, embed_queries, nodes=nodes, top_k=5)
+    )
+
+    row = result["rows"][0]
+    assert row["diagnostics"]["dense_top_5"][0] == 22
+    assert 22 in row["selected"]
+
+
 def test_hybrid_can_limit_broad_node_channel_without_losing_dense_candidate():
     profiles = [
         {"document_id": 22, "title": "מסמך יעד", "embedding": [1.0, 0.0]},
@@ -166,6 +252,45 @@ def test_hybrid_can_limit_broad_node_channel_without_losing_dense_candidate():
     )
 
     assert 22 in result["rows"][0]["selected"]
+
+
+def test_hybrid_uses_semantic_node_evidence_when_lexical_node_terms_do_not_match():
+    profiles = [
+        {"document_id": 18, "title": "מסמך מטעה", "embedding": [1.0, 0.0]},
+        {"document_id": 36, "title": "תקנות קרן", "embedding": [0.0, 1.0]},
+    ]
+    nodes = [
+        {
+            "document_id": 18,
+            "heading": "מידע כללי",
+            "raw_text": "הוראה כללית.",
+            "embedding": [0.0, 1.0],
+        },
+        {
+            "document_id": 36,
+            "heading": "סעיף 8ד",
+            "raw_text": "הוראה מיוחדת.",
+            "embedding": [1.0, 0.0],
+        },
+    ]
+    cases = [
+        {
+            "id": "semantic-section-evidence",
+            "question": "הלוואת עמית",
+            "required_document_ids": [36],
+        }
+    ]
+
+    async def embed_queries(questions):
+        return [[1.0, 0.0]]
+
+    result = asyncio.run(
+        evaluate_hybrid(profiles, cases, embed_queries, nodes=nodes, top_k=1)
+    )
+
+    row = result["rows"][0]
+    assert row["diagnostics"]["node_dense_top_5"] == [36, 18]
+    assert row["selected"] == [36]
 
 
 def test_hybrid_evaluation_uses_node_evidence_when_profile_is_insufficient():

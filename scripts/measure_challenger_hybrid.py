@@ -37,6 +37,23 @@ def cosine(a: list[float], b: list[float]) -> float:
     return float(np.dot(va, vb) / denominator) if denominator else 0.0
 
 
+def preserve_dense_leader(
+    fused: list[tuple[float, int]], dense_ids: list[int], top_k: int
+) -> list[int]:
+    """Keep the semantic leader in broad document retrieval results.
+
+    Rank fusion rewards repeated lexical signals. For top-k retrieval with room
+    for evidence breadth, one dense-only document must not disappear merely
+    because broad terms occur in several other documents. Top-1 remains pure
+    fusion so an exact catalog/section signal can still be decisive.
+    """
+    selected = [document_id for _, document_id in fused[:top_k]]
+    dense_leader = dense_ids[0] if dense_ids else None
+    if top_k > 1 and dense_leader is not None and dense_leader not in selected:
+        selected[-1] = dense_leader
+    return selected
+
+
 def node_document_ranks(question: str, nodes: list[dict], document_ids: set[int]) -> dict[int, int]:
     """Rank documents by their single strongest raw legal node."""
     query_terms = _terms(question)
@@ -50,6 +67,39 @@ def node_document_ranks(question: str, nodes: list[dict], document_ids: set[int]
         score = 2 * len(query_terms & heading_terms) + len(query_terms & raw_terms)
         if score:
             best_scores[document_id] = max(best_scores.get(document_id, 0.0), score)
+    ranked_ids = sorted(
+        best_scores,
+        key=lambda document_id: (best_scores[document_id], document_id),
+        reverse=True,
+    )
+    return {document_id: rank for rank, document_id in enumerate(ranked_ids, 1)}
+
+
+def combine_node_evidence_ranks(*rankings: dict[int, int]) -> dict[int, int]:
+    """Use the strongest section/span rank per document across evidence modes."""
+    combined: dict[int, int] = {}
+    for ranking in rankings:
+        for document_id, rank in ranking.items():
+            combined[document_id] = min(combined.get(document_id, rank), rank)
+    return combined
+
+
+def node_dense_document_ranks(
+    query_vector: list[float], nodes: list[dict], document_ids: set[int]
+) -> dict[int, int]:
+    """Rank documents by their strongest embedded section/span."""
+    best_scores: dict[int, float] = {}
+    for node in nodes:
+        document_id = int(node["document_id"])
+        embedding = node.get("embedding")
+        if (
+            document_id not in document_ids
+            or not isinstance(embedding, list)
+            or len(embedding) != len(query_vector)
+        ):
+            continue
+        score = cosine(embedding, query_vector)
+        best_scores[document_id] = max(best_scores.get(document_id, -1.0), score)
     ranked_ids = sorted(
         best_scores,
         key=lambda document_id: (best_scores[document_id], document_id),
@@ -87,6 +137,7 @@ async def evaluate_hybrid(
         lexical_rank = {
             int(document["document_id"]): rank
             for rank, document in enumerate(lexical_results, 1)
+            if float(document["score"]) > 0
         }
         dense_results = sorted(
             ((cosine(profile["embedding"], query_vectors[question]), profile) for profile in profiles),
@@ -98,9 +149,19 @@ async def evaluate_hybrid(
             for rank, (_, profile) in enumerate(dense_results, 1)
         }
         all_document_ids = {int(profile["document_id"]) for profile in profiles}
-        node_rank = node_document_ranks(question, nodes or [], all_document_ids)
+        node_lexical_rank = node_document_ranks(question, nodes or [], all_document_ids)
+        node_dense_rank = node_dense_document_ranks(
+            query_vectors[question], nodes or [], all_document_ids
+        )
+        # One section/span channel: each document receives its best semantic or
+        # lexical section evidence, rather than double-counting or overwriting it.
+        node_rank = combine_node_evidence_ranks(node_lexical_rank, node_dense_rank)
         catalog_rank = catalog_entity_ranks(question, profiles)
-        lexical_ids = [int(document["document_id"]) for document in lexical_results]
+        lexical_ids = [
+            int(document["document_id"])
+            for document in lexical_results
+            if float(document["score"]) > 0
+        ]
         dense_ids = [int(profile["document_id"]) for _, profile in dense_results]
         node_ids = [
             document_id
@@ -124,7 +185,11 @@ async def evaluate_hybrid(
         fused = sorted(
             (
                 (
-                    1 / (RRF_K + lexical_rank[document_id])
+                    (
+                        (1 / (RRF_K + lexical_rank[document_id]))
+                        if document_id in lexical_rank
+                        else 0
+                    )
                     + 1 / (RRF_K + dense_rank[document_id])
                     + (
                         node_rrf_weight / (RRF_K + node_rank[document_id])
@@ -142,7 +207,7 @@ async def evaluate_hybrid(
             ),
             reverse=True,
         )
-        selected = [document_id for _, document_id in fused[:top_k]]
+        selected = preserve_dense_leader(fused, dense_ids, top_k)
         retrieved_required = required & set(selected)
         first_hit = next(
             (rank for rank, document_id in enumerate(selected, 1) if document_id in required),
@@ -162,10 +227,7 @@ async def evaluate_hybrid(
                 "all_required_documents_at_5": int(required <= set(selected)),
                 "diagnostics": {
                     "candidate_union": candidate_union,
-                    "lexical_top_5": [
-                        int(document["document_id"])
-                        for document in lexical_results[:5]
-                    ],
+                    "lexical_top_5": lexical_ids[:5],
                     "dense_top_5": [
                         int(profile["document_id"])
                         for _, profile in dense_results[:5]
@@ -173,7 +235,13 @@ async def evaluate_hybrid(
                     "node_lexical_top_5": [
                         document_id
                         for document_id, _ in sorted(
-                            node_rank.items(), key=lambda item: item[1]
+                            node_lexical_rank.items(), key=lambda item: item[1]
+                        )[:5]
+                    ],
+                    "node_dense_top_5": [
+                        document_id
+                        for document_id, _ in sorted(
+                            node_dense_rank.items(), key=lambda item: item[1]
                         )[:5]
                     ],
                     "catalog_top_5": [
