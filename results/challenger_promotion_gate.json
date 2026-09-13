@@ -7,39 +7,1344 @@
   "metrics": {
     "tuning": {
       "cases": 7,
-      "document_recall_at_3": 0.929,
+      "document_recall_at_3": 0.786,
       "document_recall_at_5": 1.0,
-      "all_required_documents_recall_at_3": 0.857,
+      "all_required_documents_recall_at_3": 0.714,
       "all_required_documents_recall_at_5": 1.0
     },
     "heldout": {
-      "cases": 4,
-      "document_recall_at_3": 0.75,
-      "document_recall_at_5": 0.75,
-      "all_required_documents_recall_at_3": 0.75,
-      "all_required_documents_recall_at_5": 0.75
+      "cases": 2,
+      "document_recall_at_3": 1.0,
+      "document_recall_at_5": 1.0,
+      "all_required_documents_recall_at_3": 1.0,
+      "all_required_documents_recall_at_5": 1.0
     },
     "legacy": {
-      "cases": 17,
-      "document_recall_at_3": 0.824,
-      "document_recall_at_5": 0.824,
-      "all_required_documents_recall_at_3": 0.824,
-      "all_required_documents_recall_at_5": 0.824
+      "cases": 12,
+      "document_recall_at_3": 0.875,
+      "document_recall_at_5": 0.917,
+      "all_required_documents_recall_at_3": 0.833,
+      "all_required_documents_recall_at_5": 0.917
     }
   },
   "failed_all_required_at_5": {
     "tuning": [],
+    "heldout": [],
+    "legacy": [
+      "fund-mobility"
+    ]
+  },
+  "rows": {
+    "tuning": [
+      {
+        "id": "age-dependent-tracks-v2",
+        "required": [
+          38
+        ],
+        "selected": [
+          38,
+          33,
+          36,
+          19,
+          34
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            19,
+            35,
+            34,
+            33,
+            18,
+            38,
+            36,
+            5,
+            22,
+            37
+          ],
+          "lexical_top_5": [
+            19,
+            35,
+            34,
+            33,
+            18
+          ],
+          "dense_top_5": [
+            38,
+            36,
+            33,
+            5,
+            22
+          ],
+          "node_lexical_top_5": [
+            19,
+            38,
+            37,
+            36,
+            35
+          ],
+          "catalog_top_5": [],
+          "fused_top_5": [
+            38,
+            33,
+            36,
+            19,
+            34
+          ]
+        }
+      },
+      {
+        "id": "transfer-funds-multisource",
+        "required": [
+          15,
+          22
+        ],
+        "selected": [
+          24,
+          28,
+          15,
+          22,
+          18
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            34,
+            35,
+            33,
+            28,
+            24,
+            22,
+            5,
+            20,
+            18,
+            15,
+            1,
+            37
+          ],
+          "lexical_top_5": [
+            34,
+            35,
+            33,
+            28,
+            24
+          ],
+          "dense_top_5": [
+            22,
+            28,
+            24,
+            5,
+            20
+          ],
+          "node_lexical_top_5": [
+            24,
+            18,
+            15,
+            1,
+            37
+          ],
+          "catalog_top_5": [
+            22,
+            15,
+            28,
+            24,
+            18
+          ],
+          "fused_top_5": [
+            24,
+            28,
+            15,
+            22,
+            18
+          ]
+        }
+      },
+      {
+        "id": "member-rights-section-25",
+        "required": [
+          18
+        ],
+        "selected": [
+          18,
+          15,
+          5,
+          2,
+          37
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            18,
+            15,
+            37,
+            34,
+            22,
+            5,
+            1,
+            27,
+            28,
+            14,
+            2
+          ],
+          "lexical_top_5": [
+            18,
+            15,
+            37,
+            34,
+            22
+          ],
+          "dense_top_5": [
+            15,
+            37,
+            5,
+            1,
+            27
+          ],
+          "node_lexical_top_5": [
+            18,
+            37,
+            28,
+            14,
+            22
+          ],
+          "catalog_top_5": [
+            18,
+            15,
+            2,
+            5
+          ],
+          "fused_top_5": [
+            18,
+            15,
+            5,
+            2,
+            37
+          ]
+        }
+      },
+      {
+        "id": "training-fund-withdrawal-employee-self-employed",
+        "required": [
+          37
+        ],
+        "selected": [
+          37,
+          36,
+          22,
+          32,
+          38
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            37,
+            22,
+            18,
+            5,
+            38,
+            1,
+            32,
+            14,
+            36,
+            35,
+            34
+          ],
+          "lexical_top_5": [
+            37,
+            22,
+            18,
+            5,
+            38
+          ],
+          "dense_top_5": [
+            37,
+            1,
+            32,
+            14,
+            5
+          ],
+          "node_lexical_top_5": [
+            37,
+            38,
+            36,
+            35,
+            34
+          ],
+          "catalog_top_5": [
+            37
+          ],
+          "fused_top_5": [
+            37,
+            36,
+            22,
+            32,
+            38
+          ]
+        }
+      },
+      {
+        "id": "loan-training-fund-section-8d",
+        "required": [
+          36
+        ],
+        "selected": [
+          37,
+          5,
+          14,
+          36,
+          19
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            22,
+            37,
+            14,
+            15,
+            5,
+            1,
+            27,
+            18,
+            36,
+            19
+          ],
+          "lexical_top_5": [
+            35,
+            22,
+            37,
+            14,
+            15
+          ],
+          "dense_top_5": [
+            37,
+            5,
+            1,
+            27,
+            15
+          ],
+          "node_lexical_top_5": [
+            37,
+            18,
+            36,
+            19,
+            14
+          ],
+          "catalog_top_5": [],
+          "fused_top_5": [
+            37,
+            5,
+            14,
+            36,
+            19
+          ]
+        }
+      },
+      {
+        "id": "withdrawal-and-tax-parameter-synthesis",
+        "required": [
+          37
+        ],
+        "selected": [
+          37,
+          34,
+          36,
+          22,
+          35
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            5,
+            22,
+            24,
+            19,
+            18,
+            1,
+            37,
+            34,
+            3,
+            36,
+            14,
+            35,
+            38
+          ],
+          "lexical_top_5": [
+            5,
+            22,
+            24,
+            19,
+            18
+          ],
+          "dense_top_5": [
+            1,
+            37,
+            34,
+            3,
+            36
+          ],
+          "node_lexical_top_5": [
+            37,
+            14,
+            35,
+            38,
+            36
+          ],
+          "catalog_top_5": [
+            37
+          ],
+          "fused_top_5": [
+            37,
+            34,
+            36,
+            22,
+            35
+          ]
+        }
+      },
+      {
+        "id": "missing-explicit-section-abstention",
+        "required": [
+          18
+        ],
+        "selected": [
+          18,
+          15,
+          28,
+          2,
+          32
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            34,
+            37,
+            32,
+            30,
+            15,
+            5,
+            2,
+            27,
+            19,
+            18,
+            36,
+            28,
+            24,
+            20
+          ],
+          "lexical_top_5": [
+            35,
+            34,
+            37,
+            32,
+            30
+          ],
+          "dense_top_5": [
+            15,
+            5,
+            2,
+            27,
+            19
+          ],
+          "node_lexical_top_5": [
+            18,
+            36,
+            28,
+            24,
+            20
+          ],
+          "catalog_top_5": [
+            18,
+            15,
+            2,
+            5,
+            32
+          ],
+          "fused_top_5": [
+            18,
+            15,
+            28,
+            2,
+            32
+          ]
+        }
+      }
+    ],
     "heldout": [
-      "heldout-amendment-15"
+      {
+        "id": "heldout-fees-instruments",
+        "required": [
+          3
+        ],
+        "selected": [
+          3,
+          2,
+          19,
+          35,
+          5
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            3,
+            34,
+            26,
+            20,
+            32,
+            5,
+            2,
+            37,
+            17,
+            14,
+            19
+          ],
+          "lexical_top_5": [
+            35,
+            3,
+            34,
+            26,
+            20
+          ],
+          "dense_top_5": [
+            3,
+            32,
+            5,
+            2,
+            35
+          ],
+          "node_lexical_top_5": [
+            3,
+            37,
+            35,
+            17,
+            14
+          ],
+          "catalog_top_5": [
+            3,
+            19,
+            2
+          ],
+          "fused_top_5": [
+            3,
+            2,
+            19,
+            35,
+            5
+          ]
+        }
+      },
+      {
+        "id": "heldout-amendment-15",
+        "required": [
+          17
+        ],
+        "selected": [
+          17,
+          15,
+          2,
+          5,
+          28
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            34,
+            30,
+            35,
+            33,
+            19,
+            5,
+            2,
+            17,
+            22,
+            15,
+            37,
+            36,
+            28,
+            24,
+            11,
+            18
+          ],
+          "lexical_top_5": [
+            34,
+            30,
+            35,
+            33,
+            19
+          ],
+          "dense_top_5": [
+            5,
+            2,
+            17,
+            22,
+            15
+          ],
+          "node_lexical_top_5": [
+            17,
+            37,
+            36,
+            28,
+            24
+          ],
+          "catalog_top_5": [
+            2,
+            5,
+            22,
+            11,
+            18
+          ],
+          "fused_top_5": [
+            17,
+            15,
+            2,
+            5,
+            28
+          ]
+        }
+      }
     ],
     "legacy": [
-      "fund-mobility",
-      "identity-verification",
-      "severance-continuity"
+      {
+        "id": "fees-management",
+        "required": [
+          19
+        ],
+        "selected": [
+          3,
+          19,
+          2,
+          36,
+          18
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            33,
+            36,
+            35,
+            3,
+            34,
+            19,
+            14,
+            18,
+            5,
+            2,
+            1
+          ],
+          "lexical_top_5": [
+            33,
+            36,
+            35,
+            3,
+            34
+          ],
+          "dense_top_5": [
+            19,
+            14,
+            3,
+            18,
+            5
+          ],
+          "node_lexical_top_5": [
+            36,
+            3,
+            2,
+            35,
+            1
+          ],
+          "catalog_top_5": [
+            19,
+            2,
+            3
+          ],
+          "fused_top_5": [
+            3,
+            19,
+            2,
+            36,
+            18
+          ]
+        }
+      },
+      {
+        "id": "transfer-funds",
+        "required": [
+          22,
+          24
+        ],
+        "selected": [
+          24,
+          15,
+          18,
+          22,
+          28
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            37,
+            35,
+            34,
+            33,
+            30,
+            28,
+            24,
+            22,
+            5,
+            15,
+            18,
+            1
+          ],
+          "lexical_top_5": [
+            37,
+            35,
+            34,
+            33,
+            30
+          ],
+          "dense_top_5": [
+            28,
+            24,
+            22,
+            5,
+            15
+          ],
+          "node_lexical_top_5": [
+            24,
+            18,
+            15,
+            1,
+            37
+          ],
+          "catalog_top_5": [
+            22,
+            15,
+            28,
+            24,
+            18
+          ],
+          "fused_top_5": [
+            24,
+            15,
+            18,
+            22,
+            28
+          ]
+        }
+      },
+      {
+        "id": "fund-mobility",
+        "required": [
+          28
+        ],
+        "selected": [
+          24,
+          22,
+          15,
+          14,
+          37
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            15,
+            24,
+            22,
+            19,
+            18,
+            28,
+            5,
+            1,
+            14,
+            37
+          ],
+          "lexical_top_5": [
+            15,
+            24,
+            22,
+            19,
+            18
+          ],
+          "dense_top_5": [
+            28,
+            24,
+            22,
+            5,
+            1
+          ],
+          "node_lexical_top_5": [
+            14,
+            18,
+            37,
+            24,
+            15
+          ],
+          "catalog_top_5": [
+            24,
+            22,
+            15
+          ],
+          "fused_top_5": [
+            24,
+            22,
+            15,
+            14,
+            37
+          ]
+        }
+      },
+      {
+        "id": "uniform-interface",
+        "required": [
+          20
+        ],
+        "selected": [
+          20,
+          26,
+          36,
+          30,
+          3
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            20,
+            22,
+            33,
+            30,
+            26,
+            28,
+            21,
+            36,
+            11,
+            3
+          ],
+          "lexical_top_5": [
+            35,
+            20,
+            22,
+            33,
+            30
+          ],
+          "dense_top_5": [
+            20,
+            26,
+            28,
+            21,
+            30
+          ],
+          "node_lexical_top_5": [
+            20,
+            26,
+            36,
+            11,
+            3
+          ],
+          "catalog_top_5": [
+            20,
+            26
+          ],
+          "fused_top_5": [
+            20,
+            26,
+            36,
+            30,
+            3
+          ]
+        }
+      },
+      {
+        "id": "age-dependent-tracks",
+        "required": [
+          38
+        ],
+        "selected": [
+          38,
+          33,
+          36,
+          19,
+          34
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            19,
+            35,
+            34,
+            33,
+            18,
+            38,
+            36,
+            5,
+            22,
+            37
+          ],
+          "lexical_top_5": [
+            19,
+            35,
+            34,
+            33,
+            18
+          ],
+          "dense_top_5": [
+            38,
+            36,
+            33,
+            5,
+            22
+          ],
+          "node_lexical_top_5": [
+            19,
+            38,
+            37,
+            36,
+            35
+          ],
+          "catalog_top_5": [],
+          "fused_top_5": [
+            38,
+            33,
+            36,
+            19,
+            34
+          ]
+        }
+      },
+      {
+        "id": "mortality-tables",
+        "required": [
+          23
+        ],
+        "selected": [
+          23,
+          33,
+          34,
+          22,
+          37
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            23,
+            34,
+            33,
+            24,
+            22,
+            21,
+            28,
+            32,
+            37,
+            14
+          ],
+          "lexical_top_5": [
+            23,
+            34,
+            33,
+            24,
+            22
+          ],
+          "dense_top_5": [
+            21,
+            28,
+            33,
+            32,
+            22
+          ],
+          "node_lexical_top_5": [
+            23,
+            37,
+            34,
+            24,
+            14
+          ],
+          "catalog_top_5": [],
+          "fused_top_5": [
+            23,
+            33,
+            34,
+            22,
+            37
+          ]
+        }
+      },
+      {
+        "id": "identity-verification",
+        "required": [
+          27
+        ],
+        "selected": [
+          27,
+          28,
+          30,
+          23,
+          11
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            27,
+            35,
+            34,
+            33,
+            30,
+            11,
+            5,
+            23,
+            37,
+            36,
+            28
+          ],
+          "lexical_top_5": [
+            27,
+            35,
+            34,
+            33,
+            30
+          ],
+          "dense_top_5": [
+            27,
+            30,
+            11,
+            5,
+            23
+          ],
+          "node_lexical_top_5": [
+            27,
+            23,
+            37,
+            36,
+            28
+          ],
+          "catalog_top_5": [],
+          "fused_top_5": [
+            27,
+            28,
+            30,
+            23,
+            11
+          ]
+        }
+      },
+      {
+        "id": "emergency-rules",
+        "required": [
+          35
+        ],
+        "selected": [
+          35,
+          33,
+          34,
+          36,
+          20
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            20,
+            36,
+            34,
+            33,
+            32,
+            27,
+            26,
+            5,
+            28,
+            3
+          ],
+          "lexical_top_5": [
+            35,
+            20,
+            36,
+            34,
+            33
+          ],
+          "dense_top_5": [
+            35,
+            32,
+            27,
+            26,
+            5
+          ],
+          "node_lexical_top_5": [
+            34,
+            33,
+            28,
+            20,
+            3
+          ],
+          "catalog_top_5": [
+            35
+          ],
+          "fused_top_5": [
+            35,
+            33,
+            34,
+            36,
+            20
+          ]
+        }
+      },
+      {
+        "id": "statistical-collection",
+        "required": [
+          30
+        ],
+        "selected": [
+          30,
+          26,
+          20,
+          36,
+          35
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            30,
+            20,
+            3,
+            36,
+            26,
+            21,
+            1
+          ],
+          "lexical_top_5": [
+            35,
+            30,
+            20,
+            3,
+            36
+          ],
+          "dense_top_5": [
+            30,
+            26,
+            36,
+            21,
+            20
+          ],
+          "node_lexical_top_5": [
+            20,
+            26,
+            36,
+            3,
+            1
+          ],
+          "catalog_top_5": [
+            30,
+            26
+          ],
+          "fused_top_5": [
+            30,
+            26,
+            20,
+            36,
+            35
+          ]
+        }
+      },
+      {
+        "id": "operations-by-institution",
+        "required": [
+          26
+        ],
+        "selected": [
+          26,
+          30,
+          20,
+          36,
+          34
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            34,
+            33,
+            30,
+            26,
+            36,
+            1,
+            21,
+            20,
+            14,
+            23,
+            38,
+            37
+          ],
+          "lexical_top_5": [
+            35,
+            34,
+            33,
+            30,
+            26
+          ],
+          "dense_top_5": [
+            26,
+            36,
+            1,
+            21,
+            20
+          ],
+          "node_lexical_top_5": [
+            26,
+            14,
+            23,
+            38,
+            37
+          ],
+          "catalog_top_5": [
+            26
+          ],
+          "fused_top_5": [
+            26,
+            30,
+            20,
+            36,
+            34
+          ]
+        }
+      },
+      {
+        "id": "asset-management",
+        "required": [
+          33
+        ],
+        "selected": [
+          33,
+          26,
+          36,
+          3,
+          35
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            36,
+            35,
+            34,
+            33,
+            32,
+            18,
+            3,
+            1,
+            26
+          ],
+          "lexical_top_5": [
+            36,
+            35,
+            34,
+            33,
+            32
+          ],
+          "dense_top_5": [
+            36,
+            18,
+            3,
+            1,
+            26
+          ],
+          "node_lexical_top_5": [
+            33,
+            36,
+            35,
+            34,
+            32
+          ],
+          "catalog_top_5": [
+            26,
+            33
+          ],
+          "fused_top_5": [
+            33,
+            26,
+            36,
+            3,
+            35
+          ]
+        }
+      },
+      {
+        "id": "illiquid-assets",
+        "required": [
+          32
+        ],
+        "selected": [
+          36,
+          32,
+          1,
+          35,
+          33
+        ],
+        "diagnostics": {
+          "candidate_union": [
+            35,
+            36,
+            33,
+            32,
+            5,
+            1,
+            24,
+            20
+          ],
+          "lexical_top_5": [
+            35,
+            36,
+            33,
+            32,
+            5
+          ],
+          "dense_top_5": [
+            32,
+            36,
+            33,
+            1,
+            35
+          ],
+          "node_lexical_top_5": [
+            35,
+            32,
+            24,
+            36,
+            20
+          ],
+          "catalog_top_5": [
+            36,
+            1,
+            32
+          ],
+          "fused_top_5": [
+            36,
+            32,
+            1,
+            35,
+            33
+          ]
+        }
+      }
+    ]
+  },
+  "blocked_cases": {
+    "tuning": [],
+    "heldout": [
+      {
+        "id": "heldout-ruling-52a",
+        "reason": "requires_inactive_documents:4"
+      },
+      {
+        "id": "heldout-iron-swords-training-fund",
+        "reason": "requires_inactive_documents:8"
+      }
+    ],
+    "legacy": [
+      {
+        "id": "annual-cost-disclosure",
+        "reason": "requires_inactive_documents:25"
+      },
+      {
+        "id": "periodic-reports",
+        "reason": "requires_inactive_documents:29"
+      },
+      {
+        "id": "personal-managed-fund",
+        "reason": "requires_inactive_documents:13"
+      },
+      {
+        "id": "reservist-deposits",
+        "reason": "requires_inactive_documents:9"
+      },
+      {
+        "id": "severance-continuity",
+        "reason": "requires_inactive_documents:12"
+      }
     ]
   },
   "promotion": false,
   "reasons": [
-    "heldout failures: ['heldout-amendment-15']"
+    "tuning all-required@3 below 0.857",
+    "legacy failures: ['fund-mobility']"
   ]
 }

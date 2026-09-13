@@ -1,4 +1,6 @@
 .env
+.DS_Store
+.secrets/
 __pycache__/
 *.pyc
 data/regbot.db
