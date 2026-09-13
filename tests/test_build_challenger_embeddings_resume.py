@@ -52,6 +52,24 @@ async def test_embed_missing_processes_in_batches(tmp_path, monkeypatch):
     assert len(results) == 5
 
 
+@pytest.mark.asyncio
+async def test_embed_missing_checkpoints_after_each_completed_batch(monkeypatch):
+    checkpoints = []
+
+    async def fake_embed_texts(texts):
+        return [[float(i)] * 4 for i in range(len(texts))]
+
+    def checkpoint(results):
+        checkpoints.append(dict(results))
+
+    monkeypatch.setattr("scripts.build_challenger_embeddings.embed_texts", fake_embed_texts)
+    monkeypatch.setattr("scripts.build_challenger_embeddings.BATCH_SIZE", 2)
+
+    await embed_missing(["a", "b", "c", "d", "e"], {}, "nodes", checkpoint=checkpoint)
+
+    assert [len(saved) for saved in checkpoints] == [2, 4, 5]
+
+
 def test_save_progress_then_load_existing_roundtrip(tmp_path, monkeypatch):
     monkeypatch.setattr("scripts.build_challenger_embeddings.CACHE_PATH", tmp_path / "cache.json")
 

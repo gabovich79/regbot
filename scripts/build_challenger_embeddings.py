@@ -13,6 +13,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Callable
 
 import tiktoken
 
@@ -244,6 +245,7 @@ async def embed_missing(
     texts: list[str],
     existing: dict[str, list[float]],
     progress_label: str,
+    checkpoint: Callable[[dict[str, list[float]]], None] | None = None,
 ) -> dict[str, list[float]]:
     """Embed only texts missing from the existing hash map, saving every batch."""
     import time
@@ -260,6 +262,8 @@ async def embed_missing(
         vectors = await embed_texts([text for text, _ in batch])
         for (text, text_hash), vector in zip(batch, vectors):
             results[text_hash] = vector
+        if checkpoint:
+            checkpoint(results)
         print(
             json.dumps(
                 {
@@ -293,15 +297,23 @@ def main() -> int:
 
     async def run() -> None:
         nonlocal profile_embeddings, node_embeddings
+        def save_profile_checkpoint(results: dict[str, list[float]]) -> None:
+            save_progress(profiles, nodes, results, node_embeddings)
+
+        def save_node_checkpoint(results: dict[str, list[float]]) -> None:
+            save_progress(profiles, nodes, profile_embeddings, results)
+
         profile_embeddings = await embed_missing(
             [profile_text(p) for p in profiles],
             profile_embeddings,
             "profiles",
+            checkpoint=save_profile_checkpoint,
         )
         node_embeddings = await embed_missing(
             [node_text(n) for n in nodes],
             node_embeddings,
             "nodes",
+            checkpoint=save_node_checkpoint,
         )
         save_progress(profiles, nodes, profile_embeddings, node_embeddings)
 
