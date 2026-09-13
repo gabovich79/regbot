@@ -9,6 +9,9 @@ import json
 from collections import Counter
 from pathlib import Path
 from typing import Any
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from services.document_ingestion_service import build_ingestion_receipt
 from services.document_service import extract_docx, extract_pdf

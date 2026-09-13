@@ -30,6 +30,7 @@ from services.document_service import (
 )
 from services.claude_service import stream_chat
 from services.rag_service import chunk_regulatory_document, chunk_regulatory_pages, embed_and_store_chunks
+from services.document_ingestion_service import build_ingestion_receipt, persist_ingestion_receipt
 
 logging.basicConfig(
     level=logging.INFO,
@@ -223,17 +224,25 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
         pages = extract_pdf_bytes_pages(content)
         text = "\n\n".join(page["text"] for page in pages)
         source_type = "pdf"
-    elif ext in ("doc", "docx"):
+    elif ext == "docx":
         text = extract_docx_bytes(content)
-        source_type = "doc"
+        source_type = "docx"
+    elif ext == "doc":
+        raise HTTPException(
+            400,
+            "קובץ DOC ישן אינו נתמך להעלאה בטוחה; המר אותו ל-DOCX או PDF ושמור את המקור המקורי.",
+        )
     else:
-        raise HTTPException(400, "סוג קובץ לא נתמך. השתמש ב-PDF או DOC/DOCX")
+        raise HTTPException(400, "סוג קובץ לא נתמך. השתמש ב-PDF או DOCX")
 
     if not text.strip():
         raise HTTPException(400, "לא ניתן לחלץ טקסט מהקובץ")
 
     token_count = estimate_tokens(text)
-    doc_id = await add_document(filename, source_type, filename, "", token_count)
+    created_doc_id = await add_document(filename, source_type, filename, "", token_count)
+    if created_doc_id is None:
+        raise HTTPException(500, "יצירת רשומת המסמך נכשלה")
+    doc_id = int(created_doc_id)
     original_path, source_checksum = save_original_document(doc_id, ext, content)
     await update_document_source_artifact(
         doc_id, original_path=original_path, checksum=source_checksum
@@ -247,7 +256,54 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
     finally:
         await db.close()
 
-    # RAG indexing
+    document = {
+        "id": doc_id,
+        "title": filename,
+        "source_type": source_type,
+        "source_ref": filename,
+        "lifecycle_status": "current",
+    }
+    receipt = build_ingestion_receipt(
+        document,
+        text,
+        original_path=original_path,
+        source_checksum=source_checksum,
+        pages=pages,
+    )
+    if receipt["status"] != "validated":
+        error = "; ".join(receipt["validation_errors"])
+        await update_document_index_status(doc_id, "failed", error=error)
+        return {
+            "id": doc_id,
+            "title": filename,
+            "token_count": token_count,
+            "index_status": "failed",
+            "hierarchical_ingestion": {
+                "status": receipt["status"],
+                "validation_errors": receipt["validation_errors"],
+            },
+            "message": "הקובץ נשמר, אך נכשל בבדיקת מקור/זהות ולכן לא נוסף לחיפוש.",
+        }
+
+    db = await get_db()
+    try:
+        persisted = await persist_ingestion_receipt(db, receipt)
+    except Exception as error:
+        logger.exception("Hierarchical ingestion receipt failed for document %s", doc_id)
+        await update_document_index_status(doc_id, "failed", error=str(error))
+        return {
+            "id": doc_id,
+            "title": filename,
+            "token_count": token_count,
+            "index_status": "failed",
+            "hierarchical_ingestion": {"status": "failed", "validation_errors": [str(error)]},
+            "message": "הקובץ נשמר, אך אינדוקס היררכי נכשל ולכן לא נוסף לחיפוש.",
+        }
+    finally:
+        await db.close()
+
+    # The flat index remains the active retrieval path until the challenger
+    # promotion gate passes; receipt/profile/node persistence is completed first.
     try:
         num_chunks = await _index_document(doc_id, filename, filename, text, pages=pages)
     except Exception as e:
@@ -255,8 +311,6 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
         num_chunks = 0
 
     total = await get_total_tokens()
-    # Corpus size is not a prompt size: retrieval sends a bounded evidence
-    # subset for every question. Health is shown through ready/failed status.
     warning = None
 
     return {
@@ -266,6 +320,10 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
         "total_tokens": total,
         "num_chunks": num_chunks,
         "index_status": "ready" if num_chunks else "failed",
+        "hierarchical_ingestion": {
+            "status": receipt["status"],
+            "node_records": persisted["node_records"],
+        },
         "warning": warning,
         "message": (
             f"נוסף והוכן לחיפוש — {token_count:,} טוקנים, {num_chunks} קטעים"
