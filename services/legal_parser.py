@@ -34,7 +34,7 @@ SHORT_HEADINGS = {
 }
 
 
-def _is_heading(text: str) -> bool:
+def _is_heading(text: str, *, allow_short_topic_heading: bool = True) -> bool:
     if not text:
         return False
     if text.endswith((".", ":", ";", ",")):
@@ -51,7 +51,7 @@ def _is_heading(text: str) -> bool:
         return True
     # Short unnumbered topic lines are headings when they read as a title
     # (e.g. "טיפול בבקשת העברה", "הוראות מיוחדות לעניין העברה לקרן חדשה").
-    if 8 <= len(text) <= 60 and not any(marker in text for marker in ("- ", " – ")):
+    if allow_short_topic_heading and 8 <= len(text) <= 60 and not any(marker in text for marker in ("- ", " – ")):
         return True
     return False
 
@@ -76,8 +76,26 @@ def _clean(text: str) -> str:
     return re.sub(r"[ \t]+", " ", text).strip()
 
 
+def _paragraph_with_page(raw: str | dict[str, Any]) -> tuple[str, int | None, int | None]:
+    """Normalize legacy strings and page-aware extraction records."""
+    if isinstance(raw, str):
+        return raw, None, None
+    text = str(raw.get("text") or "")
+    page_start = raw.get("page_start", raw.get("page_number"))
+    page_end = raw.get("page_end", page_start)
+    return text, int(page_start) if page_start is not None else None, int(page_end) if page_end is not None else None
+
+
+def _include_page(node: dict[str, Any], page_start: int | None, page_end: int | None) -> None:
+    """Expand a node's inclusive source-page range without inventing pages."""
+    if page_start is None or page_end is None:
+        return
+    node["page_start"] = min(int(node.get("page_start", page_start)), page_start)
+    node["page_end"] = max(int(node.get("page_end", page_end)), page_end)
+
+
 def build_legal_tree(
-    paragraphs: list[str],
+    paragraphs: list[str | dict[str, Any]],
     document: dict[str, Any],
     *,
     page_map: list[dict[str, Any]] | None = None,
@@ -92,10 +110,14 @@ def build_legal_tree(
     }
     stack: list[dict[str, Any]] = [root]
     for raw in paragraphs:
-        text = _clean(raw)
+        raw_text, page_start, page_end = _paragraph_with_page(raw)
+        text = _clean(raw_text)
         if not text:
             continue
-        if _is_heading(text):
+        is_page_extracted = isinstance(raw, dict) and any(
+            key in raw for key in ("page_number", "page_start", "page_end")
+        )
+        if _is_heading(text, allow_short_topic_heading=not is_page_extracted):
             level = _heading_level(text)
             while len(stack) - 1 >= level:
                 stack.pop()
@@ -110,4 +132,6 @@ def build_legal_tree(
             stack.append(node)
         else:
             stack[-1]["raw_text"] = f"{stack[-1]['raw_text']}\n{text}".strip()
+        for node in stack:
+            _include_page(node, page_start, page_end)
     return root

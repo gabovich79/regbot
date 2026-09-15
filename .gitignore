@@ -5,6 +5,12 @@ __pycache__/
 *.pyc
 data/regbot.db
 data/documents/*.txt
+# Retain original regulatory PDFs locally; provenance is tracked by checksum, not by committing binaries.
+data/originals/*.pdf
+# Generated runtime artifacts (reproducible via scripts/); keep out of git.
+data/regbot.db
+data/d37_local_evidence_index.json
+results/
 results/challenger_embeddings_cache*.json
 artifacts/
 .venv/

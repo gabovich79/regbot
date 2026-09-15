@@ -95,3 +95,42 @@ async def test_persisted_receipt_reconciles_profile_nodes_and_fts(tmp_path, monk
     assert persisted["embedded_node_records"] == persisted["node_records"]
     assert stored["status"] == "validated"
     assert json.loads(stored["receipt_json"])["document_id"] == document_id
+
+
+@pytest.mark.asyncio
+async def test_persisted_d37_evidence_node_retains_page_range(tmp_path, monkeypatch):
+    monkeypatch.setattr(database, "DB_PATH", str(tmp_path / "regbot.db"))
+    await database.init_db()
+    document_id = await database.add_document(
+        "פקודת מס הכנסה",
+        "pdf",
+        "D37.pdf",
+        "D37.txt",
+        100,
+    )
+    pages = [
+        {"page_number": 43, "text": "פרק ראשון: מס הכנסה\nסעיף 9(16א) קרן השתלמות\nסכומים שמשך עובד מחשבונו בקרן השתלמות."},
+        {"page_number": 44, "text": "הפטור מותנה בשש שנים, ובחריגים בשלוש שנים."},
+    ]
+    receipt = build_ingestion_receipt(
+        {"id": document_id, "title": "פקודת מס הכנסה", "source_type": "official", "source_ref": "D37.pdf"},
+        "\n".join(page["text"] for page in pages),
+        original_path="/sources/D37.pdf",
+        source_checksum="d" * 64,
+        pages=pages,
+    )
+
+    db = await database.get_db()
+    try:
+        await persist_ingestion_receipt(db, receipt)
+        row = await (
+            await db.execute(
+                "SELECT page_start, page_end FROM document_nodes WHERE document_id = ? AND section_label = ?",
+                (document_id, "סעיף 9(16א) קרן השתלמות"),
+            )
+        ).fetchone()
+    finally:
+        await db.close()
+
+    assert row["page_start"] == 43
+    assert row["page_end"] == 44

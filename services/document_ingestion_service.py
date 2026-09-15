@@ -81,6 +81,8 @@ def _flatten_meaningful_nodes(tree: dict[str, Any], profile: dict[str, Any]) -> 
                     "node_type": node.get("node_type", "section"),
                     "section_label": heading or None,
                     "heading": heading or None,
+                    "page_start": node.get("page_start"),
+                    "page_end": node.get("page_end"),
                     "raw_text": raw_text,
                     "retrieval_text": retrieval_text,
                     "ordinal": ordinal,
@@ -108,7 +110,16 @@ def build_ingestion_receipt(
     profile = build_document_profile(document, text)
     profile["keywords"] = _keywords(profile)
     integrity = assess_document_integrity(document, text, profile)
-    paragraphs = [line for line in text.splitlines() if line.strip()]
+    paragraphs: list[str | dict[str, Any]] = (
+        [
+            {"text": line, "page_number": page["page_number"]}
+            for page in pages
+            for line in str(page.get("text") or "").splitlines()
+            if line.strip()
+        ]
+        if pages is not None
+        else [line for line in text.splitlines() if line.strip()]
+    )
     tree = build_legal_tree(paragraphs, document, page_map=pages)
     nodes = _flatten_meaningful_nodes(tree, profile)
 
@@ -202,7 +213,7 @@ async def persist_ingestion_receipt(
                     document_id, parent_id, node_type, node_path, section_label,
                     heading, raw_text, retrieval_text, page_start, page_end,
                     ordinal, text_hash, embedding, is_evidence, index_version
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, 1, 1)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1)
                 """,
                 (
                     document_id,
@@ -213,6 +224,8 @@ async def persist_ingestion_receipt(
                     node.get("heading"),
                     node["raw_text"],
                     node["retrieval_text"],
+                    node.get("page_start"),
+                    node.get("page_end"),
                     node["ordinal"],
                     node["text_hash"],
                     embedding_json,
