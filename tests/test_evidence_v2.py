@@ -90,6 +90,35 @@ def test_invalid_text_and_scan_not_ready():
     assert quality_issues('', [{'text':''}])
 
 
+@pytest.mark.asyncio
+async def test_staging_missing_original_never_calls_provider(db):
+    from services.knowledge import stage_document
+    class NoCalls:
+        async def json(self,*args,**kwargs):
+            pytest.fail('Missing originals must fail before spending')
+    with pytest.raises(ValueError,match='missing_original'):
+        await stage_document(db,{'id':1,'title':'מקור'},'טקסט מקור ארוך מספיק לצורך בדיקת החילוץ והשמירה.',gateway=NoCalls())
+
+
+@pytest.mark.asyncio
+async def test_staging_card_uses_original_pages_and_shared_gateway(db,tmp_path):
+    from services.knowledge import stage_document
+    original=tmp_path/'source.pdf';original.write_bytes(b'source bytes used for checksum')
+    source='טקסט המקור מהעמוד מופיע כאן במלואו לצורך בדיקת האינדוקס.'
+    class FakeGateway:
+        async def json(self,stage,payload,**kwargs):
+            assert payload['source']==source
+            return {'summary':'תקציר','relations':[{'target':'מקור אחר','quote':source}]}
+        async def embed(self,texts):
+            return [[1.,0.] for _ in texts]
+    version,_=await stage_document(db,{'id':1,'title':'מקור','original_path':str(original)},'',
+                                   [{'page_number':1,'text':source}],gateway=FakeGateway())
+    row=await (await db.execute('SELECT card FROM evidence_versions WHERE id=?',(version,))).fetchone()
+    card=json.loads(row['card'])
+    assert card['relations'][0]['quote']==source
+    assert card['original_checksum']
+
+
 def test_keyword_match_does_not_remove_semantic_candidates():
     card = json.dumps({'title':'מקור','summary':'זכויות עמית','embedding':[1.,0.]})
     base = {'document_id':1,'card':card,'context':'','embedding':'[1,0]'}

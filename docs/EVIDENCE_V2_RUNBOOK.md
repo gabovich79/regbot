@@ -131,6 +131,20 @@ SSE retains `thinking`, `text`, `usage`, `done`, `error` and adds `sources` and
 
 ## Gold preparation and acceptance
 
+For an offline retention diagnostic against a restored legacy database, run
+`python scripts/audit_chunk_retention.py --db COPY/regbot.db --output retention.json`.
+This compares eight-word windows from extracted original PDF pages with legacy
+and proposed chunks. It does not measure extraction completeness, retrieval
+recall, or answer correctness; corrupted extraction can still score 100%.
+
+To stage a reviewed-source batch on an isolated copy, use
+`python scripts/stage_evidence_index.py --data-dir COPY --documents 1 11 12 36 37 38 --budget BUDGET --output staged.json`.
+Replace the document list with the sources actually reviewed and BUDGET with
+the authorized batch limit. A shared provider gateway caps the entire batch;
+results are checkpointed after each document. Nothing is activated automatically.
+Missing originals are rejected before provider spending. Extraction review and
+complete-corpus activation remain separate gates.
+
 `eval/evidence_cases_v2.jsonl` contains **60 candidate cases**, split 40/20, with
 unverified references and explicit missing source URLs. Existing benchmark prose
 is only a seed, never accepted as legal truth. Add exact allowed primary/secondary
