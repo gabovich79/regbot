@@ -38,12 +38,15 @@ def coverage_schema(source_ids):
 
 
 def extraction_schema(source_ids):
-    part={'type':'object','properties':{'text':{'type':'string','maxLength':1800},
-          'source_ids':{'type':'array','minItems':1,'maxItems':4,'items':{'type':'string','enum':list(source_ids) or ['NO_SOURCE']}}},
+    # Deeply nested bounded arrays + source enums exceeded Gemini's constraint
+    # automaton limit. Keep shape enforcement here; restore_source_ids and
+    # bind_units enforce membership, lengths and total budgets after generation.
+    part={'type':'object','properties':{'text':{'type':'string'},
+          'source_ids':{'type':'array','items':{'type':'string'}}},
           'required':['text','source_ids'],'additionalProperties':False}
-    parts={'type':'array','maxItems':12,'items':part}
+    parts={'type':'array','items':part}
     unit={'type':'object','properties':{'rule':part,'scope':parts,'conditions':parts,'exceptions':parts,
           'period':{'anyOf':[part,{'type':'null'}]}},
           'required':['rule','scope','conditions','exceptions','period'],'additionalProperties':False}
-    return {'type':'object','properties':{'units':{'type':'array','maxItems':20,'items':unit},
+    return {'type':'object','properties':{'units':{'type':'array','items':unit},
             'missing':{'type':'array','items':{'type':'string'}}},'required':['units','missing'],'additionalProperties':False}
