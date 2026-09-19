@@ -117,11 +117,18 @@ async def run_pipeline(question, history, db, gateway, trace, progress=None, ena
     plan = await gateway.json('understand', {
         'task':'Return standalone_question, product, operation, population, tax_year (integer or null), '
                'issues (array of required aspects), retrieval_queries (up to 3 focused sub-questions), time_sensitive (boolean). Preserve ambiguity. '
-               'Resolve follow-ups using history. Do not answer. Do not expose names or identifiers in product/operation/population.',
+               'Resolve follow-ups using history. Keep the language, product names, regulatory identifiers and dates of the question. '
+               'Do not replace a named product with a generic phrase. Do not answer. Do not expose names or personal identifiers in product/operation/population.',
         'today':date.today().isoformat(), 'question':question, 'history':history[-8:],
     })
     if not isinstance(plan.get('standalone_question'),str) or not plan['standalone_question'].strip():
         raise ValueError('Question plan omitted standalone question')
+    trace['understanding_raw'] = dict(plan)
+    # A first-turn question is already standalone. Rewriting it can erase the
+    # product or regulatory identifier before retrieval even sees the question.
+    # Model expansions remain additional discovery routes, never replacements.
+    if not history:
+        plan['standalone_question'] = question
     plan['issues'] = string_list(plan.get('issues'))
     trace['plan'] = plan
     await notify('מאתר סעיפים ומרחיב את ההקשר…')

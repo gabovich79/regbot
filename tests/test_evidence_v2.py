@@ -241,6 +241,32 @@ async def test_budget_concurrency_and_fail_closed(db,monkeypatch):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('history', [[], [{'role':'user','content':'שאלתי על ביטוח אובדן כושר עבודה'}]])
+async def test_planner_cannot_replace_first_turn_with_generic_translation(monkeypatch, history):
+    import services.evidence_pipeline as pipeline
+    question = 'מה התנאים בביטוח אובדן כושר עבודה לפי חוזר 2020-1-22?'
+    rewrite = 'What are the conditions for this financial product?'
+    captured = {}
+    class RetrievalReached(Exception):
+        pass
+    async def inspect_plan(db, plan, gateway, trace):
+        captured.update(plan)
+        raise RetrievalReached
+    class Fake:
+        async def json(self, stage, payload, **kwargs):
+            assert stage == 'understand'
+            return {'standalone_question':rewrite, 'issues':['conditions'],
+                    'retrieval_queries':['תנאי ביטוח אובדן כושר עבודה']}
+    monkeypatch.setattr(pipeline, 'retrieve', inspect_plan)
+    trace = {}
+    with pytest.raises(RetrievalReached):
+        await run_pipeline(question, history, None, Fake(), trace, enable_web=False)
+    assert captured['standalone_question'] == (rewrite if history else question)
+    assert captured['retrieval_queries'] == ['תנאי ביטוח אובדן כושר עבודה']
+    assert trace['understanding_raw']['standalone_question'] == rewrite
+
+
+@pytest.mark.asyncio
 async def test_pipeline_removes_unsupported_after_one_repair(monkeypatch):
     import services.evidence_pipeline as pipeline
     evidence = [{'id':'D1-Va-C1','content':'המקור אינו קובע שיעור מס.','title':'מקור','kind':'corpus','url':''}]
