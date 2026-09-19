@@ -32,7 +32,7 @@ def _strip_file_extension(title: str) -> str:
 
 
 def _extract_official_number(title: str, text: str) -> str | None:
-    sample = text or ""
+    sample = re.sub(r'(?<=\d)\s*[-–]\s*(?=\d)', '-', text or '')
     candidates: list[tuple[int, str, bool]] = []
     for match in OFFICIAL_NUMBER_PATTERN.finditer(sample[:12000]):
         number = match.group(0).replace("–", "-")

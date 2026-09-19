@@ -44,6 +44,8 @@ def _normalize_title(text: str) -> str:
 
 
 def _official_numbers(text: str) -> set[str]:
+    # PDF line wrapping can split 2021-9-\n5; normalize metadata only.
+    text = re.sub(r'(?<=\d)\s*[-–]\s*(?=\d)', '-', text or '')
     return {
         value.replace("–", "-")
         for value in OFFICIAL_NUMBER_PATTERN.findall(text or "")
