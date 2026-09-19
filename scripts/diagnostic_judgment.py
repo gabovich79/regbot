@@ -1,6 +1,30 @@
 """Validate evaluation evidence separately from runtime answer verification."""
 
 
+def judgment_spans(answer, evidence):
+    body=answer.get('text','').split('\n\nמקורות ששימשו בתשובה:')[0]
+    answer_spans={f'A{i+1}':text for i,text in enumerate(line.strip() for line in body.splitlines() if line.strip())}
+    evidence_spans={f'E{i+1}':{'source_id':e['id'],'quote':e['content']} for i,e in enumerate(evidence)}
+    return answer_spans,evidence_spans
+
+
+def resolve_judgment(raw, answer, evidence):
+    """Resolve evaluator pointers, never its rewritten quotations."""
+    from copy import deepcopy
+    result=deepcopy(raw)
+    answers,sources=judgment_spans(answer,evidence)
+    rows=result.get('requirements')
+    if not isinstance(rows,list):raise ValueError('Missing evaluation requirements')
+    for row in rows:
+        if not isinstance(row,dict):raise ValueError('Invalid evaluation row')
+        a=row.get('answer_span_ids');e=row.get('evidence_ids')
+        if not isinstance(a,list) or any(not isinstance(i,str) or i not in answers for i in a):raise ValueError('Unknown answer span')
+        if not isinstance(e,list) or any(not isinstance(i,str) or i not in sources for i in e):raise ValueError('Unknown retrieved span')
+        row['answer_quotes']=[answers[i] for i in dict.fromkeys(a)]
+        row['evidence_quotes']=[sources[i] for i in dict.fromkeys(e)]
+    return result
+
+
 def validate_judgment(judgment, case, answer, evidence):
     if not isinstance(judgment,dict):return False
     rows=judgment.get('requirements')

@@ -2,7 +2,7 @@ from copy import deepcopy
 import pytest
 from services.evidence_contract import answer_schema, generation_units, bind_claim, complete_candidates
 from services.evidence_pipeline import clarification, refined_issues, verifier_claims
-from scripts.diagnostic_judgment import validate_judgment
+from scripts.diagnostic_judgment import validate_judgment,resolve_judgment
 
 
 def units():
@@ -64,6 +64,17 @@ def test_judge_cannot_credit_retrieved_text_as_answer():
     assert validate_judgment(judgment(),case,{'text':'supported rule'},evidence)
     assert not validate_judgment(judgment(),case,{'text':'לא נמצאו ראיות מספיקות לתשובה מבוססת לשאלה זו.'},evidence)
     assert not validate_judgment(judgment(),case,{'text':'no answer\n\nמקורות ששימשו בתשובה:\nsupported rule'},evidence)
+
+
+def test_evaluator_span_ids_resolve_only_to_actual_answer_and_original_evidence():
+    raw=judgment();r=raw['requirements'][0];r.update(answer_span_ids=['A1'],evidence_ids=['E1'])
+    r['answer_quotes']=['fabricated quotation']
+    evidence=[{'id':'s','content':'supported rule'}];answer={'text':'supported rule'}
+    bound=resolve_judgment(raw,answer,evidence)
+    assert bound['requirements'][0]['answer_quotes']==['supported rule']
+    assert validate_judgment(bound,{'requirements':[{'id':'r'}]},answer,evidence)
+    r['answer_span_ids']=['A999']
+    with pytest.raises(ValueError):resolve_judgment(raw,answer,evidence)
 
 
 @pytest.mark.parametrize('mutation',[
