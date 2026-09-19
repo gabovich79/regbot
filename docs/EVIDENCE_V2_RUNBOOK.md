@@ -184,6 +184,8 @@ Each run also records a unique run ID, code commit, models and index-state
 fingerprint. The gate rejects reused run reports and differing runtime versions.
 Reports preserve the actual answer and frozen reference for professional review,
 and summarize results separately for answers with and without web evidence.
+Malformed reports, impossible retrieval counts, contradictory pass flags, and
+missing/non-finite response times cannot satisfy the release gate.
 Published pricing was checked in `VERIFIED_PROVIDER_PRICES.md`; selecting that
 configuration still requires the deployment/account checks described above.
 
@@ -194,7 +196,10 @@ public service, smoke-test owned sessions and quotas, and retain rollback assets
 
 ## Remaining external gates
 
-1. Current Render DB, original artifacts, runtime snapshot and verified backup.
+1. Repeat snapshot checks before deployment. On 2026-09-19 the current Render
+   SQLite snapshot was downloaded, checksum-verified and restored into an isolated
+   local copy. The temporary transfer SSH key was removed. This does not imply
+   that every original source is available or that a staging deployment passed.
 2. D37 code reconciliation and original checksum are recorded in `D37_RECONCILIATION.md`; professional review of the six cases remains pending.
 3. Source review, title corrections, missing originals and OCR remediation.
 4. Verified current API pricing and functional provider/grounding integration.
@@ -203,3 +208,16 @@ public service, smoke-test owned sessions and quotas, and retain rollback assets
 
 Unit tests do not close these gates. No production rollout is considered complete
 while any of them remains open.
+
+## Answer verification contract
+
+The independent verifier must return one boolean check for every candidate claim
+and one explicit coverage check for every planned question aspect. A covered
+aspect must reference supported claim indices. Missing or conflicting aspects
+are rendered as limitations; rejected claims cannot count toward coverage.
+Omitted fields, duplicate/unknown indices and malformed responses trigger the
+single permitted repair attempt. If the check is still invalid, no candidate
+claims are published as verified. Initial coverage gaps/conflicts are passed to
+both the answer writer and verifier for reassessment against the final evidence.
+This contract prevents silent omission in structured output; its semantic
+accuracy still requires real provider evaluation and professional acceptance.

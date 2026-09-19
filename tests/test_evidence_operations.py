@@ -50,7 +50,7 @@ def test_release_gate_blocks_unreviewed_missing_and_critical_errors():
     assert not gold_ready({'review_status':'pending_source_snapshot'})
     assert not release_gate([])['release_ready']
     cases=[{'id':str(i),'gold_ready':True,'passed':True,'critical_error':False,'required_units':1,'retrieved_units':1,
-            'checks':{'handles_missing':True,'handles_conflicts':True},'response_time_ms':1000} for i in range(20)]
+            'checks':{'correct':True,'complete':True,'supported':True,'handles_missing':True,'handles_conflicts':True},'response_time_ms':1000} for i in range(20)]
     runs=[{'run_id':str(i),'runtime_fingerprint':'runtime','split':'acceptance','case_fingerprint':'same','cases':cases} for i in range(3)]
     assert release_gate(runs)['blockers']==['human_approval_pending']
     assert release_gate(runs,True)['release_ready']
