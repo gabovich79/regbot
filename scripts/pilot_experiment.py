@@ -159,7 +159,7 @@ async def execute(args):
                     return [response.text],{'input_tokens':inputs,'output_tokens':outputs}
                 claude_service._sync_send_and_collect=legacy_generate
             for case in references:
-                trace={};start=time.monotonic();before=gateway.spent
+                trace={};start=time.monotonic();before=gateway.spent;calls_start=len(gateway.calls)
                 try:
                     if args.phase=='run':
                         answer=await asyncio.wait_for(run_pipeline(case['question'],[],db,gateway,trace,enable_web=False),timeout=90)
@@ -171,14 +171,19 @@ async def execute(args):
                         answer={'text':''.join(e.get('text','') for e in events if e['type']=='text'),'errors':[e for e in events if e['type']=='error']}
                         trace['events']=events
                     answer_seconds=time.monotonic()-start
-                    if case['literal_quotes_valid'] and case['independent_check'].get('accepted') is True:
-                        judgment=await gateway.json('pilot_judge',{'task':'Compare answer against independent reference and supplied original quotes. Return correct boolean, complete boolean, unsupported_claims [text], missing_claims [text], notes [text]. Refusing to answer safely is not a complete answer. Do not treat an automatic supported label as proof.','case':case,'answer':answer})
-                    else:
-                        judgment={'review_required':True,'reason':'Reference failed literal or independent validation; no accuracy score permitted'}
+                    try:
+                        if case['literal_quotes_valid'] and case['independent_check'].get('accepted') is True:
+                            judgment=await gateway.json('pilot_judge',{'task':'Compare answer against independent reference and supplied original quotes. Return correct boolean, complete boolean, unsupported_claims [text], missing_claims [text], notes [text]. Keep each list at most 8 short items. Refusing to answer safely is not a complete answer. Do not treat an automatic supported label as proof.','case':case,'answer':answer})
+                        else:
+                            judgment={'review_required':True,'reason':'Reference failed literal or independent validation; no accuracy score permitted'}
+                    except BudgetExceeded:raise
+                    except Exception as exc:
+                        judgment={'review_required':True,'judge_error':type(exc).__name__+': '+str(exc)}
                     result={'id':case['id'],'question':case['question'],'answer':answer,'judgment':judgment}
                     result['answer_seconds']=answer_seconds
                 except BudgetExceeded:raise
                 except Exception as exc:result={'id':case['id'],'question':case['question'],'error':type(exc).__name__+': '+str(exc)}
+                trace['provider_calls']=gateway.calls[calls_start:]
                 result.update(seconds=time.monotonic()-start,cost=gateway.spent-before,trace=trace)
                 report.append(result);save(dest/('pilot-results.json' if args.phase=='run' else 'baseline-results.json'),report)
                 print(json.dumps({k:v for k,v in result.items() if k not in ('trace','answer')},ensure_ascii=False),flush=True)

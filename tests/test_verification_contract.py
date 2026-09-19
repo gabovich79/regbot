@@ -54,7 +54,7 @@ async def test_pipeline_repair_and_final_status_follow_verifier_coverage(monkeyp
     class Gateway:
         def __init__(self):
             self.calls = []
-        async def json(self, stage, payload):
+        async def json(self, stage, payload, **kwargs):
             self.calls.append(stage)
             if stage == 'understand':
                 return {'standalone_question': 'question', 'issues': ['rule', 'exceptions']}
