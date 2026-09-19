@@ -43,8 +43,20 @@ def extract_pdf(file_path: str) -> str:
 
 def extract_docx(file_path: str) -> str:
     doc = Document(file_path)
-    paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-    return clean_text("\n".join(paragraphs))
+    return _docx_body_text(doc)
+
+
+def _docx_body_text(doc) -> str:
+    from docx.text.paragraph import Paragraph
+    from docx.table import Table
+    parts = []
+    for child in doc.element.body.iterchildren():
+        if child.tag.endswith('}p'):
+            parts.append(Paragraph(child, doc).text)
+        elif child.tag.endswith('}tbl'):
+            for row in Table(child, doc).rows:
+                parts.append(' | '.join(cell.text for cell in row.cells))
+    return clean_text('\n'.join(parts))
 
 
 def extract_pdf_bytes_pages(content: bytes) -> list[dict]:
@@ -71,8 +83,7 @@ def extract_pdf_bytes(content: bytes) -> str:
 def extract_docx_bytes(content: bytes) -> str:
     import io
     doc = Document(io.BytesIO(content))
-    paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-    return clean_text("\n".join(paragraphs))
+    return _docx_body_text(doc)
 
 
 def normalize_source_url(source_ref: str) -> str | None:

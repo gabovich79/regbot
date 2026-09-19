@@ -100,6 +100,8 @@ async def init_db():
         await _migrate_chunk_citation_columns(db)
         await _migrate_document_validity_columns(db)
         await _migrate_regulatory_parameters(db)
+        from models.evidence_store import migrate
+        await migrate(db)
         await db.commit()
     finally:
         await db.close()
@@ -127,6 +129,7 @@ async def _migrate_document_indexing_columns(db: aiosqlite.Connection):
         SET chunk_count = (
             SELECT COUNT(*) FROM document_chunks dc WHERE dc.document_id = documents.id
         )
+        WHERE index_status = 'pending'
     """)
     await db.execute("""
         UPDATE documents
@@ -182,16 +185,8 @@ async def _migrate_document_validity_columns(db: aiosqlite.Connection):
         if column not in columns:
             await db.execute(f"ALTER TABLE documents ADD COLUMN {column} {definition}")
 
-    # Backfill what can be inferred safely: circular titles embed their date.
-    cursor = await db.execute("SELECT id, title FROM documents WHERE effective_date IS NULL")
-    rows = await cursor.fetchall()
-    for row in rows:
-        extracted = extract_date_from_title(row["title"])
-        if extracted:
-            await db.execute(
-                "UPDATE documents SET effective_date = ? WHERE id = ?",
-                (extracted, row["id"]),
-            )
+    # A circular identifier (2024-9-8) is NOT an effective date. Preserve legacy
+    # values for audit, but v2 metadata remains unverified until source review.
 
 
 
@@ -256,7 +251,7 @@ async def update_document_index_status(
     chunk_count: int | None = None,
 ):
     """Persist a document's indexing lifecycle without hiding a failed state."""
-    if status not in {"indexing", "ready", "failed"}:
+    if status not in {"indexing", "ready", "failed", "staged"}:
         raise ValueError(f"Unsupported index status: {status}")
 
     db = await get_db()

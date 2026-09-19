@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import hashlib
 from collections import Counter
 from pathlib import Path
 
@@ -26,12 +27,16 @@ def audit_corpus(db_path: str | Path) -> dict:
     finally:
         db.close()
 
+    from services.document_profile_service import build_document_profile
+    from services.document_integrity_service import assess_document_integrity
     documents = []
+    checksums = {}
     for row in rows:
         document = dict(row)
         text_path = Path(document["text_path"])
         text_exists = text_path.is_file()
-        extraction_chars = len(text_path.read_text(encoding="utf-8")) if text_exists else 0
+        text = text_path.read_text(encoding="utf-8", errors="replace") if text_exists else ''
+        extraction_chars = len(text)
         issues = []
         if not text_exists:
             issues.append("missing_text_file")
@@ -39,6 +44,23 @@ def audit_corpus(db_path: str | Path) -> dict:
             issues.append("empty_extraction")
         if document["is_active"] and document["chunk_count"] == 0:
             issues.append("no_chunks")
+        original = document.get('original_path')
+        original_exists = bool(original and Path(original).is_file())
+        if not original_exists:
+            issues.append('missing_original')
+        profile = build_document_profile(document,text)
+        integrity = assess_document_integrity(document,text,profile)
+        issues.extend(reason for reason in integrity['reasons'] if reason not in issues)
+        text_checksum = hashlib.sha256(text.encode('utf-8')).hexdigest() if text else None
+        duplicate_of = checksums.get(text_checksum) if text_checksum else None
+        if duplicate_of is not None:
+            issues.append('duplicate_extracted_text')
+        elif text_checksum:
+            checksums[text_checksum] = document['id']
+        if not document.get('effective_date'):
+            issues.append('unknown_effective_date')
+        if profile.get('document_type') == 'טיוטה' or 'טיוטה' in document.get('title',''):
+            issues.append('draft_source')
 
         documents.append({
             "id": document["id"],
@@ -59,6 +81,11 @@ def audit_corpus(db_path: str | Path) -> dict:
             "lifecycle_status": document.get("lifecycle_status") or "current",
             "validity_status": document_validity_status(document),
             "issues": issues,
+            "text_checksum": text_checksum,
+            "duplicate_of": duplicate_of,
+            "original_exists": original_exists,
+            "identity_evidence": profile['identity_evidence'],
+            "review_status": 'requires_source_review' if issues else 'machine_checked_pending_human',
         })
 
     issue_counts = Counter(issue for document in documents for issue in document["issues"])
