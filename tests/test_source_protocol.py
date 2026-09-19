@@ -1,5 +1,5 @@
 import pytest
-from services.source_protocol import compact_sources,restore_source_ids
+from services.source_protocol import compact_sources,restore_source_ids,extraction_schema
 
 
 def test_compact_pointer_roundtrip_does_not_rewrite_source_text():
@@ -15,3 +15,11 @@ def test_compact_pointer_roundtrip_does_not_rewrite_source_text():
 def test_unknown_alias_cannot_become_citation():
     with pytest.raises(ValueError):
         restore_source_ids({'source_ids':['S99']},{'S1':'D1-Vx-C1'})
+
+
+def test_provider_schema_avoids_rejected_array_bounds_but_binding_stays_bounded():
+    from services.evidence_contract import bind_units
+    schema=extraction_schema(['S1'])
+    assert 'maxItems' not in schema['properties']['units']
+    with pytest.raises(ValueError,match='Invalid evidence unit collection'):
+        bind_units({'units':[{}]*21,'missing':[]},[])
