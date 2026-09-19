@@ -38,7 +38,10 @@ def fused_candidates(query, vector, chunks, count=40):
         return []
     lexical = bm25(query, [c['context'] + c['content'] for c in chunks])
     dense = [cosine(vector, json.loads(c['embedding'])) for c in chunks]
-    cards = {c['document_id']: json.loads(c['card']) for c in chunks}
+    cards = {}
+    for c in chunks:
+        if c['document_id'] not in cards:
+            cards[c['document_id']] = json.loads(c['card'])
     doc_ids = list(cards)
     card_texts = [' '.join([cards[d]['title'], cards[d]['summary'], *cards[d].get('aliases', []), *cards[d].get('topics', []), *cards[d].get('keywords', []), *cards[d].get('populations', [])]) for d in doc_ids]
     card_lexical = bm25(query, card_texts)
@@ -80,8 +83,11 @@ def expand_candidates(ranked, chunks, query):
     stored full parent text belongs to a selected parent section.
     """
     versions = {}
+    cards = {}
     for chunk in chunks:
         versions.setdefault(chunk['version_id'], {})[chunk['ordinal']] = chunk
+        if chunk['version_id'] not in cards:
+            cards[chunk['version_id']] = json.loads(chunk['card'])
     queues = []
     for selected in ranked:
         siblings = versions[selected['version_id']]
@@ -97,9 +103,9 @@ def expand_candidates(ranked, chunks, query):
                 position += direction
         positions = parent | {ordinal - 1, ordinal + 1}
         nearby = [siblings[p] for p in sorted(positions, key=lambda p: (abs(p-ordinal), p)) if p in siblings and p != ordinal]
-        card = json.loads(selected['card'])
+        card = cards[selected['version_id']]
         targets = {r['target'] for r in card.get('relations', []) if isinstance(r, dict) and r.get('target')}
-        related = [c for c in chunks if json.loads(c['card'])['title'] in targets]
+        related = [c for c in chunks if cards[c['version_id']]['title'] in targets]
         scores = bm25(query, [c['content'] for c in related])
         related = [related[i] for i in sorted(range(len(related)), key=lambda i: (-scores[i], related[i]['id']))[:3]]
         # Interleave explicit linked evidence with the potentially long parent.
