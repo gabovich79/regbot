@@ -13,7 +13,7 @@ def render(bundle, supplemental=None):
 <title>RegBot — סקירה מקצועית של עשר תשובות ייחוס</title>
 <style>body{font:18px/1.7 Arial,sans-serif;max-width:1000px;margin:auto;padding:28px;color:#17212b;background:#fff}h1{font-size:30px}h2{font-size:23px}section{border-top:2px solid #d9dfe6;margin-top:35px;padding-top:15px}p{margin:.7em 0}a{color:#155b91}summary{cursor:pointer;color:#155b91}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:16px/1.65 Arial;background:#f4f6f8;padding:18px}select,textarea,button{font:inherit;padding:9px;max-width:100%;box-sizing:border-box}textarea{display:block;width:100%;min-height:90px}label{display:block;margin-top:14px}button{cursor:pointer;margin:15px 0}small{color:#425467}nav a{display:block}@media print{button,select,textarea{display:none}section{break-inside:avoid}}</style>
 <h1>סקירה מקצועית של עשר תשובות ייחוס</h1>
-<p>בדוק לכל שאלה אם הכלל, התנאים והחריגים להלן נכונים במסגרת המקור והתקופה המצוינים. אפשר לסמן נכון במסגרת המקור, דורש תיקון או מחוץ לתחום, ולהוסיף הערה.</p>
+<p>בדוק לכל שאלה אם הכלל, התנאים והחריגים להלן נכונים במסגרת המקור והתקופה המצוינים. אפשר לבחור ״מאשר — התשובה תקינה״, ״דורש תיקון״ או ״מחוץ לתחום המערכת״, ולהוסיף הערה. אישור התקינות מתייחס לנוסח הייחוס במסגרת המקור והתקופה המצוינים.</p>
 <p><strong>זו סקירה של תשובות הייחוס, ולא של תשובות שהמערכת הפיקה בהרצה חדשה.</strong> אין כאן אישור לדין העדכני, לדיוק המערכת או לפריסה. במקרה הניוד נותר פער גרסה בתקנות, שמסומן בנפרד.</p>
 <p>הטופס עובד מקומית. כדי לשמור את הבחירות וההערות לחץ בסיום על ״הורדת הערות הסקירה״ ושלח את הקובץ בצ׳אט. סגירת הדף ללא הורדה תאבד את ההערות. אפשר גם להשיב בצ׳אט לפי מספרי השאלות.</p>
 <button type="button" onclick="exportReview()">הורדת הערות הסקירה</button><nav>''']
@@ -42,7 +42,7 @@ def render(bundle, supplemental=None):
             parts.append('<details><summary>ראיה משלימה מהרשות משנת 2025 — אינה תחליף לגרסת התקנות</summary><p>המכתב מצטט את התקנה ומורה על דחייה נקודתית בפברואר 2025. אין להסיק שהדחייה כללית או שזהו נוסח התקנות המלא.</p>')
             parts.append(f'<a href="{esc(supplemental["url"], quote=True)}" target="_blank" rel="noopener noreferrer">המקור הרשמי</a><pre>{esc(supplemental["quote"])}</pre></details>')
         parts.append(f'''<label for="decision{ordinal}">החלטתך לגבי נוסח הייחוס בלבד</label>
-<select id="decision{ordinal}"><option value="pending">טרם נבדק</option value="source_scoped_correct">נכון במסגרת המקור והתקופה המצוינים</option><option value="needs_correction">דורש תיקון</option><option value="out_of_scope">מחוץ לתחום המערכת</option></select>
+<select id="decision{ordinal}"><option value="pending">טרם נבדק</option><option value="source_scoped_correct">מאשר — התשובה תקינה</option><option value="needs_correction">דורש תיקון</option><option value="out_of_scope">מחוץ לתחום המערכת</option></select>
 <label for="note{ordinal}">תיקון או הערה מקצועית</label><textarea id="note{ordinal}"></textarea></section>''')
     data = {'annotation_sha256': bundle['annotation_sha256'], 'scope': 'source_scoped_diagnostic_reference_review_only',
             'release_approval': False, 'cases': [{'id': c['id'], 'question': c['question']} for c in bundle['cases']]}
