@@ -95,6 +95,11 @@ def freeze(args):
 
 
 async def run(args):
+    import uuid
+    import subprocess
+    from datetime import datetime, timezone
+    from config import DEFAULT_MODEL, EMBEDDING_MODEL
+    from services.acceptance import summarize_cases
     from models.database import init_db,get_db
     from services.providers import Gateway
     from services.evidence_pipeline import run_pipeline
@@ -105,11 +110,25 @@ async def run(args):
         raise ValueError('Frozen cases changed')
     cases=[c for c in cases if c['split']==args.split]
     gateway=Gateway(purpose='evaluation',limit=args.budget)
-    report={'case_fingerprint':lock['fingerprint'],'cases':[],'details':[],'web_enabled':not args.no_web}
+    report={'run_id':uuid.uuid4().hex,'started_at':datetime.now(timezone.utc).isoformat(),
+            'split':args.split,'case_fingerprint':lock['fingerprint'],'cases':[],'details':[],'web_enabled':not args.no_web}
     db=await get_db()
     try:
+        active=await (await db.execute('SELECT release_id FROM active_index WHERE singleton=1')).fetchone()
+        if not active:
+            raise ValueError('Acceptance requires an activated reviewed index')
+        commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+        dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],text=True).strip()
+        if dirty:
+            raise ValueError('Commit code changes before measuring a reproducible acceptance run')
+        versions=await (await db.execute('SELECT id,source_hash,embedding_model,card,review_status FROM evidence_versions ORDER BY id')).fetchall()
+        report['runtime']={'commit':commit,'active_index':active['release_id'],
+            'generation_model':DEFAULT_MODEL,'embedding_model':EMBEDDING_MODEL,
+            'index_state_hash':fingerprint([dict(v) for v in versions]),'web_enabled':not args.no_web}
+        report['runtime_fingerprint']=fingerprint(report['runtime'])
         for case in cases:
             trace={}
+            answer=None
             start=time.monotonic()
             try:
                 answer=await asyncio.wait_for(run_pipeline(case['question'],case.get('history',[]),db,gateway,trace,enable_web=not args.no_web),90)
@@ -124,7 +143,9 @@ async def run(args):
                 trace['error']=str(exc)
                 judgment={'critical_error':True,'failure_stage':'runtime'}
             report['cases'].append(score_trace(case,trace,judgment))
-            report['details'].append({'id':case['id'],'trace':trace,'judgment':judgment})
+            report['details'].append({'id':case['id'],'question':case['question'],
+                'reference':case,'answer':answer,'trace':trace,'judgment':judgment})
+            report['summary']=summarize_cases(report['cases'])
             report['cost_usd']=gateway.spent
             Path(args.output).write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     finally:

@@ -51,9 +51,13 @@ def test_release_gate_blocks_unreviewed_missing_and_critical_errors():
     assert not release_gate([])['release_ready']
     cases=[{'id':str(i),'gold_ready':True,'passed':True,'critical_error':False,'required_units':1,'retrieved_units':1,
             'checks':{'handles_missing':True,'handles_conflicts':True},'response_time_ms':1000} for i in range(20)]
-    runs=[{'case_fingerprint':'same','cases':cases} for _ in range(3)]
+    runs=[{'run_id':str(i),'runtime_fingerprint':'runtime','split':'acceptance','case_fingerprint':'same','cases':cases} for i in range(3)]
     assert release_gate(runs)['blockers']==['human_approval_pending']
     assert release_gate(runs,True)['release_ready']
+    assert 'three_distinct_runs_required' in release_gate([runs[0]]*3,True)['blockers']
+    changed=[dict(r) for r in runs]
+    changed[1]['runtime_fingerprint']='different index'
+    assert 'runs_must_use_identical_runtime' in release_gate(changed,True)['blockers']
     cases[0]['critical_error']=True
     assert not release_gate(runs,True)['release_ready']
 

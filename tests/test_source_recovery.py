@@ -28,3 +28,20 @@ def test_inventory_matches_content_and_refuses_to_overwrite(tmp_path):
     import pytest
     with pytest.raises(FileExistsError):
         inventory(source,reference,output)
+
+
+def test_blank_pdf_page_is_distinguished_from_unextractable_ink():
+    import fitz
+    from services.document_service import extract_pdf_bytes_pages
+    from services.knowledge import quality_issues
+    doc=fitz.open()
+    doc.new_page()
+    page=doc.new_page()
+    page.draw_rect(fitz.Rect(20,20,100,100),fill=(0,0,0))
+    pages=extract_pdf_bytes_pages(doc.tobytes())
+    doc.close()
+    assert pages[0]['blank_page_confirmed'] is True
+    assert pages[1]['blank_page_confirmed'] is False
+    issue='empty_pages_require_visual_review_or_ocr'
+    assert issue not in quality_issues('Other page contains text',pages[:1])
+    assert issue in quality_issues('Other page contains text',pages)

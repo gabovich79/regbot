@@ -29,7 +29,7 @@ def quality_issues(text, pages=None):
         issues.append('empty_extraction')
     if '\ufffd' in text or '\x00' in text:
         issues.append('invalid_characters')
-    if pages and any(not p['text'].strip() for p in pages):
+    if pages and any(not p['text'].strip() and p.get('blank_page_confirmed') is not True for p in pages):
         issues.append('empty_pages_require_visual_review_or_ocr')
     if len(text.strip()) < 40:
         issues.append('very_short_extraction_requires_source_check')
@@ -97,6 +97,7 @@ def prepare_document(text, metadata, pages=None):
         'superseded_by': metadata.get('superseded_by'),
         'lifecycle_status': metadata.get('lifecycle_status', 'unknown'),
         'metadata_verified': False, 'section_map': [],
+        'confirmed_blank_pages': [p['page_number'] for p in (pages or []) if p.get('blank_page_confirmed') is True],
         'identity_evidence': profile['identity_evidence'], 'official_number': profile['official_number'],
         'issuer': profile['issuer'], 'document_type': profile['document_type'],
     }

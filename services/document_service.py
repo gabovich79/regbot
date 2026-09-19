@@ -20,12 +20,25 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 
+def _page_record(page, number):
+    record = {'page_number':number, 'text':clean_text(page.get_text())}
+    if not record['text']:
+        # Empty text alone does not distinguish a blank page from a scan.
+        # Confirm only an entirely white render; any visible ink still needs OCR/review.
+        if page.rect.width * page.rect.height <= 4_000_000:
+            pix = page.get_pixmap(colorspace=fitz.csGRAY, alpha=False, annots=True)
+            record['blank_page_confirmed'] = bool(pix.samples) and min(pix.samples)==255
+        else:
+            record['blank_page_confirmed'] = False
+    return record
+
+
 def extract_pdf_pages(file_path: str) -> list[dict]:
     """Extract text page-by-page so citations can point to the source page."""
     doc = fitz.open(file_path)
     try:
         return [
-            {"page_number": index, "text": clean_text(page.get_text())}
+            _page_record(page, index)
             for index, page in enumerate(doc, start=1)
         ]
     finally:
@@ -64,7 +77,7 @@ def extract_pdf_bytes_pages(content: bytes) -> list[dict]:
     doc = fitz.open(stream=content, filetype="pdf")
     try:
         return [
-            {"page_number": index, "text": clean_text(page.get_text())}
+            _page_record(page, index)
             for index, page in enumerate(doc, start=1)
         ]
     finally:

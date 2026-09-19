@@ -166,6 +166,13 @@ missing/conflict handling and p95 <=60 seconds. It deliberately remains closed
 until professional approval. `--human-approved` records that decision only after
 Guy has reviewed the package; do not set it based on model output.
 
+Each run also records a unique run ID, code commit, models and index-state
+fingerprint. The gate rejects reused run reports and differing runtime versions.
+Reports preserve the actual answer and frozen reference for professional review,
+and summarize results separately for answers with and without web evidence.
+Published pricing was checked in `VERIFIED_PROVIDER_PRICES.md`; selecting that
+configuration still requires the deployment/account checks described above.
+
 Prepare a review package containing original question, answer, literal supporting
 spans, URLs/pages, applicable periods, missing information, model findings, and
 before/after results. Only after approval: deploy the accepted release to the

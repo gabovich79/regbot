@@ -1,6 +1,7 @@
 """Evidence-aware acceptance gates, separate from answer generation."""
 import hashlib
 import json
+import math
 
 
 def fingerprint(value):
@@ -34,6 +35,14 @@ def release_gate(runs, human_approved=False):
     reasons=[]
     if len(runs)!=3:
         reasons.append('three_complete_runs_required')
+    run_ids = [r.get('run_id') for r in runs]
+    if len(set(run_ids)) != 3 or not all(run_ids):
+        reasons.append('three_distinct_runs_required')
+    runtime_ids = {r.get('runtime_fingerprint') for r in runs}
+    if len(runtime_ids)!=1 or not all(runtime_ids):
+        reasons.append('runs_must_use_identical_runtime')
+    if any(r.get('split') != 'acceptance' for r in runs):
+        reasons.append('acceptance_split_required')
     fingerprints={r.get('case_fingerprint') for r in runs}
     identities={tuple(sorted(c['id'] for c in r.get('cases',[]))) for r in runs}
     if len(fingerprints)!=1 or None in fingerprints or len(identities)!=1:
@@ -53,8 +62,22 @@ def release_gate(runs, human_approved=False):
         if not total or found/total < .95:
             reasons.append('corpus_evidence_recall_below_95_percent')
         times=sorted(c['response_time_ms'] for c in cases)
+        if any(type(t) not in (int,float) or not math.isfinite(t) or t<=0 or t>90000 for t in times):
+            reasons.append('invalid_or_exceeded_deadline')
         if not times or times[max(0,__import__('math').ceil(.95*len(times))-1)]>60000:
             reasons.append('latency_target_failed')
     if not human_approved:
         reasons.append('human_approval_pending')
     return {'release_ready':not reasons,'blockers':sorted(set(reasons))}
+
+
+def summarize_cases(cases):
+    def summary(group):
+        required=sum(c['required_units'] for c in group)
+        return {'count':len(group),'passed':sum(c['passed'] for c in group),
+                'pass_rate':sum(c['passed'] for c in group)/len(group) if group else None,
+                'critical_errors':sum(c['critical_error'] for c in group),
+                'corpus_recall':sum(c['retrieved_units'] for c in group)/required if required else None}
+    return {'all':summary(cases),
+            'with_web':summary([c for c in cases if c['web_used']]),
+            'without_web':summary([c for c in cases if not c['web_used']])}
