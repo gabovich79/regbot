@@ -196,6 +196,13 @@ public service, smoke-test owned sessions and quotas, and retain rollback assets
 
 ## Remaining external gates
 
+Restore validation rejects missing/duplicate source manifest entries and verifies
+that the manifest exactly covers every nonempty document file reference in the
+snapshot database. It copies only listed assets, rechecks copied checksums, and
+requires a new destination outside the snapshot. A missing backup source database
+is opened read-only and cannot silently be created. The downloaded Render snapshot
+passed a second local restore with these checks on 2026-09-19.
+
 1. Repeat snapshot checks before deployment. On 2026-09-19 the current Render
    SQLite snapshot was downloaded, checksum-verified and restored into an isolated
    local copy. The temporary transfer SSH key was removed. This does not imply
