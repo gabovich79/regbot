@@ -3,9 +3,9 @@ from services.evidence_pipeline import verification_result
 
 def test_schema_keys_match_actual_indices_not_positions():
     schema=verification_schema([{'index':3}],[],['issue'])
-    assert schema['properties']['claims']['required']==['3']
-    assert schema['properties']['issues']['required']==['0']
-    assert schema['properties']['issues']['additionalProperties'] is False
+    assert schema['properties']['checks']['items']['properties']['index']['enum']==[3]
+    assert schema['properties']['issue_checks']['items']['properties']['issue_index']['enum']==[0]
+    assert schema['properties']['issue_checks']['items']['additionalProperties'] is False
 
 def test_decoding_never_invents_approval_for_missing_or_extra_checks():
     raw={'claims':{'3':{'supported':True}},'units':{},'components':{},

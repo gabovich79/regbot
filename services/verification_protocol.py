@@ -1,18 +1,21 @@
-"""Exact check keys prevent model-added or missing verifier indices."""
+"""Restrict check IDs; application validation enforces complete unique sets."""
 
 def obj(properties):
     return {'type':'object','properties':properties,'required':list(properties),'additionalProperties':False}
 
 def verification_schema(claims, units, issues):
     boolean={'type':'boolean'}
-    claim=obj({k:boolean for k in ('supported','scope_preserved','period_consistent','qualifications_preserved')})
-    issue=obj({'status':{'type':'string','enum':['covered','missing','conflict']},
-               'claim_indices':{'type':'array','items':{'type':'integer'}}})
+    claim_ids=[c['index'] for c in claims]
+    claim_index={'type':'integer','enum':claim_ids or [-1]}
+    claim=obj({'index':claim_index,**{k:boolean for k in ('supported','scope_preserved','period_consistent','qualifications_preserved')}})
+    issue=obj({'issue_index':{'type':'integer','enum':list(range(len(issues))) or [-1]},
+               'status':{'type':'string','enum':['covered','missing','conflict']},
+               'claim_indices':{'type':'array','items':claim_index}})
     strings={'type':'array','items':{'type':'string'}}
-    return obj({'claims':obj({str(c['index']):claim for c in claims}),
-                'units':obj({u['id']:boolean for u in units}),
-                'components':obj({c['id']:boolean for u in units for c in u['components']}),
-                'issues':obj({str(i):issue for i in range(len(issues))}),
+    return obj({'checks':{'type':'array','items':claim},
+                'unit_checks':{'type':'array','items':obj({'unit_id':{'type':'string','enum':[u['id'] for u in units] or ['NONE']},'complete':boolean})},
+                'component_checks':{'type':'array','items':obj({'component_id':{'type':'string','enum':[c['id'] for u in units for c in u['components']] or ['NONE']},'supported':boolean})},
+                'issue_checks':{'type':'array','items':issue},
                 'missing':strings,'conflicts':strings})
 
 def decode_verification(raw):
