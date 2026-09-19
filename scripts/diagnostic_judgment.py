@@ -1,6 +1,22 @@
 """Validate evaluation evidence separately from runtime answer verification."""
 
 
+def judgment_schema(case, answer, evidence):
+    """Keep reference IDs distinct from pointers to observed runtime evidence."""
+    from services.verification_protocol import obj
+    answers, sources = judgment_spans(answer, evidence)
+    def pointers(ids):
+        # An empty pointer array remains valid; the sentinel is rejected by resolution.
+        return {'type':'array','items':{'type':'string','enum':list(ids) or ['NONE']}}
+    strings = {'type':'array','items':{'type':'string'}}
+    row = obj({'id':{'type':'string','enum':[r['id'] for r in case['requirements']]},
+               'retrieved':{'type':'boolean'},'answered':{'type':'boolean'},
+               'reason':{'type':'string'},'answer_span_ids':pointers(answers),
+               'evidence_ids':pointers(sources)})
+    return obj({'requirements':{'type':'array','items':row},
+                'unsupported_claims':strings,'incorrect_claims':strings,'conflicts':strings})
+
+
 def judgment_spans(answer, evidence):
     body=answer.get('text','').split('\n\nמקורות ששימשו בתשובה:')[0]
     answer_spans={f'A{i+1}':text for i,text in enumerate(line.strip() for line in body.splitlines() if line.strip())}

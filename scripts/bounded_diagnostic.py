@@ -170,7 +170,7 @@ async def worker(args):
             save(target,result)  # Preserve actual answer even if evaluation fails.
             if 'answer' in result:
                 try:
-                    from scripts.diagnostic_judgment import judgment_spans,resolve_judgment,validate_judgment
+                    from scripts.diagnostic_judgment import judgment_spans,judgment_schema,resolve_judgment,validate_judgment
                     answer_spans,retrieved_spans=judgment_spans(result['answer'],trace.get('final_evidence',[]))
                     judgment = await gateway.json('diagnostic_requirement_judge', {
                         'task':'Evaluate each required reference item against final retrieved evidence and actual answer separately. '
@@ -184,7 +184,8 @@ async def worker(args):
                         'A refusal cannot satisfy substantive requirements. Asking for necessary missing personal facts may satisfy an explicit clarification requirement. '
                         'Do not transcribe quotes. Keep each reason under 20 words. If in doubt set false and explain.',
                         'reference':case, 'original_excerpts':[e for e in bundle['evidence'] if e['id'] in case['evidence_ids']],
-                        'actual_answer_spans':answer_spans, 'retrieved_spans':retrieved_spans}, max_output=8192)
+                        'actual_answer_spans':answer_spans, 'retrieved_spans':retrieved_spans}, max_output=8192,
+                        response_schema=judgment_schema(case,result['answer'],trace.get('final_evidence',[])))
                     result['judgment_raw']=judgment
                     judgment=resolve_judgment(judgment,result['answer'],trace.get('final_evidence',[]))
                     valid=validate_judgment(judgment,case,result['answer'],trace.get('final_evidence',[]))
