@@ -1,7 +1,7 @@
 from copy import deepcopy
 import pytest
 from services.evidence_contract import answer_schema, generation_units, bind_claim
-from services.evidence_pipeline import clarification, refined_issues
+from services.evidence_pipeline import clarification, refined_issues, verifier_claims
 from scripts.diagnostic_judgment import validate_judgment
 
 
@@ -19,6 +19,16 @@ def test_generation_can_select_complete_units_only():
     assert view[0]['components'][1]['text']=='limitation'
     with pytest.raises(ValueError):bind_claim({'unit_ids':['U1:rule:0']},u)
     assert len(bind_claim({'unit_ids':['U1']},u)['components'])==2
+
+
+def test_verifier_receives_qualified_claim_without_repeated_documents():
+    bound=bind_claim({'text':'rule','unit_ids':['U1']},units())
+    bound.update(index=0,evidence=[{'content':'large original document'}])
+    view=verifier_claims([bound])[0]
+    assert 'evidence' not in view and 'components' not in view
+    assert view['source_ids']==['s'] and view['unit_ids']==['U1']
+    assert 'limitation' in view['display_text']
+    assert bound['evidence'][0]['content']=='large original document'
 
 
 def test_only_source_bound_aspects_expand_coverage():
