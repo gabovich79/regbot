@@ -154,6 +154,9 @@ async def retrieve(db, plan, gateway, trace):
             break
     trace['retrieval_queries'] = queries
     trace['candidates'] = [{'id':c['id'], 'rrf':c['rrf_score'], 'dense':c['dense_score'], 'bm25':c['lexical_score']} for c in candidates]
+    from services.section_navigation import discover_sections
+    candidates = await discover_sections(candidates, chunks, plan, gateway, trace)
+    trace['rerank_candidate_ids'] = [c['id'] for c in candidates]
     # Short request-local aliases prevent transcription errors in long versioned
     # IDs. Resolve them back before any source enters the answer pipeline.
     lookup = {f'S{i+1}':c for i,c in enumerate(candidates)}
