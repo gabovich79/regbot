@@ -25,6 +25,25 @@ async def db(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_large_parent_read_shares_metadata_and_preserves_review_gate(db):
+    from array import array
+    from models.evidence_store import version_chunks
+    await db.execute("INSERT INTO documents(id,title,source_type,text_path) VALUES(1,'a','pdf','a')")
+    await db.commit()
+    parent='Original legal section. '*10000
+    chunks=[dict(content=f'passage {i}',context='',section='section',section_text=parent) for i in range(20)]
+    version=await stage(db,1,'hash','model',{'summary':'summary '*1000},[],chunks,[array('d',[.1,.2]) for _ in chunks])
+    assert await version_chunks(db,[version]) == []
+    await review(db,version,True)
+    loaded=await version_chunks(db,[version])
+    assert [c['content'] for c in loaded] == [c['content'] for c in chunks]
+    assert all(c['section_text']==parent for c in loaded)
+    assert len({id(c['section_text']) for c in loaded})==1
+    assert len({id(c['card']) for c in loaded})==1
+    assert json.loads(loaded[0]['embedding']) == [.1,.2]
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('provider_fails', [False, True])
 async def test_chat_sse_persists_only_checked_answer_and_settles(db, monkeypatch, provider_fails):
     import main

@@ -129,8 +129,9 @@ async def execute(args):
             # Diagnostic-only reader of staged chunks. Never changes review or
             # activation state, and cannot affect the public app process.
             async def diagnostic_chunks(connection):
-                rows=await (await connection.execute('SELECT c.*,v.document_id,v.card,v.embedding_model,v.source_hash FROM evidence_chunks c JOIN evidence_versions v ON c.version_id=v.id ORDER BY v.document_id,c.ordinal')).fetchall()
-                return 'UNAPPROVED-DEVELOPMENT-PILOT',[dict(r) for r in rows]
+                from models.evidence_store import version_chunks
+                versions=await (await connection.execute('SELECT id FROM evidence_versions ORDER BY document_id')).fetchall()
+                return 'UNAPPROVED-DEVELOPMENT-PILOT',await version_chunks(connection,[r['id'] for r in versions],approved_only=False)
             evidence_search.active_chunks=diagnostic_chunks
             references=json.loads((dest/'references.json').read_text())
             if args.phase=='baseline':

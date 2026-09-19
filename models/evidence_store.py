@@ -55,7 +55,7 @@ async def stage(db, document_id, source_hash, model, card, issues, chunks, vecto
         for i, (chunk, vector) in enumerate(zip(chunks, vectors)):
             await db.execute('INSERT INTO evidence_chunks VALUES(?,?,?,?,?,?,?,?,?,?)',
                 (f'D{document_id}-V{version}-C{i+1}', version, i, chunk['content'], chunk['context'],
-                 chunk['section'], chunk['section_text'], chunk.get('page_start'), chunk.get('page_end'), json.dumps(vector)))
+                 chunk['section'], chunk['section_text'], chunk.get('page_start'), chunk.get('page_end'), json.dumps(list(vector))))
         await db.commit()
     except BaseException:
         await db.rollback()
@@ -116,12 +116,29 @@ async def active_chunks(db):
     if not row:
         return None, []
     versions = json.loads(row['manifest'])
-    placeholders = ','.join('?' for _ in versions)
-    rows = await (await db.execute(f'''SELECT c.*,v.document_id,v.card,v.embedding_model,v.source_hash
-        FROM evidence_chunks c JOIN evidence_versions v ON c.version_id=v.id
-        JOIN documents d ON d.id=v.document_id
-        WHERE v.id IN ({placeholders}) AND d.is_active=1 AND v.review_status='approved' ORDER BY v.document_id,c.ordinal''', versions)).fetchall()
-    return row['id'], [dict(r) for r in rows]
+    return row['id'], await version_chunks(db, versions, approved_only=True)
+
+
+async def version_chunks(db, versions, *, approved_only=True):
+    """Read cards once per version and share repeated parent text in memory.
+
+    Do not materialize a SQL join which repeats a large document card and full
+    parent section for every chunk before Python can deduplicate them.
+    """
+    result=[]
+    for version in versions:
+        metadata=await (await db.execute('SELECT v.* FROM evidence_versions v JOIN documents d ON d.id=v.document_id WHERE v.id=? AND d.is_active=1',(version,))).fetchone()
+        if not metadata or (approved_only and metadata['review_status']!='approved'):continue
+        shared={key:metadata[key] for key in ('document_id','card','embedding_model','source_hash')}
+        parents={}
+        async with db.execute('SELECT * FROM evidence_chunks WHERE version_id=? ORDER BY ordinal',(version,)) as cursor:
+            async for source in cursor:
+                chunk=dict(source)
+                parent=chunk['section_text']
+                chunk['section_text']=parents.setdefault(parent,parent)
+                chunk.update(shared)
+                result.append(chunk)
+    return result
 
 
 async def save_trace(db, request_id, owner, conversation_id, status, payload):

@@ -2,6 +2,7 @@
 import json
 import os
 import math
+from array import array
 from dataclasses import dataclass, field
 
 from config import DEFAULT_MODEL, EMBEDDING_MODEL, GOOGLE_API_KEY, OPENAI_API_KEY
@@ -112,7 +113,9 @@ class Gateway:
                     raise ValueError('Incomplete embedding response')
                 tokens = response.usage.total_tokens
                 await self.record(EMBEDDING_MODEL, reserved, tokens * pricing['input'] / 1_000_000, tokens, 0, 'embedding')
-                result.extend(e.embedding for e in ordered)
+                # Keep numeric storage compact across large document batches.
+                # Python float objects otherwise cost several times the values.
+                result.extend(array('d', e.embedding) for e in ordered)
         return result
 
     async def discover(self, query):

@@ -165,6 +165,6 @@ async def stage_document(db, metadata, text, pages=None, *, gateway=None):
     for c in chunks:
         c['context'] += f"נושאים (נגזר): {', '.join(card['topics'])}\nאוכלוסיות (נגזר): {', '.join(card['populations'])}\n"
     vectors = await gateway.embed([c['context'] + c['content'] for c in chunks])
-    card['embedding'] = (await gateway.embed([card['title'] + '\n' + card['summary']]))[0]
+    card['embedding'] = list((await gateway.embed([card['title'] + '\n' + card['summary']]))[0])
     version = await stage(db, metadata['id'], source_hash, EMBEDDING_MODEL, card, issues, chunks, vectors)
     return version, len(chunks)
