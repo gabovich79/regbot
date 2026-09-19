@@ -25,8 +25,8 @@ def catalog(candidates, chunks, token_budget=8000):
         for group in row:
             if not group:continue
             c=group[0];alias=f'N{len(entries)+1}'
-            entry={'id':alias,'title':json.loads(c['card'])['title'],
-                   'section':c['section'],'opening':c['section_text'][:280]}
+            entry={'id':alias,'title':json.loads(c['card'])['title'][:120],
+                   'section':c['section'],'opening':c['section_text'][:120]}
             size=len(ENC.encode(json.dumps(entry,ensure_ascii=False)))
             if used+size>token_budget or len(entries)>=160:
                 omitted+=1;continue
