@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from services.evidence_contract import bind_units, contract_fingerprint, qualified_text
+from services.evidence_contract import bind_units, contract_fingerprint, qualified_text, generation_units
 from services.evidence_pipeline import resolve_claims, verification_result, render, run_pipeline
 
 
@@ -164,5 +164,6 @@ async def test_repair_cannot_bypass_frozen_contract(monkeypatch):
     result=await run_pipeline('שאלה',[],None,gateway,trace,enable_web=False)
     assert result['status']=='insufficient' and not result['sources']
     assert gateway.stages.count('repair')==1 and gateway.stages.count('evidence_units')==1
-    assert trace['evidence_contract_hash']==contract_fingerprint(gateway.units)
+    assert generation_units(trace['evidence_units'])==gateway.units
+    assert trace['evidence_contract_hash']==contract_fingerprint(bind_units(extraction(),EVIDENCE)[0])
     assert 'כלל ללא פירוט תנאים' not in result['text']

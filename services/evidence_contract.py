@@ -12,7 +12,11 @@ UNIT_TASK = (
     'Extract evidence units in Hebrew from the supplied original evidence, NOT an answer. '
     'Return {units:[{rule:{text,source_ids},scope:[{text,source_ids}],'
     'conditions:[{text,source_ids}],exceptions:[{text,source_ids}],period:{text,source_ids}|null}],'
-    'missing:[short issues]}. At most 12 focused rules; each component at most 120 words. '
+    'missing:[short issues]}. At most 20 focused rules; each component at most 120 words. '
+    'Cover EVERY required question aspect, including source-backed aspects in plan.issues. '
+    'Prioritize material rules, eligibility, exceptions and notices over individual form fields. '
+    'Group related form fields under one rule without omitting their requirements. '
+    'If the unit budget prevents complete coverage, explicitly identify omitted aspects in missing. '
     'Bind every limiting condition, exception, population and effective period to its rule, '
     'including continuations and definitions in other excerpts. Do not conflate alternative '
     'conditions with cumulative conditions. Preserve AND/OR relationships in a single component. '
@@ -25,7 +29,7 @@ UNIT_TASK = (
 
 def bind_units(payload, evidence):
     lookup = {e['id']: e for e in evidence}
-    if not isinstance(payload, dict) or not isinstance(payload.get('units'), list) or len(payload['units']) > 12:
+    if not isinstance(payload, dict) or not isinstance(payload.get('units'), list) or len(payload['units']) > 20:
         raise ValueError('Invalid evidence unit collection')
     missing = payload.get('missing')
     if not isinstance(missing, list) or any(not isinstance(s, str) or not s.strip() for s in missing):
@@ -46,7 +50,7 @@ def bind_units(payload, evidence):
                 raise ValueError('Unknown evidence component source')
             sources = list(dict.fromkeys(ids))
             component_count += 1
-            if component_count > 120:
+            if component_count > 180:
                 raise ValueError('Evidence component budget exceeded')
             components.append({'id': f'{uid}:{kind}:{index}', 'kind': kind,
                                'text': value['text'].strip(), 'source_ids': sources,
@@ -68,6 +72,27 @@ def bind_units(payload, evidence):
 
 def contract_fingerprint(units):
     return hashlib.sha256(json.dumps(units, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+
+
+def generation_units(units):
+    """Expose only selectable unit IDs, keeping component IDs private to verification."""
+    return [{'id':u['id'], 'period_known':u['period_known'],
+             'components':[{k:c[k] for k in ('kind','text','source_ids')} for c in u['components']]}
+            for u in units]
+
+
+def answer_schema(units):
+    ids=[u['id'] for u in units]
+    claim={'type':'object','properties':{
+        'text':{'type':'string'},
+        'unit_ids':{'type':'array','minItems':1,'items':{'type':'string','enum':ids or ['NO_UNITS_AVAILABLE']}},
+        'applicable_year':{'type':['integer','null']}},
+        'required':['text','unit_ids','applicable_year'],'additionalProperties':False}
+    return {'type':'object','properties':{
+        'claims':{'type':'array','maxItems':30 if ids else 0,'items':claim},
+        'missing':{'type':'array','items':{'type':'string'}},
+        'conflicts':{'type':'array','items':{'type':'string'}}},
+        'required':['claims','missing','conflicts'],'additionalProperties':False}
 
 
 def bind_claim(claim, units):
