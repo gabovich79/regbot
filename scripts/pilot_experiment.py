@@ -110,7 +110,7 @@ async def execute(args):
                 report.append({'id':key,'question':question,'source_document':doc_id,'source_sha256':hashlib.sha256(Path(row['original_path']).read_bytes()).hexdigest(),'reference':result,'literal_quotes_valid':valid,'independent_check':check,'professional_approved':False})
                 save(dest/'references-progress.json',report);print(json.dumps({'reference':key,'quotes_valid':valid,'check':check.get('accepted')}),flush=True)
             save(dest/'references.json',report)
-        elif args.phase=='run':
+        elif args.phase in ('run','baseline'):
             from services import evidence_search
             from services.evidence_pipeline import run_pipeline
             # Diagnostic-only reader of staged chunks. Never changes review or
@@ -120,23 +120,55 @@ async def execute(args):
                 return 'UNAPPROVED-DEVELOPMENT-PILOT',[dict(r) for r in rows]
             evidence_search.active_chunks=diagnostic_chunks
             references=json.loads((dest/'references.json').read_text())
+            if args.phase=='baseline':
+                from types import SimpleNamespace
+                from services import rag_service,claude_service
+                from config import DEFAULT_MODEL,MAX_OUTPUT_TOKENS,GOOGLE_API_KEY
+                from google import genai
+                from google.genai import types
+                # Meter legacy embeddings and generation without changing its
+                # retrieval, prompts, generation configuration or postprocessing.
+                async def legacy_embeddings(*,model,input,**kwargs):
+                    vectors=await gateway.embed([input] if isinstance(input,str) else input)
+                    return SimpleNamespace(data=[SimpleNamespace(embedding=v,index=i) for i,v in enumerate(vectors)])
+                rag_service.openai_client=SimpleNamespace(embeddings=SimpleNamespace(create=legacy_embeddings))
+                def legacy_generate(instructions,history,message):
+                    reserved,pricing=gateway.authorize(DEFAULT_MODEL,instructions+str(history)+message,MAX_OUTPUT_TOKENS)
+                    config=claude_service.build_generation_config(instructions,enable_google_search=False)
+                    with genai.Client(api_key=GOOGLE_API_KEY,http_options=types.HttpOptions(timeout=85000,retry_options=types.HttpRetryOptions(attempts=1))) as client:
+                        response=client.models.generate_content(model=DEFAULT_MODEL,contents=list(history)+[types.Content(role='user',parts=[types.Part(text=message)])],config=config)
+                    usage=response.usage_metadata
+                    if usage is None:raise ValueError('Missing baseline provider usage')
+                    inputs=usage.prompt_token_count or 0;outputs=(usage.candidates_token_count or 0)+(usage.thoughts_token_count or 0)
+                    actual=(inputs*pricing['input']+outputs*pricing['output'])/1000000
+                    asyncio.run(gateway.record(DEFAULT_MODEL,reserved,actual,inputs,outputs,'baseline_answer'))
+                    return [response.text],{'input_tokens':inputs,'output_tokens':outputs}
+                claude_service._sync_send_and_collect=legacy_generate
             for case in references:
                 trace={};start=time.monotonic();before=gateway.spent
                 try:
-                    answer=await asyncio.wait_for(run_pipeline(case['question'],[],db,gateway,trace,enable_web=False),timeout=90)
+                    if args.phase=='run':
+                        answer=await asyncio.wait_for(run_pipeline(case['question'],[],db,gateway,trace,enable_web=False),timeout=90)
+                    else:
+                        events=[]
+                        async def baseline():
+                            async for event in claude_service.stream_chat(case['question'],db):events.append(event)
+                        await asyncio.wait_for(baseline(),timeout=90)
+                        answer={'text':''.join(e.get('text','') for e in events if e['type']=='text'),'errors':[e for e in events if e['type']=='error']}
+                        trace['events']=events
                     judgment=await gateway.json('pilot_judge',{'task':'Compare answer against independent reference and supplied original quotes. Return correct boolean, complete boolean, unsupported_claims [text], missing_claims [text], notes [text]. Refusing to answer safely is not a complete answer. Do not treat an automatic supported label as proof.','case':case,'answer':answer})
                     result={'id':case['id'],'question':case['question'],'answer':answer,'judgment':judgment}
                 except BudgetExceeded:raise
                 except Exception as exc:result={'id':case['id'],'question':case['question'],'error':type(exc).__name__+': '+str(exc)}
                 result.update(seconds=time.monotonic()-start,cost=gateway.spent-before,trace=trace)
-                report.append(result);save(dest/'pilot-results.json',report)
+                report.append(result);save(dest/('pilot-results.json' if args.phase=='run' else 'baseline-results.json'),report)
                 print(json.dumps({k:v for k,v in result.items() if k not in ('trace','answer')},ensure_ascii=False),flush=True)
     finally:
         await db.close()
         print(json.dumps({'phase':args.phase,'cost_usd':gateway.spent,'completed':len(report)}),flush=True)
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('phase',choices=['setup','stage','references','run']);parser.add_argument('--data-dir',required=True);parser.add_argument('--budget',type=float,default=3)
+    parser=argparse.ArgumentParser();parser.add_argument('phase',choices=['setup','stage','references','run','baseline']);parser.add_argument('--data-dir',required=True);parser.add_argument('--budget',type=float,default=3)
     args=parser.parse_args()
     if args.phase=='setup':setup(Path(args.data_dir).resolve())
     else:asyncio.run(execute(args))
