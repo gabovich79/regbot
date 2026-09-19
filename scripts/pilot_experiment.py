@@ -84,7 +84,7 @@ async def execute(args):
                 if existing:report.append({'id':doc_id,'version':existing['id'],'status':'already_staged'});continue
                 row=dict(await (await db.execute('SELECT * FROM documents WHERE id=?',(doc_id,))).fetchone())
                 text,pages=extract(row)
-                version,count=await stage_document(db,row,text,pages,gateway)
+                version,count=await stage_document(db,row,text,pages,gateway=gateway)
                 report.append({'id':doc_id,'version':version,'chunks':count,'status':'staged'})
                 save(dest/'stage-report.json',{'documents':report,'cost':gateway.spent,'activated':False})
                 print(json.dumps(report[-1]),flush=True)
