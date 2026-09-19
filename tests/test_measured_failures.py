@@ -1,6 +1,6 @@
 from copy import deepcopy
 import pytest
-from services.evidence_contract import answer_schema, generation_units, bind_claim
+from services.evidence_contract import answer_schema, generation_units, bind_claim, complete_candidates
 from services.evidence_pipeline import clarification, refined_issues, verifier_claims
 from scripts.diagnostic_judgment import validate_judgment
 
@@ -29,6 +29,16 @@ def test_verifier_receives_qualified_claim_without_repeated_documents():
     assert view['source_ids']==['s'] and view['unit_ids']==['U1']
     assert 'limitation' in view['display_text']
     assert bound['evidence'][0]['content']=='large original document'
+
+
+def test_omitted_candidate_uses_extracted_rule_without_inventing_year_or_dropping_conditions():
+    original={'claims':[],'missing':[],'conflicts':[]}
+    completed,added=complete_candidates(original,units())
+    assert added==['U1'] and original['claims']==[]
+    assert completed['claims'][0]=={'text':'rule','unit_ids':['U1'],'applicable_year':None}
+    assert bind_claim(completed['claims'][0],units())['components'][1]['text']=='limitation'
+    again,added=complete_candidates(completed,units())
+    assert not added and again==completed
 
 
 def test_only_source_bound_aspects_expand_coverage():

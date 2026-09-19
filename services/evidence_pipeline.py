@@ -13,7 +13,7 @@ from services.web_evidence import supplement
 from services.source_protocol import compact_sources,restore_source_ids,coverage_schema,extraction_schema
 from services.verification_protocol import verification_schema,decode_verification
 from services.evidence_contract import (UNIT_TASK, bind_units, bind_claim, qualified_text,
-                                        check_contract, contract_fingerprint, generation_units, answer_schema)
+                                        check_contract, contract_fingerprint, generation_units, answer_schema, complete_candidates)
 
 
 USER_FACTS = {'product':'סוג המוצר או החשבון', 'operation':'הפעולה המבוקשת',
@@ -243,6 +243,8 @@ async def run_pipeline(question, history, db, gateway, trace, progress=None, ena
     answer = await gateway.json('answer', task, max_output=8192, response_schema=schema)
     attempts = []
     for attempt in range(2):
+        generated_answer=answer
+        answer,added_units=complete_candidates(answer,units)
         resolved, structural = resolve_claims(answer, evidence, units)
         trace['pipeline_stage'] = 'verify'
         checked = await gateway.json('verify', {
@@ -254,6 +256,10 @@ async def run_pipeline(question, history, db, gateway, trace, progress=None, ena
                    'Compare units to ORIGINAL evidence: complete=false if any limiting condition, exception or scope was lost '
                    'during extraction. A claim cannot broaden scope, change AND/OR conditions, or claim a different period. '
                    'Verify the full display_text including appended qualifications, not just the opening sentence. '
+                   'period_consistent means NO contradiction or overstatement of temporal validity, NOT that current validity is proven. '
+                   'An unknown period with an explicit unknown-validity caveat and no asserted year/current entitlement is consistent; '
+                   'do not mark it false solely because effective dates are unknown. Unknown validity remains partial in application code. '
+                   'Mark false for an unsupported year, asserted current validity or a contradiction with source applicability. '
                    'Issue status is covered, missing, or conflict. Covered issues must point to supported claim indices. '
                    'Reassess initial coverage gaps/conflicts using all current evidence; do not silently ignore them. '
                    'A citation does not imply support. Be explicit about uncertainty. '
@@ -277,7 +283,8 @@ async def run_pipeline(question, history, db, gateway, trace, progress=None, ena
         if any(not c['period_known'] for c in accepted):
             missing.append('תקופת התחולה לא אומתה לכל הטענות')
         conflicts = list(dict.fromkeys(string_list(answer.get('conflicts')) + verified_conflicts))
-        attempts.append({'answer':answer, 'structural_errors':structural, 'verification':checked})
+        attempts.append({'answer':answer, 'generated_answer':generated_answer,'added_candidate_unit_ids':added_units,
+                         'structural_errors':structural, 'verification':checked})
         trace['verification_attempts']=list(attempts)
         incomplete=bool(verified_missing) or represented != {u['id'] for u in units}
         if len(accepted) == len(resolved) and not structural and not incomplete:
