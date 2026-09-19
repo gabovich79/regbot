@@ -7,6 +7,9 @@ import hashlib
 import json
 
 FIELDS = ('scope', 'conditions', 'exceptions')
+MAX_UNITS = 100
+MAX_GENERATED_CLAIMS = 30
+MAX_CANDIDATE_CLAIMS = MAX_GENERATED_CLAIMS + MAX_UNITS
 LABELS = {'scope': 'תחולה', 'conditions': 'תנאים', 'exceptions': 'חריגים', 'period': 'תקופת תחולה'}
 UNIT_TASK = (
     'Extract evidence units in Hebrew from the supplied original evidence, NOT an answer. '
@@ -16,6 +19,11 @@ UNIT_TASK = (
     'Cover EVERY required question aspect, including source-backed aspects in plan.issues. '
     'Prioritize material rules, eligibility, exceptions and notices over individual form fields. '
     'Group related form fields under one rule without omitting their requirements. '
+    'Before drafting units, identify document-wide scope exclusions, commencement and transitional provisions '
+    'in ALL supplied excerpts, including the end of the document. Attach each applicable limitation '
+    'to the rules it governs, even when found in a different excerpt; a standalone exception unit '
+    'does not replace qualifying the affected rule. Never assume all rules share a limitation '
+    'unless the original evidence establishes that relationship. '
     'If the unit budget prevents complete coverage, explicitly identify omitted aspects in missing. '
     'Bind every limiting condition, exception, population and effective period to its rule, '
     'including continuations and definitions in other excerpts. Do not conflate alternative '
@@ -31,17 +39,18 @@ UNIT_TASK = (
 
 def bind_units(payload, evidence):
     lookup = {e['id']: e for e in evidence}
-    if not isinstance(payload, dict) or not isinstance(payload.get('units'), list) or len(payload['units']) > 100:
+    if not isinstance(payload, dict) or not isinstance(payload.get('units'), list) or len(payload['units']) > MAX_UNITS:
         raise ValueError('Invalid evidence unit collection')
     missing = payload.get('missing')
     if not isinstance(missing, list) or any(not isinstance(s, str) or not s.strip() for s in missing):
         raise ValueError('Invalid evidence unit gaps')
     missing=list(missing)
-    if len(payload['units'])>20:
-        missing.append('חלק מיחידות הראיה לא עובדו בשל מגבלת ההקשר; אין לראות בתשובה מענה מלא')
     units = []
     component_count = 0
-    for ordinal, unit in enumerate(payload['units'][:20], 1):
+    # The extraction target is not a semantic truncation boundary. Late units
+    # may qualify earlier rules. Validate the entire bounded collection or fail;
+    # never turn its prefix into an apparently complete contract.
+    for ordinal, unit in enumerate(payload['units'], 1):
         if not isinstance(unit, dict):
             raise ValueError('Invalid evidence unit')
         uid = f'U{ordinal}'
@@ -94,12 +103,13 @@ def complete_candidates(answer, units):
     verifier must approve every candidate and its qualifications.
     """
     claims=answer.get('claims',[])
-    if not isinstance(claims,list):return answer,[]
+    if not isinstance(claims,list) or len(claims)>MAX_GENERATED_CLAIMS:
+        raise ValueError('Invalid generated claim collection')
     represented={i for c in claims if isinstance(c,dict) and isinstance(c.get('unit_ids'),list)
                  for i in c['unit_ids'] if isinstance(i,str)}
     added=[];result=list(claims)
     for u in units:
-        if u['id'] in represented or len(result)>=30:continue
+        if u['id'] in represented:continue
         rule=next(c['text'] for c in u['components'] if c['kind']=='rule')
         result.append({'text':rule,'unit_ids':[u['id']],'applicable_year':None})
         added.append(u['id'])

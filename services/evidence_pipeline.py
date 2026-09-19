@@ -13,7 +13,8 @@ from services.web_evidence import supplement
 from services.source_protocol import compact_sources,restore_source_ids,coverage_schema,extraction_schema
 from services.verification_protocol import verification_schema,decode_verification
 from services.evidence_contract import (UNIT_TASK, bind_units, bind_claim, qualified_text,
-                                        check_contract, contract_fingerprint, generation_units, answer_schema, complete_candidates)
+                                        check_contract, contract_fingerprint, generation_units, answer_schema, complete_candidates,
+                                        MAX_CANDIDATE_CLAIMS)
 
 
 USER_FACTS = {'product':'סוג המוצר או החשבון', 'operation':'הפעולה המבוקשת',
@@ -46,7 +47,8 @@ def refined_issues(issues, coverage, evidence):
             if (isinstance(a.get('issue'),str) and a['issue'].strip() and
                     isinstance(ids,list) and ids and all(isinstance(i,str) and i in known for i in ids)):
                 extra.append(a['issue'].strip())
-    return list(dict.fromkeys(issues+extra))[:20]
+    # Existing plan headings must not displace source-discovered qualifications.
+    return list(dict.fromkeys(issues+extra))
 
 
 def resolve_claims(answer, evidence, units=None):
@@ -54,7 +56,7 @@ def resolve_claims(answer, evidence, units=None):
     lookup = {e['id']:e for e in evidence}
     resolved, errors = [], []
     claims = answer.get('claims', [])
-    if not isinstance(claims,list) or len(claims) > 30:
+    if not isinstance(claims,list) or len(claims) > MAX_CANDIDATE_CLAIMS:
         return [], ['invalid_claims']
     for index, claim in enumerate(claims):
         if not isinstance(claim,dict) or not isinstance(claim.get('text'),str) or not claim['text'].strip():
