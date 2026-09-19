@@ -94,7 +94,11 @@ async def execute(args):
                 row=dict(await (await db.execute('SELECT * FROM documents WHERE id=?',(doc_id,))).fetchone())
                 text,pages=extract(row)
                 excerpts=[]
-                if len(text)<24000:excerpts=[text]
+                # Reference annotation only, never supplied to retrieval.
+                # Inspected source pages contain section 9(16a/b), including
+                # the self-employed paragraph continuing across the page break.
+                if doc_id==37:excerpts=['\n\n'.join(p['text'] for p in pages if p['page_number'] in [43,44])]
+                elif len(text)<24000:excerpts=[text]
                 else:
                     for needle in needles:
                         start=0
