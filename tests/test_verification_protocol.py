@@ -15,3 +15,11 @@ def test_decoding_never_invents_approval_for_missing_or_extra_checks():
     raw['issues']['1']={'status':'covered','claim_indices':[3]}
     assert not verification_result(decode_verification(raw),[{'index':3}],['a'])[3]
     assert decode_verification({'claims':{}})=={}
+
+def test_temporal_conflict_is_distinct_from_unknown_validity():
+    raw={'checks':[{'index':0,'temporal_conflict':False}]}
+    assert decode_verification(raw)['checks'][0]['period_consistent'] is True
+    raw['checks'][0]['temporal_conflict']=True
+    assert decode_verification(raw)['checks'][0]['period_consistent'] is False
+    raw['checks'][0]['temporal_conflict']='false'
+    assert decode_verification(raw)=={}

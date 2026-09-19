@@ -7,7 +7,7 @@ def verification_schema(claims, units, issues):
     boolean={'type':'boolean'}
     claim_ids=[c['index'] for c in claims]
     claim_index={'type':'integer','enum':claim_ids or [-1]}
-    claim=obj({'index':claim_index,**{k:boolean for k in ('supported','scope_preserved','period_consistent','qualifications_preserved')}})
+    claim=obj({'index':claim_index,**{k:boolean for k in ('supported','scope_preserved','temporal_conflict','qualifications_preserved')},'reason':{'type':'string'}})
     issue=obj({'issue_index':{'type':'integer','enum':list(range(len(issues))) or [-1]},
                'status':{'type':'string','enum':['covered','missing','conflict']},
                'claim_indices':{'type':'array','items':claim_index}})
@@ -20,7 +20,16 @@ def verification_schema(claims, units, issues):
 
 def decode_verification(raw):
     if not isinstance(raw,dict):return {}
-    if 'checks' in raw:return raw
+    if 'checks' in raw:
+        from copy import deepcopy
+        result=deepcopy(raw)
+        if not isinstance(result['checks'],list):return {}
+        for check in result['checks']:
+            if not isinstance(check,dict):return {}
+            if 'temporal_conflict' in check:
+                if type(check['temporal_conflict']) is not bool or 'period_consistent' in check:return {}
+                check['period_consistent']=not check.pop('temporal_conflict')
+        return result
     try:
         if any(not isinstance(raw[k],dict) for k in ('claims','units','components','issues')):return {}
         if any(not isinstance(k,str) or not k.isdigit() for k in list(raw['claims'])+list(raw['issues'])):return {}
