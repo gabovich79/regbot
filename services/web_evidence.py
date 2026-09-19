@@ -14,6 +14,20 @@ SECONDARY = ('kolzchut.org.il', 'harel-group.co.il', 'menoramivt.co.il', 'fnx.co
 MAX_BYTES = 12 * 1024 * 1024
 
 
+def read_docx_source(payload):
+    """Bound decompression before parsing a Word source, preserving tables."""
+    import io
+    import zipfile
+    from services.document_service import extract_docx_bytes
+    with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+        entries = archive.infolist()
+        if len(entries) > 4096 or sum(e.file_size for e in entries) > 4 * MAX_BYTES:
+            raise ValueError('Expanded Word source exceeds size limit')
+        if any(e.flag_bits & 1 for e in entries) or 'word/document.xml' not in archive.namelist():
+            raise ValueError('Source is not an unencrypted Word document')
+    return extract_docx_bytes(payload)
+
+
 def is_discovery_redirect(url):
     parsed = urlparse(url)
     return (parsed.scheme == 'https' and parsed.hostname == 'vertexaisearch.cloud.google.com'
@@ -74,6 +88,9 @@ async def fetch_source(url):
                 import fitz
                 with fitz.open(stream=bytes(payload), filetype='pdf') as doc:
                     pages = [{'page': i, 'content': p.get_text(sort=True)} for i,p in enumerate(doc,1)]
+                title = urlparse(url).path.rsplit('/',1)[-1]
+            elif 'wordprocessingml' in content_type or bytes(payload[:4]) == b'PK\x03\x04':
+                pages = [{'page': None, 'content': read_docx_source(bytes(payload))}]
                 title = urlparse(url).path.rsplit('/',1)[-1]
             elif 'html' in content_type or 'text/plain' in content_type:
                 soup = BeautifulSoup(bytes(payload), 'html.parser')
