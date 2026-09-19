@@ -28,7 +28,7 @@ def bm25(query, texts):
 
 def cosine(query, vector):
     a, b = np.asarray(query), np.asarray(vector)
-    if a.shape != b.shape or not np.isfinite(b).all():
+    if a.ndim != 1 or not a.size or a.shape != b.shape or not np.isfinite(a).all() or not np.isfinite(b).all():
         raise ValueError('Index embedding dimension/model mismatch')
     return float(np.dot(a,b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-10))
 
@@ -40,18 +40,22 @@ def fused_candidates(query, vector, chunks, count=40):
     dense = [cosine(vector, json.loads(c['embedding'])) for c in chunks]
     cards = {c['document_id']: json.loads(c['card']) for c in chunks}
     doc_ids = list(cards)
-    card_texts = [' '.join([cards[d]['title'], cards[d]['summary'], *cards[d].get('aliases', []), *cards[d].get('topics', [])]) for d in doc_ids]
+    card_texts = [' '.join([cards[d]['title'], cards[d]['summary'], *cards[d].get('aliases', []), *cards[d].get('topics', []), *cards[d].get('keywords', []), *cards[d].get('populations', [])]) for d in doc_ids]
     card_lexical = bm25(query, card_texts)
     card_dense = [cosine(vector, cards[d]['embedding']) for d in doc_ids]
     scores = {}
     for values in (lexical, dense):
         order = sorted(range(len(chunks)), key=lambda i: (-values[i], chunks[i]['id']))[:count]
         for rank, i in enumerate(order, 1):
+            if values is lexical and values[i] <= 0:
+                continue
             scores[i] = scores.get(i, 0) + 1 / (60 + rank)
     # Cards add discovery candidates but never exclude direct section hits.
     for values in (card_lexical, card_dense):
         order = sorted(range(len(doc_ids)), key=lambda i: (-values[i], doc_ids[i]))[:count]
         for rank, i in enumerate(order, 1):
+            if values is card_lexical and values[i] <= 0:
+                continue
             matches = [j for j,c in enumerate(chunks) if c['document_id'] == doc_ids[i]]
             for j in sorted(matches, key=lambda j: (-dense[j], chunks[j]['id']))[:3]:
                 scores[j] = scores.get(j,0) + 1 / (60+rank)
@@ -66,6 +70,54 @@ def public_evidence(chunk):
             'url': card['source_ref'], 'kind': 'corpus', 'effective_date': card.get('effective_date'),
             'valid_until': card.get('valid_until'), 'metadata_verified': card.get('metadata_verified', False),
             'lifecycle_status': card.get('lifecycle_status', 'unknown')}
+
+
+def expand_candidates(ranked, chunks, query):
+    """Direct hits first, then fair, nearby expansion of contiguous parents.
+
+    Heading labels can repeat. Only the contiguous run of chunks sharing the
+    stored full parent text belongs to a selected parent section.
+    """
+    versions = {}
+    for chunk in chunks:
+        versions.setdefault(chunk['version_id'], {})[chunk['ordinal']] = chunk
+    queues = []
+    for selected in ranked:
+        siblings = versions[selected['version_id']]
+        ordinal = selected['ordinal']
+        parent = {ordinal}
+        for direction in (-1, 1):
+            position = ordinal + direction
+            while position in siblings:
+                candidate = siblings[position]
+                if (candidate['section'], candidate['section_text']) != (selected['section'], selected['section_text']):
+                    break
+                parent.add(position)
+                position += direction
+        positions = parent | {ordinal - 1, ordinal + 1}
+        nearby = [siblings[p] for p in sorted(positions, key=lambda p: (abs(p-ordinal), p)) if p in siblings and p != ordinal]
+        card = json.loads(selected['card'])
+        targets = {r['target'] for r in card.get('relations', []) if isinstance(r, dict) and r.get('target')}
+        related = [c for c in chunks if json.loads(c['card'])['title'] in targets]
+        scores = bm25(query, [c['content'] for c in related])
+        related = [related[i] for i in sorted(range(len(related)), key=lambda i: (-scores[i], related[i]['id']))[:3]]
+        # Interleave explicit linked evidence with the potentially long parent.
+        queue = []
+        for i in range(max(len(nearby), len(related))):
+            if i < len(nearby):
+                queue.append((nearby[i], 'parent_or_neighbor', selected['id']))
+            if i < len(related):
+                queue.append((related[i], 'linked_document', selected['id']))
+        queues.append(queue)
+    result = [(c, 'reranked', c['id']) for c in ranked]
+    seen = {c['id'] for c in ranked}
+    for offset in range(max((len(q) for q in queues), default=0)):
+        for queue in queues:
+            if offset < len(queue) and queue[offset][0]['id'] not in seen:
+                item = queue[offset]
+                result.append(item)
+                seen.add(item[0]['id'])
+    return result
 
 
 async def retrieve(db, plan, gateway, trace):
@@ -108,24 +160,14 @@ async def retrieve(db, plan, gateway, trace):
     ranked = [lookup[i] for i in dict.fromkeys(ids)][:20]
     # Keep selected evidence first. Parent/neighbor expansion must not consume
     # the budget before direct evidence. IDs remain unique to original chunks.
-    expanded, seen = list(ranked), {c['id'] for c in ranked}
-    for selected in ranked:
-        for c in chunks:
-            if c['version_id'] == selected['version_id'] and (c['section'] == selected['section'] or abs(c['ordinal']-selected['ordinal']) <= 1):
-                if c['id'] not in seen:
-                    expanded.append(c)
-                    seen.add(c['id'])
-        # Explicitly quoted cross-document relations are navigation hints only.
-        card = json.loads(selected['card'])
-        targets = {r['target'] for r in card.get('relations',[]) if isinstance(r,dict) and r.get('target')}
-        related = [c for c in chunks if json.loads(c['card'])['title'] in targets and c['id'] not in seen]
-        scores = bm25(query,[c['content'] for c in related])
-        for idx in sorted(range(len(related)),key=lambda i:-scores[i])[:3]:
-            expanded.append(related[idx]);seen.add(related[idx]['id'])
+    expanded = expand_candidates(ranked, chunks, query)
     evidence, used = [], 0
-    for c in expanded:
+    trace['context_selection'] = []
+    for c, reason, source_id in expanded:
         item = public_evidence(c)
         size = len(ENC.encode(json.dumps(item, ensure_ascii=False)))
+        trace['context_selection'].append({'id': c['id'], 'reason': reason, 'from_id': source_id,
+                                           'included': used + size <= 24000, 'tokens': size})
         if used + size <= 24000:
             evidence.append(item)
             used += size
