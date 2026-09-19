@@ -6,7 +6,10 @@ from collections import Counter
 import tiktoken
 
 ENC = tiktoken.get_encoding('cl100k_base')
-SECTION = re.compile(r'(?m)^(?:סעיף\s+\d+[^\n]*|פרק\s+[א-ת][^\n]*|\d+[א-ת]?\.\s+[^\n]*)')
+SECTION = re.compile(
+    r'(?m)^[ \t]*(?:סעיף\s+\d+[^\n]*|פרק\s+[א-ת][^\n]*|'
+    r"['׳]?נספח(?=[ \t\-–—:])[^\n]*|\d+[א-ת]?\.\s+[^\n]*)"
+)
 STOP = {'של', 'את', 'על', 'עם', 'או', 'לא', 'כי', 'אם', 'האם', 'מה', 'כל', 'זה', 'היא', 'הוא', 'לפי', 'בין', 'כדי', 'אשר', 'גם'}
 
 
@@ -114,8 +117,8 @@ def prepare_document(text, metadata, pages=None):
         if not section_text.strip():
             continue
         match = SECTION.match(section_text)
-        section = match.group().strip() if match else 'מבוא / המשך'
-        if section.startswith('פרק'):
+        section = match.group().strip().lstrip("'׳") if match else 'מבוא / המשך'
+        if section.startswith(('פרק', 'נספח')):
             chapter = section
         path = ' / '.join(dict.fromkeys(x for x in (chapter, section) if x))
         card['section_map'].append({'section': path, 'first_chunk': len(chunks)})
