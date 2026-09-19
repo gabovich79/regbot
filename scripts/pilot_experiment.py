@@ -90,7 +90,9 @@ async def execute(args):
                 print(json.dumps(report[-1]),flush=True)
         elif args.phase=='references':
             if (dest/'references.json').exists():raise ValueError('References already frozen')
+            if (dest/'references-progress.json').exists():report=json.loads((dest/'references-progress.json').read_text())
             for key,question,doc_id,needles in CASES:
+                if any(c['id']==key for c in report):continue
                 row=dict(await (await db.execute('SELECT * FROM documents WHERE id=?',(doc_id,))).fetchone())
                 text,pages=extract(row)
                 excerpts=[]
@@ -107,10 +109,10 @@ async def execute(args):
                             if index<0:break
                             excerpts.append(text[max(0,index-500):index+4000]);start=index+len(needle)
                 if not excerpts:raise ValueError('No reference excerpts for '+key)
-                result=await gateway.json('pilot_reference',{'task':'Prepare independent Hebrew expected answer from original excerpts. Return required_claims [text], exceptions [text], quotes [exact verbatim supporting spans], missing [text]. Do not use knowledge absent from source. Broad personal eligibility cannot be determined without user facts. Distinguish historical circular rules from current rules.','question':question,'source_title':row['title'],'excerpts':excerpts},max_output=5000)
+                result=await gateway.json('pilot_reference',{'task':'Prepare independent Hebrew expected answer from original excerpts. Return required_claims [up to 8 short claims], exceptions [up to 4 short exceptions], quotes [up to 8 EXACT verbatim supporting spans of 30-150 characters EACH], missing [up to 4 short items]. Maximum 700 words TOTAL. Do not copy entire sections. Do not use knowledge absent from source. Broad personal eligibility cannot be determined without user facts. Distinguish historical circular rules from current rules.','question':question,'source_title':row['title'],'excerpts':excerpts},max_output=8192)
                 quotes=result.get('quotes',[])
                 valid=bool(quotes) and all(isinstance(q,str) and len(q)>15 and q in text for q in quotes)
-                check=await gateway.json('pilot_reference_check',{'task':'Independently assess whether reference claims are supported and sufficiently complete for the question. Return accepted boolean and issues [text]. This is diagnostic, not professional approval.','question':question,'reference':result,'excerpts':excerpts})
+                check=await gateway.json('pilot_reference_check',{'task':'Independently assess whether reference claims are supported and sufficiently complete for the question. Return accepted boolean and issues [up to 5 brief items]. Maximum 250 words. This is diagnostic, not professional approval.','question':question,'reference':result,'excerpts':excerpts})
                 report.append({'id':key,'question':question,'source_document':doc_id,'source_sha256':hashlib.sha256(Path(row['original_path']).read_bytes()).hexdigest(),'reference':result,'literal_quotes_valid':valid,'independent_check':check,'professional_approved':False})
                 save(dest/'references-progress.json',report);print(json.dumps({'reference':key,'quotes_valid':valid,'check':check.get('accepted')}),flush=True)
             save(dest/'references.json',report)
