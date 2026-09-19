@@ -41,9 +41,12 @@ def render(claims, missing, conflicts):
     if not body:
         body = 'לא נמצאו ראיות מספיקות לתשובה מבוססת לשאלה זו.'
     if missing:
-        body += '\n\nמידע חסר: ' + '; '.join(missing)
+        # Free-form gap descriptions can contain new, unverified factual claims.
+        # Preserve those details in the private trace, never publish them as a
+        # back door around claim verification.
+        body += '\n\nמידע חסר: לא נמצאו ראיות מאומתות מספיקות למענה מלא על כל חלקי השאלה.'
     if conflicts:
-        body += '\n\nסתירות שלא הוכרעו: ' + '; '.join(conflicts)
+        body += '\n\nסתירות שלא הוכרעו: נמצאה אי־התאמה בין מקורות; אין לקבוע מסקנה לגבי החלק השנוי במחלוקת.'
     used = {e['id']:e for c in claims for e in c['evidence']}
     status = 'insufficient' if not claims else 'partial' if missing or conflicts else 'supported'
     label = {'supported':'נתמך בראיות שנבדקו אוטומטית','partial':'נתמך חלקית','insufficient':'מידע לא מספיק'}[status]

@@ -71,10 +71,18 @@ async def test_pipeline_repair_and_final_status_follow_verifier_coverage(monkeyp
             raise AssertionError(stage)
 
     gateway = Gateway()
-    result = await run_pipeline('question', [], None, gateway, {}, enable_web=False)
+    trace={}
+    result = await run_pipeline('question', [], None, gateway, trace, enable_web=False)
     if malformed:
         assert result['status'] == 'insufficient' and not result['sources']
         assert gateway.calls.count('repair') == 1
     else:
-        assert result['status'] == 'partial' and 'exceptions' in result['text']
+        assert result['status'] == 'partial' and 'מידע חסר' in result['text']
+        assert trace['verification_attempts'][0]['verification']['issue_checks'][1]['status']=='missing'
         assert [s['id'] for s in result['sources']] == ['e1']
+def test_unverified_gap_and_conflict_prose_cannot_publish_regulatory_claims():
+    from services.evidence_pipeline import render
+    text,status,sources=render([],['The exempt amount is 999999 NIS in 2050'],['The law allows 88% tax-free withdrawal'])
+    assert status=='insufficient' and not sources
+    assert '999999' not in text and '2050' not in text and '88%' not in text
+    assert 'מידע חסר' in text and 'סתירות שלא הוכרעו' in text
