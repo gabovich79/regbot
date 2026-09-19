@@ -59,8 +59,8 @@ def audit_corpus(db_path: str | Path) -> dict:
             checksums[text_checksum] = document['id']
         if not document.get('effective_date'):
             issues.append('unknown_effective_date')
-        if profile.get('document_type') == 'טיוטה' or 'טיוטה' in document.get('title',''):
-            issues.append('draft_source')
+        if profile.get('draft_markers') or profile.get('document_type') == 'טיוטה':
+            issues.append('draft_status_requires_review')
 
         documents.append({
             "id": document["id"],

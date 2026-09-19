@@ -69,7 +69,8 @@ def public_evidence(chunk):
             'section': chunk['section'], 'page_start': chunk['page_start'], 'page_end': chunk['page_end'],
             'url': card['source_ref'], 'kind': 'corpus', 'effective_date': card.get('effective_date'),
             'valid_until': card.get('valid_until'), 'metadata_verified': card.get('metadata_verified', False),
-            'lifecycle_status': card.get('lifecycle_status', 'unknown')}
+            'lifecycle_status': card.get('lifecycle_status', 'unknown'),
+            'draft_markers': card.get('draft_markers', [])}
 
 
 def expand_candidates(ranked, chunks, query):

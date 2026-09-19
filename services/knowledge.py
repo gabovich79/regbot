@@ -83,6 +83,8 @@ def prepare_document(text, metadata, pages=None):
     profile = build_document_profile(metadata, text)
     integrity = assess_document_integrity(metadata, text, profile)
     issues.extend(reason for reason in integrity['reasons'] if reason not in issues)
+    if profile['draft_markers']:
+        issues.append('draft_status_requires_review')
     source_hash = hashlib.sha256(text.encode()).hexdigest()
     headings = list(SECTION.finditer(text))
     # Always include the preamble. Do not require an arbitrary count of sections.
@@ -97,10 +99,13 @@ def prepare_document(text, metadata, pages=None):
         'superseded_by': metadata.get('superseded_by'),
         'lifecycle_status': metadata.get('lifecycle_status', 'unknown'),
         'metadata_verified': False, 'section_map': [],
+        'draft_markers': profile['draft_markers'],
         'confirmed_blank_pages': [p['page_number'] for p in (pages or []) if p.get('blank_page_confirmed') is True],
         'identity_evidence': profile['identity_evidence'], 'official_number': profile['official_number'],
         'issuer': profile['issuer'], 'document_type': profile['document_type'],
     }
+    if profile['draft_markers'] and card['lifecycle_status'] == 'current':
+        card['lifecycle_status'] = 'unknown'
     chunks, chapter = [], ''
     for a, b in zip(cuts, cuts[1:]):
         section_text = text[a:b]

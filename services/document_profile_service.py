@@ -215,6 +215,10 @@ def build_document_profile(document: dict[str, Any], text: str) -> dict[str, Any
     profile_summary = _extract_summary(text, identity_evidence)
     configured_topic = str(document.get("topic") or "").strip()
     topics = [configured_topic] if configured_topic else [canonical_title]
+    # A marker is a review signal, not proof of legal status: an issued circular
+    # may discuss an earlier draft. Keep this separate from the document type.
+    draft_markers = list(dict.fromkeys(line.strip() for line in (stored_title+'\n'+text[:3000]).splitlines()
+                                     if re.search(r'(?<![א-ת])טיוט(?:ה|ת)(?![א-ת])', line)))
 
     return {
         "document_id": int(document["id"]),
@@ -225,6 +229,7 @@ def build_document_profile(document: dict[str, Any], text: str) -> dict[str, Any
             canonical_title, text, document.get("document_type")
         ),
         "publication_date": None,
+        "draft_markers": draft_markers,
         "effective_date": document.get("effective_date"),
         "valid_until": document.get("valid_until"),
         "lifecycle_status": document.get("lifecycle_status") or "current",
