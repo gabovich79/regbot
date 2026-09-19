@@ -21,5 +21,8 @@ def test_provider_schema_avoids_rejected_array_bounds_but_binding_stays_bounded(
     from services.evidence_contract import bind_units
     schema=extraction_schema(['S1'])
     assert 'maxItems' not in schema['properties']['units']
+    unit={'rule':{'text':'a rule','source_ids':['s']},'scope':[],'conditions':[], 'exceptions':[],'period':None}
+    units,missing=bind_units({'units':[unit]*21,'missing':[]},[{'id':'s','content':'a rule'}])
+    assert len(units)==20 and missing
     with pytest.raises(ValueError,match='Invalid evidence unit collection'):
-        bind_units({'units':[{}]*21,'missing':[]},[])
+        bind_units({'units':[unit]*101,'missing':[]},[])

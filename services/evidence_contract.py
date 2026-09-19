@@ -29,14 +29,17 @@ UNIT_TASK = (
 
 def bind_units(payload, evidence):
     lookup = {e['id']: e for e in evidence}
-    if not isinstance(payload, dict) or not isinstance(payload.get('units'), list) or len(payload['units']) > 20:
+    if not isinstance(payload, dict) or not isinstance(payload.get('units'), list) or len(payload['units']) > 100:
         raise ValueError('Invalid evidence unit collection')
     missing = payload.get('missing')
     if not isinstance(missing, list) or any(not isinstance(s, str) or not s.strip() for s in missing):
         raise ValueError('Invalid evidence unit gaps')
+    missing=list(missing)
+    if len(payload['units'])>20:
+        missing.append('חלק מיחידות הראיה לא עובדו בשל מגבלת ההקשר; אין לראות בתשובה מענה מלא')
     units = []
     component_count = 0
-    for ordinal, unit in enumerate(payload['units'], 1):
+    for ordinal, unit in enumerate(payload['units'][:20], 1):
         if not isinstance(unit, dict):
             raise ValueError('Invalid evidence unit')
         uid = f'U{ordinal}'
