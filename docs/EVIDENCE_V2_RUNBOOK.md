@@ -174,7 +174,7 @@ public service, smoke-test owned sessions and quotas, and retain rollback assets
 ## Remaining external gates
 
 1. Current Render DB, original artifacts, runtime snapshot and verified backup.
-2. Reconcile local-only Mac commit `e6f1327` and D37 annotations/source checksum.
+2. D37 code reconciliation and original checksum are recorded in `D37_RECONCILIATION.md`; professional review of the six cases remains pending.
 3. Source review, title corrections, missing originals and OCR remediation.
 4. Verified current API pricing and functional provider/grounding integration.
 5. Complete source-backed references, three full acceptance runs, professional
