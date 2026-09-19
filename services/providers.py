@@ -46,12 +46,19 @@ class Gateway:
             estimate += ceiling
         if self.spent + estimate > self.limit:
             raise BudgetExceeded('הבקשה חרגה מתקציב העיבוד; נסה שאלה ממוקדת יותר.')
+        from services.spend_guard import reserve, CampaignLimit
+        try:
+            reservation = reserve(estimate, self.purpose, model)
+        except CampaignLimit as exc:
+            raise BudgetExceeded(str(exc)) from exc
         # Charge the reservation until provider completion. An ambiguous error
         # keeps the full reservation rather than pretending that it was free.
         self.spent += estimate
-        return estimate, pricing
+        return reservation, pricing
 
     async def record(self, model, reserved, actual, inputs, outputs, stage):
+        from services.spend_guard import settle
+        settle(reserved, actual)
         self.spent += actual - reserved
         item = dict(stage=stage, model=model, input_tokens=inputs, output_tokens=outputs, cost=actual)
         self.calls.append(item)
