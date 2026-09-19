@@ -60,11 +60,17 @@ async def test_pipeline_repair_and_final_status_follow_verifier_coverage(monkeyp
                 return {'standalone_question': 'question', 'issues': ['rule', 'exceptions']}
             if stage == 'coverage':
                 return {'missing': ['exceptions']}
+            if stage == 'evidence_units':
+                return {'units':[{'rule':{'text':'rule','source_ids':['e1']},'scope':[],
+                    'conditions':[], 'exceptions':[], 'period':{'text':'historical source period','source_ids':['e1']}}], 'missing':[]}
             if stage in ('answer', 'repair'):
-                return {'claims': [{'text': 'rule', 'source_ids': ['e1']}], 'missing': [], 'conflicts': []}
+                return {'claims': [{'text': 'rule', 'unit_ids': ['U1']}], 'missing': [], 'conflicts': []}
             if stage == 'verify':
                 assert payload['initial_coverage']['missing'] == ['exceptions']
                 checked = complete_check()
+                checked['checks'][0].update(scope_preserved=True,period_consistent=True,qualifications_preserved=True)
+                checked['unit_checks'] = [{'unit_id':'U1','complete':True}]
+                checked['component_checks'] = [{'component_id':c['id'],'supported':True} for u in payload['units'] for c in u['components']]
                 if malformed:
                     checked.pop('issue_checks')
                 return deepcopy(checked)

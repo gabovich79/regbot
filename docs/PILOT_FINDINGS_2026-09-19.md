@@ -1,5 +1,10 @@
 # Development pilot: release blocked
 
+Offline follow-up: source-bound evidence units and ten draft reference records
+are now implemented. See [qualification contract and review gate](EVIDENCE_CONTRACT_REVIEW_2026-09-19.md).
+There has been no new paid run; the observations below describe the earlier
+pipeline, not measured quality of the new contract.
+
 Ten diagnostic questions were run through the legacy path and a staged evidence
 index, followed by two bounded correction rounds. This is not an acceptance
 suite. Do not run further paid diagnostic rounds without first addressing the

@@ -279,7 +279,8 @@ async def test_pipeline_removes_unsupported_after_one_repair(monkeypatch):
             self.stages.append(stage)
             if stage=='understand': return {'standalone_question':'שאלה','issues':['שיעור מס']}
             if stage=='coverage': return {'missing':[]}
-            if stage in ('answer','repair'): return {'claims':[{'text':'המס 25% בשנת 2026','applicable_year':2026,'source_ids':['D1-Va-C1']}]}
+            if stage=='evidence_units': return {'units':[{'rule':{'text':'כלל','source_ids':['D1-Va-C1']},'scope':[], 'conditions':[], 'exceptions':[], 'period':None}], 'missing':[]}
+            if stage in ('answer','repair'): return {'claims':[{'text':'המס 25% בשנת 2026','applicable_year':2026,'unit_ids':['U1']}]}
             if stage=='verify': return {'checks':[{'index':0,'supported':False,'reason':'not in source'}],'missing':['שיעור מס']}
     gateway = Fake()
     result = await run_pipeline('שאלה',[],None,gateway,{},enable_web=False)
