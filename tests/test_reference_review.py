@@ -44,6 +44,15 @@ def test_same_page_in_a_new_version_gets_a_new_id():
     assert {e['id'] for e in previous['evidence']}.isdisjoint(e['id'] for e in current['evidence'])
 
 
+def test_corrected_extraction_of_same_original_changes_evidence_identity():
+    spec, sources = fixture()
+    before = build_bundle(spec, sources)
+    sources[1]['pages'][0]['text'] += ' restored equation'
+    after = build_bundle(spec, sources)
+    assert before['evidence'][0]['id'] != after['evidence'][0]['id']
+    assert before['evidence'][1]['id'] == after['evidence'][1]['id']
+
+
 @pytest.mark.parametrize('mutation', [
     lambda c: c['conditions'][0].update(pages=[3]),
     lambda c: c.update(exceptions=[]),

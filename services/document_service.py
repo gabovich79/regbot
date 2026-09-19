@@ -60,16 +60,77 @@ def extract_docx(file_path: str) -> str:
 
 
 def _docx_body_text(doc) -> str:
-    from docx.text.paragraph import Paragraph
     from docx.table import Table
     parts = []
     for child in doc.element.body.iterchildren():
         if child.tag.endswith('}p'):
-            parts.append(Paragraph(child, doc).text)
+            parts.append(_docx_inline_text(child))
         elif child.tag.endswith('}tbl'):
             for row in Table(child, doc).rows:
-                parts.append(' | '.join(cell.text for cell in row.cells))
+                parts.append(' | '.join('\n'.join(_docx_inline_text(p._p) for p in cell.paragraphs) for cell in row.cells))
     return clean_text('\n'.join(parts))
+
+
+_WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+_MATH_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math'
+
+
+def _math_text(node):
+    """Serialize supported OMML structurally; never flatten a fraction to `ab`."""
+    tag = node.tag.rsplit('}', 1)[-1]
+    if tag.endswith('Pr'):
+        return ''
+    if tag == 't':
+        return node.text or ''
+    if tag == 'f':
+        numerator = node.find(f'{{{_MATH_NS}}}num')
+        denominator = node.find(f'{{{_MATH_NS}}}den')
+        properties = node.find(f'{{{_MATH_NS}}}fPr')
+        fraction_type = properties.find(f'{{{_MATH_NS}}}type') if properties is not None else None
+        if fraction_type is not None and fraction_type.get(f'{{{_MATH_NS}}}val') not in ('bar', 'skw', 'lin'):
+            raise ValueError('Unsupported DOCX equation fraction layout requires source review')
+        if numerator is None or denominator is None:
+            raise ValueError('Incomplete DOCX equation fraction')
+        return f'({_math_text(numerator)})/({_math_text(denominator)})'
+    if tag in ('oMath', 'oMathPara', 'r', 'num', 'den'):
+        return ''.join(_math_text(child) for child in node)
+    raise ValueError(f'Unsupported DOCX equation construct: {tag}; requires source review')
+
+
+def _docx_inline_text(node):
+    """Keep equations and explicit revision marks visible in extracted evidence.
+
+    This is an annotated extraction, not an automatic acceptance of amendments.
+    Neither a strikethrough nor a Word insertion proves legal effective status.
+    """
+    namespace, _, tag = node.tag[1:].partition('}')
+    if namespace == _MATH_NS:
+        return '[נוסחה במקור: ' + _math_text(node) + ']'
+    if namespace != _WORD_NS:
+        return ''
+    if tag in ('pPr', 'rPr'):
+        return ''
+    if tag in ('t', 'delText'):
+        return node.text or ''
+    if tag == 'tab':
+        return '\t'
+    if tag in ('br', 'cr'):
+        return '\n'
+    text = ''.join(_docx_inline_text(child) for child in node)
+    if not text.strip():
+        return text
+    if tag in ('del', 'moveFrom'):
+        return '[מחוק במקור: ' + text + ']'
+    if tag in ('ins', 'moveTo'):
+        return '[תוספת מסומנת במקור: ' + text + ']'
+    if tag == 'r':
+        properties = node.find(f'{{{_WORD_NS}}}rPr')
+        if properties is not None:
+            for name in ('strike', 'dstrike'):
+                prop = properties.find(f'{{{_WORD_NS}}}{name}')
+                if prop is not None and prop.get(f'{{{_WORD_NS}}}val', 'true') not in ('0', 'false', 'off'):
+                    return '[מחוק במקור: ' + text + ']'
+    return text
 
 
 def extract_pdf_bytes_pages(content: bytes) -> list[dict]:

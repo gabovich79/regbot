@@ -1,5 +1,11 @@
 # Preserve source qualifications before another model diagnostic
 
+Follow-up: the DOCX equation and explicit amendment-marking failures have been
+fixed, and the reference package now has 39 spans. There are 216 passing offline
+tests. See [extraction review](EXTRACTION_REVIEW_2026-09-19.md) for resolved and
+remaining gaps. The initial implementation record below retains its original
+counts; none of these updates constitutes acceptance approval.
+
 The pilot exposed a material omission even when the relevant paragraph was in
 the final context: generation dropped the qualifying-deposit limitation on
 interest and profits, and the semantic judge accepted the answer. This change

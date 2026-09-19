@@ -33,6 +33,8 @@ def quality_issues(text, pages=None):
         issues.append('empty_pages_require_visual_review_or_ocr')
     if len(text.strip()) < 40:
         issues.append('very_short_extraction_requires_source_check')
+    if '[מחוק במקור:' in text or '[תוספת מסומנת במקור:' in text:
+        issues.append('marked_revisions_require_source_review')
     return issues
 
 
@@ -104,7 +106,7 @@ def prepare_document(text, metadata, pages=None):
         'identity_evidence': profile['identity_evidence'], 'official_number': profile['official_number'],
         'issuer': profile['issuer'], 'document_type': profile['document_type'],
     }
-    if profile['draft_markers'] and card['lifecycle_status'] == 'current':
+    if (profile['draft_markers'] or 'marked_revisions_require_source_review' in issues) and card['lifecycle_status'] == 'current':
         card['lifecycle_status'] = 'unknown'
     chunks, chapter = [], ''
     for a, b in zip(cuts, cuts[1:]):

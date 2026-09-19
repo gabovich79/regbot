@@ -32,13 +32,14 @@ def build_bundle(spec, sources):
                 text = page_map[page]
                 if not text.strip():
                     raise ValueError('Empty reference evidence')
-                key = f"D{selection['document_id']}-V{source['original_sha256']}-P{page if page is not None else 'DOCX'}"
+                key = f"D{selection['document_id']}-V{source['original_sha256']}-X{digest(text)}-P{page if page is not None else 'DOCX'}"
                 evidence[key] = {
                     'id': key, 'document_id': selection['document_id'],
                     'original_sha256': source['original_sha256'],
                     'title': source['title'], 'source_ref': source['source_ref'],
                     'page': page, 'char_start': 0, 'char_end': len(text),
                     'quote': text, 'quote_sha256': digest(text),
+                    'extraction_note': 'Extracted text; DOCX equations linearized and explicit deletions annotated. Original bytes remain authoritative.',
                     'locator_note': 'PDF page text' if page is not None else 'DOCX body in document order; no stable page locator',
                 }
                 selected.append(key)
@@ -58,6 +59,7 @@ def build_bundle(spec, sources):
                       'split': 'development_diagnostic', 'professional_approval': False,
                       'release_eligible': False, 'requirements': requirements,
                       'review_blockers': case['review_blockers'],
+                      'technical_resolutions': case.get('technical_resolutions', []),
                       'expected_behavior': case.get('expected_behavior', 'source_scoped_answer'),
                       'evidence_ids': selected})
     return {'schema_version': 1, 'status': 'draft_pending_professional_review',
@@ -99,7 +101,7 @@ def markdown(bundle):
     labels = dict(rule='הכלל', scope='תחולה ואוכלוסייה', conditions='תנאים', exceptions='חריגים', period='תקופה')
     lines = ['# RegBot טבלת ייחוס לבדיקת תנאים וחריגים', '',
              'עשרה מקרי אבחון לפיתוח, המבוססים על תשעה קובצי מקור שזוהו לפי SHA-256. זו טיוטה לסקירה מקצועית, לא סט קבלה ולא אישור לתוקף הדין כיום.', '',
-             'כל דרישה מקושרת לטקסט המקור בקובץ JSON המצורף, כולל גרסת מקור, עמוד או גוף DOCX וטביעת תוכן. הסיכומים הם פרשנות לבדיקה; הציטוטים עצמם נשמרו ללא שכתוב.', '',
+             'כל דרישה מקושרת לטקסט שחולץ מהמקור בקובץ JSON המצורף, כולל גרסת מקור, עמוד או גוף DOCX וטביעת תוכן. משוואות Word מוצגות בכתיב ליניארי ומחיקות מסומנות במפורש; הקובץ המקורי נשאר הסמכות. הסיכומים הם פרשנות לבדיקה.', '',
              'הקוד שמייצר תשובות אינו קורא את הטבלה. אין כאן תשובות מקודדות למערכת, ואין ציון הצלחה משפטי אוטומטי.', '']
     ev = {e['id']: e for e in bundle['evidence']}
     for case in bundle['cases']:
@@ -108,6 +110,8 @@ def markdown(bundle):
             locations = ', '.join(f"D{ev[i]['document_id']} / " + (f"עמוד {ev[i]['page']}" if ev[i]['page'] is not None else 'גוף DOCX') for i in requirement['evidence_ids'])
             lines.append(f"- **{labels[requirement['kind']]}:** {requirement['text']} ({locations})")
         lines += ['', '**נותר לבדיקה:** ' + ' '.join(case['review_blockers']), '']
+        if case['technical_resolutions']:
+            lines += ['**בירורים טכניים שהושלמו:** ' + ' '.join(case['technical_resolutions']), '']
     return '\n'.join(lines)
 
 
