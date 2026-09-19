@@ -160,8 +160,13 @@ async def execute(args):
                         await asyncio.wait_for(baseline(),timeout=90)
                         answer={'text':''.join(e.get('text','') for e in events if e['type']=='text'),'errors':[e for e in events if e['type']=='error']}
                         trace['events']=events
-                    judgment=await gateway.json('pilot_judge',{'task':'Compare answer against independent reference and supplied original quotes. Return correct boolean, complete boolean, unsupported_claims [text], missing_claims [text], notes [text]. Refusing to answer safely is not a complete answer. Do not treat an automatic supported label as proof.','case':case,'answer':answer})
+                    answer_seconds=time.monotonic()-start
+                    if case['literal_quotes_valid'] and case['independent_check'].get('accepted') is True:
+                        judgment=await gateway.json('pilot_judge',{'task':'Compare answer against independent reference and supplied original quotes. Return correct boolean, complete boolean, unsupported_claims [text], missing_claims [text], notes [text]. Refusing to answer safely is not a complete answer. Do not treat an automatic supported label as proof.','case':case,'answer':answer})
+                    else:
+                        judgment={'review_required':True,'reason':'Reference failed literal or independent validation; no accuracy score permitted'}
                     result={'id':case['id'],'question':case['question'],'answer':answer,'judgment':judgment}
+                    result['answer_seconds']=answer_seconds
                 except BudgetExceeded:raise
                 except Exception as exc:result={'id':case['id'],'question':case['question'],'error':type(exc).__name__+': '+str(exc)}
                 result.update(seconds=time.monotonic()-start,cost=gateway.spent-before,trace=trace)
