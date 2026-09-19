@@ -21,12 +21,15 @@ def summarize(rows, references):
         schema_ok = (type(judge.get('correct')) is bool and type(judge.get('complete')) is bool and
                      all(isinstance(judge.get(k), list) and all(isinstance(v, str) for v in judge[k])
                          for k in ('unsupported_claims', 'missing_claims', 'notes')))
+        inconsistent = ((judge.get('complete') is True and bool(judge.get('missing_claims'))) or
+                        (judge.get('correct') is True and bool(judge.get('unsupported_claims'))))
         cases.append({
             'id': row['id'], 'status': row.get('answer', {}).get('status', 'legacy_unverified'),
             'error': row.get('error'), 'answer_seconds': row.get('answer_seconds'),
             'cost_usd': row['cost'], 'reference_check_passed': reference_ok,
             'judge_schema_valid': schema_ok,
-            'judge_suggestion': {k: judge[k] for k in ('correct', 'complete')} if schema_ok and reference_ok else None,
+            'judge_inconsistent': inconsistent,
+            'judge_suggestion': {k: judge[k] for k in ('correct', 'complete')} if schema_ok and reference_ok and not inconsistent else None,
             'review_required': True,
         })
     times = sorted(c['answer_seconds'] for c in cases if c['answer_seconds'] is not None)
