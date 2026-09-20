@@ -21,6 +21,17 @@ def test_generation_can_select_complete_units_only():
     assert len(bind_claim({'unit_ids':['U1']},u)['components'])==2
 
 
+def test_model_views_omit_trace_hashes_but_verifier_retains_original_source_pointers():
+    from services.evidence_contract import verification_units
+    u=units();u[0]['components'][0]['source_hashes']={'s':'original-hash'}
+    view=generation_units(u)
+    assert 'source_ids' not in view[0]['components'][0]
+    verified=verification_units(u)
+    assert verified[0]['components'][0]['source_ids']==['s']
+    assert 'source_hashes' not in verified[0]['components'][0]
+    assert u[0]['components'][0]['source_hashes']=={'s':'original-hash'}
+
+
 def test_verifier_receives_qualified_claim_without_repeated_documents():
     bound=bind_claim({'text':'rule','unit_ids':['U1']},units())
     bound.update(index=0,evidence=[{'content':'large original document'}])

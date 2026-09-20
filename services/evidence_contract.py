@@ -96,7 +96,13 @@ def contract_fingerprint(units):
 def generation_units(units):
     """Expose only selectable unit IDs, keeping component IDs private to verification."""
     return [{'id':u['id'], 'period_known':u['period_known'],
-             'components':[{k:c[k] for k in ('kind','text','source_ids')} for c in u['components']]}
+             'components':[{k:c[k] for k in ('kind','text')} for c in u['components']]}
+            for u in units]
+
+
+def verification_units(units):
+    """Hashes stay in the trace; semantic verification needs text and pointers."""
+    return [dict(u,components=[{k:v for k,v in c.items() if k!='source_hashes'} for c in u['components']])
             for u in units]
 
 
