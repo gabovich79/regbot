@@ -93,9 +93,10 @@ def prepare_document(text, metadata, pages=None):
     if profile['draft_markers']:
         issues.append('draft_status_requires_review')
     source_hash = hashlib.sha256(text.encode()).hexdigest()
-    headings = list(SECTION.finditer(text))
+    from services.document_structure import boundaries
+    headings = boundaries(text, SECTION)
     # Always include the preamble. Do not require an arbitrary count of sections.
-    cuts = sorted({0, len(text), *(m.start() for m in headings)})
+    cuts = sorted({0, len(text), *headings})
     card = {
         'title': metadata['title'], 'source_ref': metadata.get('source_ref', ''),
         'source_hash': source_hash, 'summary': text[:1200], 'summary_kind': 'source_excerpt',
@@ -118,8 +119,7 @@ def prepare_document(text, metadata, pages=None):
         section_text = text[a:b]
         if not section_text.strip():
             continue
-        match = SECTION.match(section_text)
-        section = match.group().strip().lstrip("'׳") if match else 'מבוא / המשך'
+        section = headings.get(a, 'מבוא / המשך')
         if section.startswith(('פרק', 'נספח')):
             chapter = section
         path = ' / '.join(dict.fromkeys(x for x in (chapter, section) if x))

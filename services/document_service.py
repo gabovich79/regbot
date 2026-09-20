@@ -61,10 +61,10 @@ def extract_docx(file_path: str) -> str:
 
 def _docx_body_text(doc) -> str:
     from services.docx_numbering import Numbering
-    return clean_text(_docx_blocks_text(doc.element.body, Numbering(doc)))
+    return clean_text(_docx_blocks_text(doc.element.body, Numbering(doc), [0]))
 
 
-def _docx_blocks_text(container, numbering=None) -> str:
+def _docx_blocks_text(container, numbering=None, table_counter=None) -> str:
     """Walk physical cells, not python-docx's expanded merged-cell grid.
 
     Keep merge locations explicit, including vertical continuations, so a
@@ -72,10 +72,15 @@ def _docx_blocks_text(container, numbering=None) -> str:
     Recurse through cell blocks to retain nested tables in reading order.
     """
     parts = []
+    if table_counter is None:
+        table_counter = [0]
     for child in container.iterchildren():
         if child.tag.endswith('}p'):
             parts.append((numbering.prefix(child) if numbering else '') + _docx_inline_text(child))
         elif child.tag.endswith('}tbl'):
+            table_counter[0] += 1
+            table_id = table_counter[0]
+            parts.append(f'[תחילת טבלה במקור: {table_id}]')
             for row in child.findall(f'{{{_WORD_NS}}}tr'):
                 cells = []
                 for cell in row.findall(f'{{{_WORD_NS}}}tc'):
@@ -88,8 +93,9 @@ def _docx_blocks_text(container, numbering=None) -> str:
                         merge = properties.find(f'{{{_WORD_NS}}}vMerge')
                         if merge is not None:
                             marks.append('[מיזוג אנכי במקור: ' + ('התחלה' if merge.get(f'{{{_WORD_NS}}}val') == 'restart' else 'המשך התא מעל') + ']')
-                    cells.append(' '.join(marks + [_docx_blocks_text(cell, numbering)]).strip())
+                    cells.append(' '.join(marks + [_docx_blocks_text(cell, numbering, table_counter)]).strip())
                 parts.append(' | '.join(cells))
+            parts.append(f'[סוף טבלה במקור: {table_id}]')
     return '\n'.join(parts)
 
 
