@@ -26,6 +26,20 @@ def read(path):
     return json.loads(Path(path).read_text(encoding='utf-8-sig'))
 
 
+def select_diagnostic_versions(versions, manifest=None):
+    if manifest is not None:
+        if (not isinstance(manifest,dict) or set(manifest)!={str(i) for i in IDS} or
+                any(not isinstance(v,str) or not v for v in manifest.values()) or
+                len(set(manifest.values()))!=len(IDS)):
+            raise ValueError('Incomplete or duplicate diagnostic manifest')
+        versions=[v for v in versions if v['id'] in manifest.values()]
+        if any(manifest.get(str(v['document_id']))!=v['id'] for v in versions):
+            raise ValueError('Diagnostic manifest document/version mismatch')
+    if len(versions)!=len(IDS) or {v['document_id'] for v in versions}!=set(IDS):
+        raise ValueError('Incomplete diagnostic index')
+    return [v['id'] for v in versions]
+
+
 def memory_preflight(current, maximum):
     # Keep the hard worker ceiling AND a separate production reserve available.
     worker_limit, reserve = 192*1024**2, 96*1024**2
@@ -150,9 +164,9 @@ async def worker(args):
             from models.evidence_store import version_chunks
             async def diagnostic_chunks(connection):
                 versions = await (await connection.execute('SELECT id,document_id FROM evidence_versions')).fetchall()
-                if len(versions)!=len(IDS) or {v['document_id'] for v in versions}!=set(IDS):
-                    raise ValueError('Incomplete diagnostic index')
-                return 'UNAPPROVED-BOUNDED-DIAGNOSTIC', await version_chunks(connection,[v['id'] for v in versions],approved_only=False)
+                manifest=read(args.manifest)['manifest'] if getattr(args,'manifest',None) else None
+                ids=select_diagnostic_versions(versions,manifest)
+                return 'UNAPPROVED-BOUNDED-DIAGNOSTIC', await version_chunks(connection,ids,approved_only=False)
             evidence_search.active_chunks = diagnostic_chunks
             bundle = read(dest/'references.json')
             case = next(c for c in bundle['cases'] if c['id']==args.item)
@@ -168,7 +182,9 @@ async def worker(args):
                 result['error'] = type(exc).__name__+': '+str(exc)
             result.update(answer_seconds=time.monotonic()-started,trace=trace,cost=gateway.spent)
             save(target,result)  # Preserve actual answer even if evaluation fails.
-            if 'answer' in result:
+            if getattr(args,'skip_judge',False):
+                result['evaluation_status']='not_run'
+            if 'answer' in result and not getattr(args,'skip_judge',False):
                 try:
                     from scripts.diagnostic_judgment import judgment_spans,judgment_schema,resolve_judgment,validate_judgment
                     answer_spans,retrieved_spans=judgment_spans(result['answer'],trace.get('final_evidence',[]))
@@ -252,6 +268,8 @@ if __name__=='__main__':
     parser.add_argument('--source-dir')
     parser.add_argument('--receipt')
     parser.add_argument('--item')
+    parser.add_argument('--manifest',help='Explicit staged document/version mapping; does not activate it')
+    parser.add_argument('--skip-judge',action='store_true',help='Save engineering outcomes without an accuracy score')
     args=parser.parse_args()
     if args.phase=='prepare':
         asyncio.run(prepare(Path(args.data_dir).resolve(),Path(args.source_dir).resolve(),read(args.receipt)))
