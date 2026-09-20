@@ -95,6 +95,22 @@ def prepare_document(text, metadata, pages=None):
     source_hash = hashlib.sha256(text.encode()).hexdigest()
     from services.document_structure import boundaries
     headings = boundaries(text, SECTION)
+    structure_review = {'mode':'text_patterns', 'suppressed_numbered_boundaries':[]}
+    # Use original PDF typography only when every page aligned and there are
+    # multiple concrete numbered headings. Plain-text imports keep the fallback.
+    if pages and all(isinstance(p.get('bold_numbered_starts'),list) for p in pages):
+        bold = {start + position for (start, _, _), page in zip(bounds, pages)
+                for position in page['bold_numbered_starts']}
+        numbered = {m.start():m for m in SECTION.finditer(text) if re.match(r'\s*\d',m.group())}
+        confirmed = {position for position,m in numbered.items()
+                     if position + len(m.group()) - len(m.group().lstrip()) in bold}
+        if len(confirmed) >= 3:
+            suppressed = sorted(set(numbered)-confirmed)
+            structure_review = {'mode':'pdf_typography', 'suppressed_numbered_boundaries':suppressed}
+            if suppressed:
+                issues.append('pdf_hierarchy_inferred_from_typography_requires_review')
+            headings = {position:label for position,label in headings.items()
+                        if position not in numbered or position in confirmed}
     # Always include the preamble. Do not require an arbitrary count of sections.
     cuts = sorted({0, len(text), *headings})
     card = {
@@ -107,6 +123,7 @@ def prepare_document(text, metadata, pages=None):
         'superseded_by': metadata.get('superseded_by'),
         'lifecycle_status': metadata.get('lifecycle_status', 'unknown'),
         'metadata_verified': False, 'section_map': [],
+        'structure_review': structure_review,
         'draft_markers': profile['draft_markers'],
         'confirmed_blank_pages': [p['page_number'] for p in (pages or []) if p.get('blank_page_confirmed') is True],
         'identity_evidence': profile['identity_evidence'], 'official_number': profile['official_number'],

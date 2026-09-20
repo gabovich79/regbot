@@ -22,6 +22,27 @@ def clean_text(text: str) -> str:
 
 def _page_record(page, number):
     record = {'page_number':number, 'text':clean_text(page.get_text())}
+    # Match the text stream in order; never guess offsets from visual positions.
+    # Bold numeric heading markers distinguish section 13 from a plain nested
+    # item 2 without imposing a document-specific numbering sequence.
+    cursor, bold_starts, aligned = 0, [], True
+    for block in page.get_text('dict', flags=fitz.TEXTFLAGS_DICT & ~fitz.TEXT_PRESERVE_IMAGES)['blocks']:
+        for line in block.get('lines', []):
+            spans = line.get('spans', [])
+            line_text = clean_text(''.join(span['text'] for span in spans))
+            if not line_text:
+                continue
+            position = record['text'].find(line_text, cursor)
+            if position < 0:
+                aligned = False
+                break
+            first = next((span for span in spans if span['text'].strip()), {})
+            if first.get('flags', 0) & 16 and re.match(r'^\d{1,3}[א-ת]?(?:\s|\.|$)', line_text):
+                bold_starts.append(position)
+            cursor = position + len(line_text)
+        if not aligned:
+            break
+    record['bold_numbered_starts'] = bold_starts if aligned else None
     if not record['text']:
         # Empty text alone does not distinguish a blank page from a scan.
         # Confirm only an entirely white render; any visible ink still needs OCR/review.

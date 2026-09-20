@@ -19,8 +19,8 @@ def test_extract_pdf_pages_preserves_page_numbers_and_text(tmp_path):
     pages = extract_pdf_pages(str(pdf_path))
 
     assert pages == [
-        {"page_number": 1, "text": "First regulatory page"},
-        {"page_number": 2, "text": "Second regulatory page"},
+        {"page_number": 1, "text": "First regulatory page", "bold_numbered_starts": []},
+        {"page_number": 2, "text": "Second regulatory page", "bold_numbered_starts": []},
     ]
 
 
