@@ -168,6 +168,33 @@ def test_unknown_period_cannot_be_replaced_with_answer_model_year():
     assert not claims and errors == ['0:unscoped_numeric_parameter']
 
 
+def test_notice_deadline_does_not_establish_legal_period_for_numeric_claim():
+    payload=extraction()
+    payload['units'][0]['period']={**component('בתוך 14 ימי עסקים'),'start_date':None,'end_date':None}
+    payload['units'][0]['conditions']=[component('שיעור של 25%')]
+    units,_=bind_units(payload,EVIDENCE)
+    assert units[0]['period_known'] is False
+    assert any(c['kind']=='temporal_context' and c['text']=='בתוך 14 ימי עסקים' for c in units[0]['components'])
+    claims,errors=resolved(units,applicable_year=2026)
+    assert not claims and errors==['0:unscoped_numeric_parameter']
+
+
+def test_calendar_applicability_is_preserved_for_independent_source_verification():
+    payload=extraction()
+    payload['units'][0]['period']={**component('תחילה ביום 1 בינואר 2020'),'start_date':'2020-01-01','end_date':None}
+    units,_=bind_units(payload,EVIDENCE)
+    assert units[0]['period_known'] is True
+    assert units[0]['applicability_dates']=={'start_date':'2020-01-01'}
+
+
+@pytest.mark.parametrize('start,end',[('2020-02-31',None),('2020-02-01','2019-01-01'),('14 ימי עסקים',None)])
+def test_invalid_or_reversed_calendar_period_is_rejected(start,end):
+    payload=extraction()
+    payload['units'][0]['period']={**component('period'),'start_date':start,'end_date':end}
+    with pytest.raises(ValueError,match='applicability date'):
+        bind_units(payload,EVIDENCE)
+
+
 def test_unknown_unit_cannot_be_replaced_by_valid_citation():
     units,_=bind_units(extraction(),EVIDENCE)
     claims,errors=resolve_claims({'claims':[{'text':'claim','unit_ids':['U999'],

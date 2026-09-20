@@ -5,17 +5,19 @@ silently dropping a qualification that extraction has identified.
 """
 import hashlib
 import json
+from datetime import date
 
 FIELDS = ('scope', 'conditions', 'exceptions', 'requirements')
 MAX_UNITS = 100
 MAX_GENERATED_CLAIMS = 30
 MAX_CANDIDATE_CLAIMS = MAX_GENERATED_CLAIMS + MAX_UNITS
 MAX_COMPONENTS = 180
-LABELS = {'scope': 'תחולה', 'conditions': 'תנאים', 'exceptions': 'חריגים', 'requirements': 'פרטים נדרשים', 'period': 'תקופת תחולה'}
+LABELS = {'scope': 'תחולה', 'conditions': 'תנאים', 'exceptions': 'חריגים', 'requirements': 'פרטים נדרשים', 'period': 'תקופת תחולה',
+          'temporal_context':'מידע זמני מהמקור (אינו מאמת תקופת תחולה)'}
 UNIT_TASK = (
     'Extract evidence units in Hebrew from the supplied original evidence, NOT an answer. '
     'Return {units:[{rule:{text,source_ids},scope:[{text,source_ids}],'
-    'conditions:[{text,source_ids}],exceptions:[{text,source_ids}],requirements:[{text,source_ids}],period:{text,source_ids}|null}],'
+    'conditions:[{text,source_ids}],exceptions:[{text,source_ids}],requirements:[{text,source_ids}],period:{text,source_ids,start_date,end_date}|null}],'
     'missing:[short issues]}. At most 20 focused rules; each component at most 120 words. '
     'Cover EVERY required question aspect, including source-backed aspects in plan.issues. '
     'For every procedural rule, use requirements to preserve mandatory contents, recipient, trigger, '
@@ -34,6 +36,8 @@ UNIT_TASK = (
     'conditions with cumulative conditions. Preserve AND/OR relationships in a single component. '
     'Source IDs must support the component, not merely its topic. Unknown period is null. '
     'Period means legal applicability dates or the explicitly evidenced version, NOT a waiting time, notice period or loan duration. '
+    'start_date/end_date are ISO YYYY-MM-DD calendar dates explicitly governing legal applicability, or null. '
+    'Never convert an action deadline, publication date or amendment number into an applicability date. '
     'Keep such durations in rule/conditions, not period. '
     'Do not infer current validity from publication or amendment identifiers. '
     'Do not infer a personal entitlement without user facts. If a needed cross-reference is '
@@ -87,9 +91,25 @@ def bind_units(payload, evidence):
                 bind(item, field, i)
         if 'period' not in unit:
             raise ValueError('Evidence unit period must be explicit, including unknown')
-        if unit['period'] is not None:
-            bind(unit['period'], 'period', 0)
-        units.append({'id': uid, 'components': components, 'period_known': unit['period'] is not None})
+        period=unit['period'];calendar={}
+        if period is not None:
+            if not isinstance(period,dict):raise ValueError('Invalid evidence period')
+            for field in ('start_date','end_date'):
+                value=period.get(field)
+                if value is not None:
+                    if not isinstance(value,str):raise ValueError('Invalid applicability date')
+                    try:parsed=date.fromisoformat(value)
+                    except ValueError as exc:raise ValueError('Invalid applicability date') from exc
+                    if parsed.isoformat()!=value:raise ValueError('Invalid applicability date')
+                    calendar[field]=value
+            if (len(calendar)==2 and calendar['start_date']>calendar['end_date']):
+                raise ValueError('Reversed applicability dates')
+            # A free-text duration is not proof of the period for a financial
+            # parameter. Preserve its source-bound text, but fail closed on
+            # period-known. Old saved contracts without dates remain unknown.
+            bind(period, 'period' if calendar else 'temporal_context', 0)
+        units.append({'id': uid, 'components': components, 'period_known': bool(calendar),
+                      'applicability_dates':calendar})
     return units, missing
 
 

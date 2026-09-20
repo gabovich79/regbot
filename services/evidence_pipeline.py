@@ -4,6 +4,7 @@ Semantic verification is a fallible signal, never a legal approval verdict.
 """
 import asyncio
 import hashlib
+import json
 import re
 import time
 from datetime import date
@@ -81,8 +82,26 @@ def resolve_claims(answer, evidence, units=None):
     return resolved, errors
 
 
+def display_groups(claims):
+    """Share identical bound qualifications; never merge merely similar rules.
+
+    Verification still checks each original claim with its full qualifications.
+    All distinct verified sentences and all original source pointers survive.
+    Different populations, years, component IDs or units cannot share a group.
+    """
+    groups={}
+    for index,claim in enumerate(claims):
+        if not claim.get('components'):
+            key=('unbound',index)
+        else:
+            key=json.dumps({k:claim.get(k) for k in ('unit_ids','components','source_ids','period_known','applicable_year')},
+                           sort_keys=True,ensure_ascii=False)
+        groups.setdefault(key,[]).append(claim)
+    return [dict(group[0],text='\n'.join(dict.fromkeys(c['text'] for c in group))) for group in groups.values()]
+
+
 def render(claims, missing, conflicts):
-    body = '\n\n'.join(qualified_text(c) + ' ' + ' '.join(f"[{i}]" for i in c['source_ids']) for c in claims)
+    body = '\n\n'.join(qualified_text(c) + ' ' + ' '.join(f"[{i}]" for i in c['source_ids']) for c in display_groups(claims))
     if not body:
         body = 'לא נמצאו ראיות מספיקות לתשובה מבוססת לשאלה זו.'
     if missing:
@@ -256,6 +275,7 @@ async def run_pipeline(question, history, db, gateway, trace, progress=None, ena
                    'issue_checks [{issue_index,status,claim_indices}], missing and conflicts string arrays. '
                    'Include exactly one entry per required_check_manifest item, including unused units/components. Never invent an index. '
                    'Compare units to ORIGINAL evidence: complete=false if any limiting condition, exception or scope was lost '
+                   'or if applicability_dates mistake a procedural deadline, publication date or inferred year for legal commencement/expiry. '
                    'during extraction. A claim cannot broaden scope, change AND/OR conditions, or claim a different period. '
                    'Verify the full display_text including appended qualifications, not just the opening sentence. '
                    'temporal_conflict=true ONLY for an unsupported asserted year/current validity or a contradiction with source applicability. '

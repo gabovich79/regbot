@@ -45,8 +45,11 @@ def extraction_schema(source_ids):
           'source_ids':{'type':'array','items':{'type':'string'}}},
           'required':['text','source_ids'],'additionalProperties':False}
     parts={'type':'array','items':part}
+    period={'type':'object','properties':{**part['properties'],
+            'start_date':{'type':['string','null']},'end_date':{'type':['string','null']}},
+            'required':['text','source_ids','start_date','end_date'],'additionalProperties':False}
     unit={'type':'object','properties':{'rule':part,'scope':parts,'conditions':parts,'exceptions':parts,'requirements':parts,
-          'period':{'anyOf':[part,{'type':'null'}]}},
+          'period':{'anyOf':[period,{'type':'null'}]}},
           'required':['rule','scope','conditions','exceptions','requirements','period'],'additionalProperties':False}
     return {'type':'object','properties':{'units':{'type':'array','items':unit},
             'missing':{'type':'array','items':{'type':'string'}}},'required':['units','missing'],'additionalProperties':False}

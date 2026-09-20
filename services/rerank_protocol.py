@@ -26,4 +26,4 @@ def ranked_ids(raw, lookup, limit=20):
     # The provider's response order is not a ranking. Stable ties only use the
     # prior retrieval order; no topic-specific bonuses or source-label boosts.
     return [r['id'] for r in sorted(ratings,key=lambda r:(-r['score'],positions[r['id']]))
-            if r['score']>0][:limit]
+            if r['score']>=2][:limit]
