@@ -94,6 +94,22 @@ def test_provider_contract_requires_explicit_requirements_collection():
     assert 'requirements' in schema['required']
 
 
+def test_many_required_fields_are_preserved_within_global_contract_budget():
+    payload=extraction()
+    payload['units'][0]['requirements']=[component(f'required field {i}') for i in range(27)]
+    units,_=bind_units(payload,EVIDENCE)
+    required=[c for c in units[0]['components'] if c['kind']=='requirements']
+    assert len(required)==27
+    assert required[-1]['text']=='required field 26'
+
+
+def test_global_contract_budget_still_rejects_excess_details_without_truncation():
+    payload=extraction()
+    payload['units'][0]['requirements']=[component(f'field {i}') for i in range(181)]
+    with pytest.raises(ValueError,match='component budget'):
+        bind_units(payload,EVIDENCE)
+
+
 @pytest.mark.parametrize('change', [
     lambda p:p['units'][0].pop('conditions'),
     lambda p:p['units'][0].update(exceptions=None),

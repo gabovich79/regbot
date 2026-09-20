@@ -48,6 +48,19 @@ def merge_routes(direct, navigation, limit=40):
     return result
 
 
+def section_representatives(ids, lookup, question):
+    """Locate the query inside a selected parent, not always at its opening.
+
+    Compute IDF across the selected original chunks once. A parent may span
+    hundreds of chunks; its opening cannot represent every operative rule.
+    With no literal match retain the opening (e.g. a scope heading).
+    """
+    from services.evidence_search import bm25
+    chunks=[c for i in ids for c in lookup[i]]
+    scores=dict(zip((c['id'] for c in chunks),bm25(question,[c['content'] for c in chunks])))
+    return [max(lookup[i],key=lambda c:scores[c['id']]) for i in ids]
+
+
 async def discover_sections(candidates, chunks, plan, gateway, trace):
     entries,lookup,omitted,documents=catalog(candidates,chunks)
     trace['section_navigation']={'catalog':entries,'documents':documents,'omitted_sections':omitted,'selected':[]}
@@ -63,8 +76,9 @@ async def discover_sections(candidates, chunks, plan, gateway, trace):
     ids=raw.get('ids')
     if not isinstance(ids,list) or len(ids)>20 or any(not isinstance(i,str) or i not in lookup for i in ids):
         raise ValueError('Invalid section navigation pointers')
-    ids=list(dict.fromkeys(ids));selected=[lookup[i][0] for i in ids]
-    trace['section_navigation']['selected']=[{'id':i,'source_id':lookup[i][0]['id']} for i in ids]
-    # The first chunk supplies the section opening; normal parent expansion
-    # supplies continuations after the original source is reranked.
+    ids=list(dict.fromkeys(ids))
+    selected=section_representatives(ids,lookup,plan.get('standalone_question',''))
+    trace['section_navigation']['selected']=[{'id':i,'source_id':c['id'],
+        'opening_id':lookup[i][0]['id'],'method':'original_content_bm25'} for i,c in zip(ids,selected)]
+    # Normal parent expansion supplies neighboring original text after reranking.
     return merge_routes(candidates,selected)

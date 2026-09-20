@@ -1,7 +1,24 @@
 import json
 import pytest
 
-from services.section_navigation import catalog,discover_sections,merge_routes
+from services.section_navigation import catalog,discover_sections,merge_routes,section_representatives
+
+
+def test_navigation_locates_rule_inside_long_parent_without_derived_context():
+    group=[chunk(i,'Long chapter') for i in range(50)]
+    for c in group:
+        c['content']='general introduction unrelated to request'
+        c['context']='mandatory cooling notice'
+    group[37]['content']='mandatory cooling notice must include recipient and deadline'
+    other=chunk(0,'Scope','v2')
+    found=section_representatives(['a','b'],{'a':group,'b':[other]},'cooling notice')
+    assert found==[group[37],other]
+    assert found[0] is group[37]
+
+
+def test_navigation_without_literal_match_keeps_original_opening():
+    group=[chunk(i,'Scope') for i in range(3)]
+    assert section_representatives(['a'],{'a':group},'unmatched')==[group[0]]
 
 
 def chunk(n,section,version='v1'):

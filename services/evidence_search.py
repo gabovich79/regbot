@@ -36,7 +36,10 @@ def cosine(query, vector):
 def fused_candidates(query, vector, chunks, count=40):
     if not chunks:
         return []
-    lexical = bm25(query, [c['context'] + c['content'] for c in chunks])
+    # Derived document keywords repeat on every chunk. Including them here
+    # rewards unrelated sections and dilutes the literal source term frequency.
+    # Context remains available to dense embeddings and the separate card route.
+    lexical = bm25(query, [c['content'] for c in chunks])
     dense = [cosine(vector, json.loads(c['embedding'])) for c in chunks]
     cards = {}
     for c in chunks:

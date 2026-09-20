@@ -10,6 +10,7 @@ FIELDS = ('scope', 'conditions', 'exceptions', 'requirements')
 MAX_UNITS = 100
 MAX_GENERATED_CLAIMS = 30
 MAX_CANDIDATE_CLAIMS = MAX_GENERATED_CLAIMS + MAX_UNITS
+MAX_COMPONENTS = 180
 LABELS = {'scope': 'תחולה', 'conditions': 'תנאים', 'exceptions': 'חריגים', 'requirements': 'פרטים נדרשים', 'period': 'תקופת תחולה'}
 UNIT_TASK = (
     'Extract evidence units in Hebrew from the supplied original evidence, NOT an answer. '
@@ -67,7 +68,7 @@ def bind_units(payload, evidence):
                 raise ValueError('Unknown evidence component source')
             sources = list(dict.fromkeys(ids))
             component_count += 1
-            if component_count > 180:
+            if component_count > MAX_COMPONENTS:
                 raise ValueError('Evidence component budget exceeded')
             components.append({'id': f'{uid}:{kind}:{index}', 'kind': kind,
                                'text': value['text'].strip(), 'source_ids': sources,
@@ -77,7 +78,10 @@ def bind_units(payload, evidence):
             # Historical saved contracts predate the requirements field. New
             # provider extraction schemas require it; old fixtures remain readable.
             items = unit.get(field, []) if field == 'requirements' else unit.get(field)
-            if not isinstance(items, list) or len(items) > 12:
+            # A legitimate form can contain more than twelve mandatory fields.
+            # Bound the entire contract; never reject or truncate a valid unit
+            # merely because its details are expressed as separate components.
+            if not isinstance(items, list):
                 raise ValueError('Missing or invalid evidence qualification list')
             for i, item in enumerate(items):
                 bind(item, field, i)

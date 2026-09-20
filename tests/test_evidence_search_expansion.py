@@ -40,6 +40,17 @@ def test_unmatched_lexical_search_adds_no_arbitrary_id_bonus():
     assert best['rrf_score'] == pytest.approx(1/61 + 1/62)
 
 
+def test_repeated_navigation_keywords_do_not_become_literal_chunk_matches():
+    unrelated=chunk(0);relevant=chunk(1)
+    unrelated['context']='cooling notice '*100
+    relevant['context']=unrelated['context']
+    relevant['content']='cooling notice recipient and deadline'
+    found=fused_candidates('cooling notice',[1.,0.],[unrelated,relevant])
+    scores={c['id']:c['lexical_score'] for c in found}
+    assert scores[unrelated['id']]==0
+    assert scores[relevant['id']]>0
+
+
 @pytest.mark.parametrize('query,vector', [([float('nan')], [1.]), ([[1.]], [[1.]]), ([], []), ([1.], [float('inf')])])
 def test_invalid_embedding_fails_before_ranking(query, vector):
     with pytest.raises(ValueError):
