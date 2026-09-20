@@ -25,6 +25,33 @@ async def db(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_preexisting_corrupt_glyph_version_cannot_be_reviewed_or_activated(db):
+    await db.execute("INSERT INTO documents(id,title,source_type,text_path) VALUES(1,'a','pdf','a')")
+    await db.commit()
+    text='מדינת ישראל מסלולי אמðות במדיðיות המקווðות'
+    version=await stage(db,1,'hash','model',{},[],
+        [dict(content=text,context='',section='section',section_text=text)],[[.1,.2]])
+    with pytest.raises(ValueError,match='Extraction issues'):
+        await review(db,version,True,'A long review note cannot waive corrupted source letters')
+    # An old approval must also be checked by the new activation gate.
+    await db.execute("UPDATE evidence_versions SET review_status='approved' WHERE id=?",(version,))
+    await db.commit()
+    with pytest.raises(ValueError,match='foreign glyphs'):
+        await activate(db,[version])
+    assert await (await db.execute('SELECT * FROM active_index')).fetchone() is None
+
+
+def test_broken_hebrew_font_detection_does_not_replace_letters_or_flag_english():
+    from services.document_integrity_service import embedded_foreign_glyphs,assess_document_integrity
+    text='מדינת ישראל מסלולי אמðות במדיðיות המקווðות'
+    assert embedded_foreign_glyphs(text)
+    result=assess_document_integrity({'title':'מסלולים'},text,{'identity_evidence':['מסלולים']})
+    assert 'extraction_embedded_foreign_glyphs' in result['reasons']
+    assert not embedded_foreign_glyphs('מסלול S&P 500 וגם מניות בארצות הברית')
+    assert not embedded_foreign_glyphs('שם מעורב יחיד אבéגד')
+
+
+@pytest.mark.asyncio
 async def test_large_parent_read_shares_metadata_and_preserves_review_gate(db):
     from array import array
     from models.evidence_store import version_chunks

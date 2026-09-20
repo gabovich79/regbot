@@ -69,7 +69,10 @@ async def review(db, version, accepted, note=''):
         raise ValueError('Unknown index version')
     issues = json.loads(row['issues'])
     fatal = {'empty_extraction','invalid_characters','extraction_binary','extraction_hebrew_reversed',
+             'extraction_embedded_foreign_glyphs',
              'empty_pages_require_visual_review_or_ocr','missing_original_requires_recovery', 'corrupt'}
+    if accepted and await has_broken_glyphs(db,version):
+        issues=list(dict.fromkeys(issues+['extraction_embedded_foreign_glyphs']))
     if accepted and (fatal.intersection(issues) or (issues and len(note.strip()) < 20)):
         raise ValueError('Extraction issues must be resolved by re-ingestion before approval')
     card = json.loads(row['card'])
@@ -78,6 +81,14 @@ async def review(db, version, accepted, note=''):
     await db.execute('UPDATE evidence_versions SET review_status=?,card=? WHERE id=?',
                      ('approved' if accepted else 'rejected',json.dumps(card,ensure_ascii=False), version))
     await db.commit()
+
+
+async def has_broken_glyphs(db, version):
+    # Recheck staged versions made before this detector existed. Old approval
+    # must not bypass a newly measured extraction fault during activation.
+    from services.document_integrity_service import embedded_foreign_glyphs
+    rows=await (await db.execute('SELECT content FROM evidence_chunks WHERE version_id=? ORDER BY ordinal',(version,))).fetchall()
+    return embedded_foreign_glyphs('\n'.join(r['content'] for r in rows))
 
 
 async def activate(db, versions):
@@ -93,6 +104,8 @@ async def activate(db, versions):
             row = await (await db.execute('SELECT * FROM evidence_versions WHERE id=?', (version,))).fetchone()
             if not row or row['review_status'] != 'approved':
                 raise ValueError('Every version must have passed extraction review')
+            if await has_broken_glyphs(db,version):
+                raise ValueError('Extraction has embedded foreign glyphs; recover the source and re-index')
             selected.append(row['document_id'])
             models.add(row['embedding_model'])
         if set(selected) != active or len(selected) != len(active):

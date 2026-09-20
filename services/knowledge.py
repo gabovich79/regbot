@@ -139,7 +139,8 @@ async def stage_document(db, metadata, text, pages=None, *, gateway=None):
     from models.evidence_store import stage
     from services.providers import Gateway
     source_hash, card, issues, chunks = prepare_document(text, metadata, pages)
-    fatal = {'empty_extraction','invalid_characters','extraction_binary','extraction_hebrew_reversed','empty_pages_require_visual_review_or_ocr'}
+    fatal = {'empty_extraction','invalid_characters','extraction_binary','extraction_hebrew_reversed',
+             'extraction_embedded_foreign_glyphs','empty_pages_require_visual_review_or_ocr'}
     if fatal.intersection(issues):
         raise ValueError('Extraction not ready: ' + ', '.join(issues))
     import os

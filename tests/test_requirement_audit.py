@@ -8,6 +8,7 @@ from scripts.requirement_audit import audit_requirements,validate_verdict
     ('partial',['A1'],['Missing population'],True),
     ('partial',['A1'],[],False),('missing',[],['All parts'],True),
     ('missing',['A1'],['All parts'],False),('covered',['A99'],[],False),
+    ('conflict',['A1'],[],True),('conflict',[],['Wrong condition'],False),
 ])
 def test_partial_or_unpointed_support_cannot_be_full_credit(status,ids,gaps,valid):
     assert validate_verdict({'status':status,'span_ids':ids,'missing_parts':gaps,'reason':'explanation'},
@@ -21,6 +22,7 @@ async def test_routes_do_not_leak_answer_retrieval_or_unrelated_reference():
     seen=[]
     class Gateway:
         async def json(self,stage,payload,**kwargs):
+            assert kwargs['thinking_budget']==1024 and kwargs['max_output']>1024
             seen.append(payload)
             assert 'question' not in payload
             assert payload['reference_excerpts']==[{'quote':'expected meaning'}]

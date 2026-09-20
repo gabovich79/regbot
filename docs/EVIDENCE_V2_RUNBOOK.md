@@ -11,10 +11,12 @@ Existing live service: `https://regbot-wly9.onrender.com`.
 Implementation baseline: `9e672e29e043ea05503cc6ea511035f71c4529bf`.
 Prior hierarchical branch inspected: `e949a81aa5df117e795d2fc9f54bb63b39ba3456`.
 The source-derived profile and integrity services are reused from that branch.
-The D37 handoff identifies local-only commit `e6f1327`, unavailable in the remote
-at implementation time. Reconcile it before closing the work; do not silently
-overwrite its parser/annotation fixes. Its reported 178 tests and NLI outcomes
-are historical claims, not validation of this implementation.
+The D37 handoff commit `e6f1327` became available under `c950dbf` and was
+reconciled on 2026-09-19; see `D37_RECONCILIATION.md`. Its reported 178 tests and
+NLI outcomes are historical claims, not validation of this implementation.
+Current execution order and open release gates are in
+`COMPLETION_PLAN_CURRENT.md`; measured engineering outcomes are in
+`BROAD_DIAGNOSTIC_2026_09_20.md`.
 
 ## Architecture and boundaries
 
@@ -36,6 +38,19 @@ headings. It is explicitly a derived navigation hint, not a complete legal
 summary. Direct chunk retrieval searches the entire source regardless of card
 coverage. Exact cross-document links are expanded; unresolved references remain
 an evaluation concern rather than invented links.
+
+Literal chunk BM25 searches original content, avoiding repeated derived keywords.
+Section navigation locates matching original text inside each selected parent.
+Reranking assigns every candidate an explicit score; background-only candidates
+do not fill the final evidence quota. Neighbors and parent continuations still
+compete within the 24,000-token context budget, so complete recall is not assured.
+
+Bound evidence units retain mandatory contents and qualifications under a global
+component budget. A free-text procedural duration is not a known applicability
+period: explicit ISO calendar fields are required, and independent semantic
+verification must still establish their legal meaning. Unknown validity remains
+unknown. Display groups share only exactly identical bound qualifications and
+preserve every distinct verified claim and source pointer.
 
 PDFs with empty pages, corrupt extraction, or detected reversed Hebrew require
 recovery/OCR outside this v1 pipeline. The service does not claim that a machine

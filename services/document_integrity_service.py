@@ -85,6 +85,15 @@ def _detect_binary_text(text: str) -> bool:
     return null_ratio > 0.05
 
 
+def embedded_foreign_glyphs(text: str) -> bool:
+    """Repeated extended-Latin glyphs inside Hebrew suggest broken PDF fonts.
+
+    Do not repair guessed letters. Ordinary English names, ASCII acronyms and
+    isolated mixed-script names are not sufficient to trigger this check.
+    """
+    return len(re.findall(r'(?<=[א-ת])[\u00c0-\u024f](?=[א-ת])',text or '')) >= 3
+
+
 def assess_document_integrity(
     document: dict[str, Any], text: str, profile: dict[str, Any]
 ) -> dict[str, Any]:
@@ -97,6 +106,8 @@ def assess_document_integrity(
         reasons.append("extraction_hebrew_reversed")
     if _detect_binary_text(text):
         reasons.append("extraction_binary")
+    if embedded_foreign_glyphs(text):
+        reasons.append('extraction_embedded_foreign_glyphs')
 
     title = _normalize_title(str(document.get("title") or ""))
     title_numbers = _official_numbers(title)

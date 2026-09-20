@@ -28,7 +28,9 @@ def validate_verdict(raw, spans):
     if status=='covered':return bool(ids) and not gaps
     if status=='missing':return not ids and bool(gaps)
     if status=='partial':return bool(ids) and bool(gaps)
-    return bool(ids) and bool(gaps)
+    # A contradiction may quote the entire opposite rule. It is not required
+    # to invent a missing fragment when its cited span and reason show conflict.
+    return bool(ids)
 
 
 async def audit_requirements(case, reference_evidence, answer, evidence, gateway):
@@ -53,13 +55,17 @@ async def audit_requirements(case, reference_evidence, answer, evidence, gateway
             'List precisely which required parts are missing. Use missing when no observed span supports it. '
             'Do not credit a refusal or a source list as a substantive answer. '
             'If uncertain, do not mark covered. Select only IDs in observed_spans. '
-            'Return status, span_ids, missing_parts and reason. Keep reasons under 35 words.',
+            'Return one JSON object with status, span_ids, missing_parts and reason. '
+            'For missing, span_ids MUST be empty even if a refusal or irrelevant passage is present. '
+            'For partial, cite the supported part and list the missing parts. '
+            'For conflict, cite the contradictory observed text and explain the contradiction in reason. '
+            'For covered, cite full observed support and leave missing_parts empty. Keep reasons under 35 words.',
             'route':route,'requirement':requirement['text'],
             'reference_excerpts':[{'quote':originals[i]['quote']} for i in requirement['evidence_ids']],
             'observed_spans':spans}
         async with semaphore:
             try:
-                raw=await gateway.json('audit_'+route,payload,max_output=1024,response_schema=audit_schema(spans))
+                raw=await gateway.json('audit_'+route,payload,max_output=3072,thinking_budget=1024,response_schema=audit_schema(spans))
                 valid=validate_verdict(raw,spans)
                 return {'valid':valid,'verdict':raw,'support':[spans[i] for i in raw.get('span_ids',[])] if valid else []}
             except Exception as exc:
@@ -70,4 +76,5 @@ async def audit_requirements(case, reference_evidence, answer, evidence, gateway
           for i,r in enumerate(requirements)]
     valid=all(row[route]['valid'] for row in rows for route in ('answer','retrieval'))
     return {'requirements':rows,'structurally_valid':valid,'claim_safety_evaluated':False,
+            'evaluator_thinking_budget':1024,
             'professional_approval':False,'acceptance_passed':False}
