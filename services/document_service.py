@@ -20,12 +20,46 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 
+def _page_record(page, number):
+    record = {'page_number':number, 'text':clean_text(page.get_text())}
+    # Match the text stream in order; never guess offsets from visual positions.
+    # Bold numeric heading markers distinguish section 13 from a plain nested
+    # item 2 without imposing a document-specific numbering sequence.
+    cursor, bold_starts, aligned = 0, [], True
+    for block in page.get_text('dict', flags=fitz.TEXTFLAGS_DICT & ~fitz.TEXT_PRESERVE_IMAGES)['blocks']:
+        for line in block.get('lines', []):
+            spans = line.get('spans', [])
+            line_text = clean_text(''.join(span['text'] for span in spans))
+            if not line_text:
+                continue
+            position = record['text'].find(line_text, cursor)
+            if position < 0:
+                aligned = False
+                break
+            first = next((span for span in spans if span['text'].strip()), {})
+            if first.get('flags', 0) & 16 and re.match(r'^\d{1,3}[א-ת]?(?:\s|\.|$)', line_text):
+                bold_starts.append(position)
+            cursor = position + len(line_text)
+        if not aligned:
+            break
+    record['bold_numbered_starts'] = bold_starts if aligned else None
+    if not record['text']:
+        # Empty text alone does not distinguish a blank page from a scan.
+        # Confirm only an entirely white render; any visible ink still needs OCR/review.
+        if page.rect.width * page.rect.height <= 4_000_000:
+            pix = page.get_pixmap(colorspace=fitz.csGRAY, alpha=False, annots=True)
+            record['blank_page_confirmed'] = bool(pix.samples) and min(pix.samples)==255
+        else:
+            record['blank_page_confirmed'] = False
+    return record
+
+
 def extract_pdf_pages(file_path: str) -> list[dict]:
     """Extract text page-by-page so citations can point to the source page."""
     doc = fitz.open(file_path)
     try:
         return [
-            {"page_number": index, "text": clean_text(page.get_text())}
+            _page_record(page, index)
             for index, page in enumerate(doc, start=1)
         ]
     finally:
@@ -43,8 +77,109 @@ def extract_pdf(file_path: str) -> str:
 
 def extract_docx(file_path: str) -> str:
     doc = Document(file_path)
-    paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-    return clean_text("\n".join(paragraphs))
+    return _docx_body_text(doc)
+
+
+def _docx_body_text(doc) -> str:
+    from services.docx_numbering import Numbering
+    return clean_text(_docx_blocks_text(doc.element.body, Numbering(doc), [0]))
+
+
+def _docx_blocks_text(container, numbering=None, table_counter=None) -> str:
+    """Walk physical cells, not python-docx's expanded merged-cell grid.
+
+    Keep merge locations explicit, including vertical continuations, so a
+    shared rule is not mistaken for repeated independent source assertions.
+    Recurse through cell blocks to retain nested tables in reading order.
+    """
+    parts = []
+    if table_counter is None:
+        table_counter = [0]
+    for child in container.iterchildren():
+        if child.tag.endswith('}p'):
+            parts.append((numbering.prefix(child) if numbering else '') + _docx_inline_text(child))
+        elif child.tag.endswith('}tbl'):
+            table_counter[0] += 1
+            table_id = table_counter[0]
+            parts.append(f'[תחילת טבלה במקור: {table_id}]')
+            for row in child.findall(f'{{{_WORD_NS}}}tr'):
+                cells = []
+                for cell in row.findall(f'{{{_WORD_NS}}}tc'):
+                    properties = cell.find(f'{{{_WORD_NS}}}tcPr')
+                    marks = []
+                    if properties is not None:
+                        span = properties.find(f'{{{_WORD_NS}}}gridSpan')
+                        if span is not None:
+                            marks.append('[פריסת תא במקור: ' + span.get(f'{{{_WORD_NS}}}val', '?') + ' עמודות]')
+                        merge = properties.find(f'{{{_WORD_NS}}}vMerge')
+                        if merge is not None:
+                            marks.append('[מיזוג אנכי במקור: ' + ('התחלה' if merge.get(f'{{{_WORD_NS}}}val') == 'restart' else 'המשך התא מעל') + ']')
+                    cells.append(' '.join(marks + [_docx_blocks_text(cell, numbering, table_counter)]).strip())
+                parts.append(' | '.join(cells))
+            parts.append(f'[סוף טבלה במקור: {table_id}]')
+    return '\n'.join(parts)
+
+
+_WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+_MATH_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math'
+
+
+def _math_text(node):
+    """Serialize supported OMML structurally; never flatten a fraction to `ab`."""
+    tag = node.tag.rsplit('}', 1)[-1]
+    if tag.endswith('Pr'):
+        return ''
+    if tag == 't':
+        return node.text or ''
+    if tag == 'f':
+        numerator = node.find(f'{{{_MATH_NS}}}num')
+        denominator = node.find(f'{{{_MATH_NS}}}den')
+        properties = node.find(f'{{{_MATH_NS}}}fPr')
+        fraction_type = properties.find(f'{{{_MATH_NS}}}type') if properties is not None else None
+        if fraction_type is not None and fraction_type.get(f'{{{_MATH_NS}}}val') not in ('bar', 'skw', 'lin'):
+            raise ValueError('Unsupported DOCX equation fraction layout requires source review')
+        if numerator is None or denominator is None:
+            raise ValueError('Incomplete DOCX equation fraction')
+        return f'({_math_text(numerator)})/({_math_text(denominator)})'
+    if tag in ('oMath', 'oMathPara', 'r', 'num', 'den'):
+        return ''.join(_math_text(child) for child in node)
+    raise ValueError(f'Unsupported DOCX equation construct: {tag}; requires source review')
+
+
+def _docx_inline_text(node):
+    """Keep equations and explicit revision marks visible in extracted evidence.
+
+    This is an annotated extraction, not an automatic acceptance of amendments.
+    Neither a strikethrough nor a Word insertion proves legal effective status.
+    """
+    namespace, _, tag = node.tag[1:].partition('}')
+    if namespace == _MATH_NS:
+        return '[נוסחה במקור: ' + _math_text(node) + ']'
+    if namespace != _WORD_NS:
+        return ''
+    if tag in ('pPr', 'rPr'):
+        return ''
+    if tag in ('t', 'delText'):
+        return node.text or ''
+    if tag == 'tab':
+        return '\t'
+    if tag in ('br', 'cr'):
+        return '\n'
+    text = ''.join(_docx_inline_text(child) for child in node)
+    if not text.strip():
+        return text
+    if tag in ('del', 'moveFrom'):
+        return '[מחוק במקור: ' + text + ']'
+    if tag in ('ins', 'moveTo'):
+        return '[תוספת מסומנת במקור: ' + text + ']'
+    if tag == 'r':
+        properties = node.find(f'{{{_WORD_NS}}}rPr')
+        if properties is not None:
+            for name in ('strike', 'dstrike'):
+                prop = properties.find(f'{{{_WORD_NS}}}{name}')
+                if prop is not None and prop.get(f'{{{_WORD_NS}}}val', 'true') not in ('0', 'false', 'off'):
+                    return '[מחוק במקור: ' + text + ']'
+    return text
 
 
 def extract_pdf_bytes_pages(content: bytes) -> list[dict]:
@@ -52,7 +187,7 @@ def extract_pdf_bytes_pages(content: bytes) -> list[dict]:
     doc = fitz.open(stream=content, filetype="pdf")
     try:
         return [
-            {"page_number": index, "text": clean_text(page.get_text())}
+            _page_record(page, index)
             for index, page in enumerate(doc, start=1)
         ]
     finally:
@@ -71,8 +206,7 @@ def extract_pdf_bytes(content: bytes) -> str:
 def extract_docx_bytes(content: bytes) -> str:
     import io
     doc = Document(io.BytesIO(content))
-    paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-    return clean_text("\n".join(paragraphs))
+    return _docx_body_text(doc)
 
 
 def normalize_source_url(source_ref: str) -> str | None:
