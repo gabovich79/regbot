@@ -73,6 +73,27 @@ def test_answer_cannot_drop_or_replace_extracted_qualifications():
     assert len(claims[0]['components']) == 5
 
 
+def test_required_notice_contents_cannot_be_replaced_by_generic_answer():
+    payload=extraction()
+    details='ההודעה כוללת שם נמען, מועד הצטרפות ודמי ניהול; הסכמה לשיווק היא רשות.'
+    payload['units'][0]['requirements']=[component(details)]
+    units,_=bind_units(payload,EVIDENCE)
+    claims,errors=resolved(units,requirements=[])
+    assert not errors
+    text,_,_=render(claims,[],[])
+    assert details in text
+    checked=verdict(units)
+    part=next(c for c in units[0]['components'] if c['kind']=='requirements')
+    next(c for c in checked['component_checks'] if c['component_id']==part['id'])['supported']=False
+    assert verification_result(checked,claims,['rule'],units)[0]==[]
+
+
+def test_provider_contract_requires_explicit_requirements_collection():
+    from services.source_protocol import extraction_schema
+    schema=extraction_schema(['s'])['properties']['units']['items']
+    assert 'requirements' in schema['required']
+
+
 @pytest.mark.parametrize('change', [
     lambda p:p['units'][0].pop('conditions'),
     lambda p:p['units'][0].update(exceptions=None),

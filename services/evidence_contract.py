@@ -6,19 +6,22 @@ silently dropping a qualification that extraction has identified.
 import hashlib
 import json
 
-FIELDS = ('scope', 'conditions', 'exceptions')
+FIELDS = ('scope', 'conditions', 'exceptions', 'requirements')
 MAX_UNITS = 100
 MAX_GENERATED_CLAIMS = 30
 MAX_CANDIDATE_CLAIMS = MAX_GENERATED_CLAIMS + MAX_UNITS
-LABELS = {'scope': 'תחולה', 'conditions': 'תנאים', 'exceptions': 'חריגים', 'period': 'תקופת תחולה'}
+LABELS = {'scope': 'תחולה', 'conditions': 'תנאים', 'exceptions': 'חריגים', 'requirements': 'פרטים נדרשים', 'period': 'תקופת תחולה'}
 UNIT_TASK = (
     'Extract evidence units in Hebrew from the supplied original evidence, NOT an answer. '
     'Return {units:[{rule:{text,source_ids},scope:[{text,source_ids}],'
-    'conditions:[{text,source_ids}],exceptions:[{text,source_ids}],period:{text,source_ids}|null}],'
+    'conditions:[{text,source_ids}],exceptions:[{text,source_ids}],requirements:[{text,source_ids}],period:{text,source_ids}|null}],'
     'missing:[short issues]}. At most 20 focused rules; each component at most 120 words. '
     'Cover EVERY required question aspect, including source-backed aspects in plan.issues. '
-    'Prioritize material rules, eligibility, exceptions and notices over individual form fields. '
-    'Group related form fields under one rule without omitting their requirements. '
+    'For every procedural rule, use requirements to preserve mandatory contents, recipient, trigger, '
+    'deadline and distinct alternatives from the source. A duty to send a notice is incomplete without '
+    'its mandatory contents; these are operative requirements, not dispensable form details. '
+    'Keep optional fields explicitly optional and conditional documents conditional. '
+    'Group related fields in one requirements component without deleting their names or optionality. '
     'Before drafting units, identify document-wide scope exclusions, commencement and transitional provisions '
     'in ALL supplied excerpts, including the end of the document. Attach each applicable limitation '
     'to the rules it governs, even when found in a different excerpt; a standalone exception unit '
@@ -71,7 +74,9 @@ def bind_units(payload, evidence):
                                'source_hashes': {i: hashlib.sha256(lookup[i]['content'].encode()).hexdigest() for i in sources}})
         bind(unit.get('rule'), 'rule', 0)
         for field in FIELDS:
-            items = unit.get(field)
+            # Historical saved contracts predate the requirements field. New
+            # provider extraction schemas require it; old fixtures remain readable.
+            items = unit.get(field, []) if field == 'requirements' else unit.get(field)
             if not isinstance(items, list) or len(items) > 12:
                 raise ValueError('Missing or invalid evidence qualification list')
             for i, item in enumerate(items):
