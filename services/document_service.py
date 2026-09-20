@@ -60,15 +60,36 @@ def extract_docx(file_path: str) -> str:
 
 
 def _docx_body_text(doc) -> str:
-    from docx.table import Table
+    return clean_text(_docx_blocks_text(doc.element.body))
+
+
+def _docx_blocks_text(container) -> str:
+    """Walk physical cells, not python-docx's expanded merged-cell grid.
+
+    Keep merge locations explicit, including vertical continuations, so a
+    shared rule is not mistaken for repeated independent source assertions.
+    Recurse through cell blocks to retain nested tables in reading order.
+    """
     parts = []
-    for child in doc.element.body.iterchildren():
+    for child in container.iterchildren():
         if child.tag.endswith('}p'):
             parts.append(_docx_inline_text(child))
         elif child.tag.endswith('}tbl'):
-            for row in Table(child, doc).rows:
-                parts.append(' | '.join('\n'.join(_docx_inline_text(p._p) for p in cell.paragraphs) for cell in row.cells))
-    return clean_text('\n'.join(parts))
+            for row in child.findall(f'{{{_WORD_NS}}}tr'):
+                cells = []
+                for cell in row.findall(f'{{{_WORD_NS}}}tc'):
+                    properties = cell.find(f'{{{_WORD_NS}}}tcPr')
+                    marks = []
+                    if properties is not None:
+                        span = properties.find(f'{{{_WORD_NS}}}gridSpan')
+                        if span is not None:
+                            marks.append('[פריסת תא במקור: ' + span.get(f'{{{_WORD_NS}}}val', '?') + ' עמודות]')
+                        merge = properties.find(f'{{{_WORD_NS}}}vMerge')
+                        if merge is not None:
+                            marks.append('[מיזוג אנכי במקור: ' + ('התחלה' if merge.get(f'{{{_WORD_NS}}}val') == 'restart' else 'המשך התא מעל') + ']')
+                    cells.append(' '.join(marks + [_docx_blocks_text(cell)]).strip())
+                parts.append(' | '.join(cells))
+    return '\n'.join(parts)
 
 
 _WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'

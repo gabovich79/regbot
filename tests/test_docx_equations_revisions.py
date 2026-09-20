@@ -57,6 +57,34 @@ def test_tracked_replacement_retains_both_roles():
     assert '[תוספת מסומנת במקור: new]' in text
 
 
+def test_merged_cells_preserve_span_and_continuation_without_repeating_rules():
+    doc = Document()
+    table = doc.add_table(rows=3, cols=3)
+    table.cell(0, 0).merge(table.cell(0, 2)).text = 'shared heading'
+    table.cell(1, 0).merge(table.cell(2, 0)).text = 'shared condition'
+    table.cell(1, 1).text = 'first exception'
+    table.cell(2, 1).text = 'second exception'
+    text = extract(doc)
+    assert text.count('shared heading') == 1
+    assert text.count('shared condition') == 1
+    assert '[פריסת תא במקור: 3 עמודות]' in text
+    assert '[מיזוג אנכי במקור: המשך התא מעל]' in text
+    assert text.index('first exception') < text.index('second exception')
+
+
+def test_nested_table_and_repeated_distinct_cells_are_not_lost():
+    doc = Document()
+    table = doc.add_table(rows=1, cols=2)
+    cell = table.cell(0, 0)
+    cell.text = 'before nested'
+    cell.add_table(rows=1, cols=1).cell(0, 0).text = 'nested requirement'
+    cell.add_paragraph('after nested')
+    table.cell(0, 1).text = 'nested requirement'
+    text = extract(doc)
+    assert text.count('nested requirement') == 2
+    assert text.index('before nested') < text.index('nested requirement') < text.index('after nested')
+
+
 @pytest.mark.parametrize('body', [
     '<m:rad><m:e><m:r><m:t>x</m:t></m:r></m:e></m:rad>',
     '<m:f><m:num><m:r><m:t>x</m:t></m:r></m:num></m:f>',
