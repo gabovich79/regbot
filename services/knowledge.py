@@ -28,6 +28,8 @@ def terms(text):
 
 def quality_issues(text, pages=None):
     issues = []
+    if '[מספור במקור לא שוחזר]' in text:
+        issues.append('unresolved_source_numbering_requires_review')
     if not text.strip():
         issues.append('empty_extraction')
     if '\ufffd' in text or '\x00' in text:
@@ -153,6 +155,10 @@ async def stage_document(db, metadata, text, pages=None, *, gateway=None):
     # Use the same page extraction for cards, relation checks and chunk content.
     # Callers may deliberately pass an empty legacy text when pages are provided.
     source_text = '\n\n'.join(p['text'] for p in pages) if pages else text
+    from services.source_assets import snapshot_sources
+    card['source_assets'] = await snapshot_sources(db, original, source_text)
+    if card['source_assets']['original']['sha256'] != card['original_checksum']:
+        raise ValueError('Original changed during source snapshot')
     # Summaries are derived navigation hints; validation retains literal identity.
     derived = await gateway.json('document_card', {
         'task': 'Describe the document for search. Return summary, topics, aliases, populations and relations. '

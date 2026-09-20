@@ -60,10 +60,11 @@ def extract_docx(file_path: str) -> str:
 
 
 def _docx_body_text(doc) -> str:
-    return clean_text(_docx_blocks_text(doc.element.body))
+    from services.docx_numbering import Numbering
+    return clean_text(_docx_blocks_text(doc.element.body, Numbering(doc)))
 
 
-def _docx_blocks_text(container) -> str:
+def _docx_blocks_text(container, numbering=None) -> str:
     """Walk physical cells, not python-docx's expanded merged-cell grid.
 
     Keep merge locations explicit, including vertical continuations, so a
@@ -73,7 +74,7 @@ def _docx_blocks_text(container) -> str:
     parts = []
     for child in container.iterchildren():
         if child.tag.endswith('}p'):
-            parts.append(_docx_inline_text(child))
+            parts.append((numbering.prefix(child) if numbering else '') + _docx_inline_text(child))
         elif child.tag.endswith('}tbl'):
             for row in child.findall(f'{{{_WORD_NS}}}tr'):
                 cells = []
@@ -87,7 +88,7 @@ def _docx_blocks_text(container) -> str:
                         merge = properties.find(f'{{{_WORD_NS}}}vMerge')
                         if merge is not None:
                             marks.append('[מיזוג אנכי במקור: ' + ('התחלה' if merge.get(f'{{{_WORD_NS}}}val') == 'restart' else 'המשך התא מעל') + ']')
-                    cells.append(' '.join(marks + [_docx_blocks_text(cell)]).strip())
+                    cells.append(' '.join(marks + [_docx_blocks_text(cell, numbering)]).strip())
                 parts.append(' | '.join(cells))
     return '\n'.join(parts)
 

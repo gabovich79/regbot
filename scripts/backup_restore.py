@@ -26,6 +26,19 @@ def within(path, root):
     return path
 
 
+def version_assets(db):
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='evidence_versions'").fetchone():
+        return {}
+    result = {}
+    for ident, raw in db.execute('SELECT id,card FROM evidence_versions'):
+        assets = json.loads(raw).get('source_assets', {})
+        if assets and set(assets) != {'original', 'extracted'}:
+            raise ValueError('Incomplete version source assets')
+        for role, asset in assets.items():
+            result[(ident, role)] = asset
+    return result
+
+
 def backup(data_dir, destination):
     root, output = Path(data_dir).resolve(), Path(destination).resolve()
     if output.exists() or output.is_relative_to(root):
@@ -60,10 +73,23 @@ def backup(data_dir, destination):
                 if digest(path) != before or digest(target) != before:
                     raise ValueError('Source changed during snapshot; repeat with admin writes paused')
                 files.append({'document_id':row[0], 'field':field, 'path':relative.as_posix(), 'sha256':before})
+        version_files = []
+        for index, ((version, role), asset) in enumerate(version_assets(snapshot).items()):
+            path = within(root/asset['path'], root)
+            before = digest(path)
+            if before != asset['sha256']:
+                raise ValueError('Version source checksum mismatch')
+            relative = Path('version_files')/f'{index}{path.suffix}'
+            target = output/relative
+            target.parent.mkdir(exist_ok=True)
+            shutil.copyfile(path, target)
+            if digest(path) != before or digest(target) != before:
+                raise ValueError('Version source changed during snapshot')
+            version_files.append({'version_id':version, 'role':role, 'path':relative.as_posix(), 'sha256':before})
     finally:
         snapshot.close()
         source.close()
-    manifest = {'database_sha256':digest(output/'regbot.db'),'files':files}
+    manifest = {'database_sha256':digest(output/'regbot.db'),'files':files, 'version_files':version_files}
     (output/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
     return manifest
 
@@ -81,6 +107,7 @@ def restore(snapshot_dir, destination):
         fields = [f for f in ('text_path', 'original_path') if f in columns]
         expected = {(row[0], field) for row in source_db.execute('SELECT '+','.join(['id']+fields)+' FROM documents')
                     for field, value in zip(fields, row[1:]) if value}
+        expected_versions = version_assets(source_db)
     finally:
         source_db.close()
     found, paths = set(), set()
@@ -95,13 +122,25 @@ def restore(snapshot_dir, destination):
         paths.add(path)
     if found != expected:
         raise ValueError('Source manifest does not match database file references')
+    version_found = set()
+    for file in manifest.get('version_files', []):
+        key = (file['version_id'], file['role'])
+        path = within(root/file['path'], root)
+        if key in version_found or key not in expected_versions or path in paths or path in (root/'regbot.db', root/'manifest.json'):
+            raise ValueError('Invalid version source manifest entry')
+        if file['sha256'] != expected_versions[key]['sha256'] or digest(path) != file['sha256']:
+            raise ValueError('Version source checksum mismatch')
+        version_found.add(key)
+        paths.add(path)
+    if version_found != set(expected_versions):
+        raise ValueError('Missing version source assets')
     # Copy only verified assets; unrelated files and symlinks are not a backup.
     output.mkdir(parents=True)
     shutil.copyfile(root/'regbot.db',output/'regbot.db')
     shutil.copyfile(root/'manifest.json',output/'manifest.json')
     if digest(output/'regbot.db') != manifest['database_sha256']:
         raise ValueError('Database changed during restore')
-    for file in manifest['files']:
+    for file in manifest['files'] + manifest.get('version_files', []):
         destination_path = within(output/file['path'],output)
         destination_path.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(within(root/file['path'],root),destination_path)
@@ -112,6 +151,11 @@ def restore(snapshot_dir, destination):
         for file in manifest['files']:
             destination_path = within(output/file['path'],output)
             db.execute(f"UPDATE documents SET {file['field']}=? WHERE id=?",(str(destination_path),file['document_id']))
+        for file in manifest.get('version_files', []):
+            raw = db.execute('SELECT card FROM evidence_versions WHERE id=?', (file['version_id'],)).fetchone()[0]
+            card = json.loads(raw)
+            card['source_assets'][file['role']]['path'] = str(within(output/file['path'], output))
+            db.execute('UPDATE evidence_versions SET card=? WHERE id=?', (json.dumps(card,ensure_ascii=False),file['version_id']))
         db.commit()
         if db.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
             raise ValueError('Restored database failed integrity check')

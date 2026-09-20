@@ -7,6 +7,7 @@ from pathlib import Path
 from docx import Document
 
 from services.document_service import _docx_inline_text, clean_text, extract_docx
+from services.docx_numbering import Numbering, UNRESOLVED, W
 
 
 def audit(path):
@@ -16,6 +17,8 @@ def audit(path):
     body = doc.element.body
     text = extract_docx(str(path))
     paragraphs = [clean_text(_docx_inline_text(p)) for p in body.findall('.//w:p', ns)]
+    numbering = Numbering(doc)
+    labels = [numbering.prefix(p) for p in body.iter(W+'p')]
     return {
         'original_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
         'extracted_sha256': hashlib.sha256(text.encode()).hexdigest(),
@@ -26,11 +29,13 @@ def audit(path):
         'vertical_merge_cells': len(body.findall('.//w:vMerge', ns)),
         'explicit_numbered_paragraphs': len(body.findall('.//w:pPr/w:numPr', ns)),
         'source_paragraphs': len(paragraphs),
+        'numbered_paragraphs': sum(bool(label) for label in labels),
+        'unresolved_numbered_paragraphs': sum(UNRESOLVED in label for label in labels),
         'missing_paragraphs': [p for p in paragraphs if p and p not in text],
         'approved': False,
         'limitations': [
             'Whitespace-normalized paragraph presence does not establish cell association or multiplicity',
-            'Automatic numbering, including numbering inherited from styles, is not reconstructed',
+            'Supported numbering is reconstructed; unsupported formats are explicitly marked',
             'Tracked revisions and table layout require source review',
         ],
     }
