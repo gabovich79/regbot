@@ -56,3 +56,14 @@ def test_repeated_heading_does_not_merge_distant_sections():
     chunks=[chunk(0,'טופס','same'),chunk(1,'אחר','other'),chunk(2,'טופס','same')]
     evidence,_=pack_sections([chunks[2]],chunks,public)
     assert [e['id'] for e in evidence]==['v1-2']
+
+
+def test_oversized_dependencies_do_not_truncate_small_selected_section():
+    chunks=[chunk(0,'1. כלל','rule and exception','rule'),
+            chunk(1,'1. כלל','rule and exception','exception'),
+            chunk(2,'2. הגדרות','large','x '*1000)]
+    evidence,trace=pack_sections([chunks[0]],chunks,public,budget=200)
+    assert [e['id'] for e in evidence]==['v1-0','v1-1']
+    assert trace['complete_section_count']==1
+    assert not trace['partial_section_seeds']
+    assert trace['unresolved_section_references'][0]['reason']=='dependency_bundle_exceeds_context_budget'

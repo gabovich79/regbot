@@ -25,24 +25,39 @@ def _page_record(page, number):
     # Match the text stream in order; never guess offsets from visual positions.
     # Bold numeric heading markers distinguish section 13 from a plain nested
     # item 2 without imposing a document-specific numbering sequence.
-    cursor, bold_starts, aligned = 0, [], True
+    cursor, bold_starts, captions, aligned = 0, [], [], True
     for block in page.get_text('dict', flags=fitz.TEXTFLAGS_DICT & ~fitz.TEXT_PRESERVE_IMAGES)['blocks']:
         for line in block.get('lines', []):
             spans = line.get('spans', [])
             line_text = clean_text(''.join(span['text'] for span in spans))
             if not line_text:
                 continue
+            first = next((span for span in spans if span['text'].strip()), {})
+            if first.get('flags', 0) & 16:
+                from services.document_structure import statutory_caption, caption_words
+                if record['text'].count(line_text) == 1:
+                    exact = record['text'].index(line_text)
+                    following = record['text'][exact + len(line_text):].lstrip('\n').split('\n', 1)[0]
+                    # Older statutes have bold captions without amendment notes.
+                    # Require a following numbered clause and a wholly bold line.
+                    numbered_next = bool(re.search(r'(?:^\s*\d{1,3}[א-ת]?\.|\.\d{1,3}[א-ת]?(?:\s|$))', following))
+                    plain_caption = (len(line_text) <= 160 and
+                                     bool(caption_words(line_text)) and
+                                     all(s.get('flags', 0) & 16 for s in spans if s['text'].strip()) and
+                                     '(תיקון' not in line_text and numbered_next)
+                    if statutory_caption(line_text) or plain_caption:
+                        captions.append(exact)
             position = record['text'].find(line_text, cursor)
             if position < 0:
                 aligned = False
-                break
-            first = next((span for span in spans if span['text'].strip()), {})
+                continue
             if first.get('flags', 0) & 16 and re.match(r'^\d{1,3}[א-ת]?(?:\s|\.|$)', line_text):
                 bold_starts.append(position)
             cursor = position + len(line_text)
-        if not aligned:
-            break
     record['bold_numbered_starts'] = bold_starts if aligned else None
+    # Captions have independent unique exact matches even if an unrelated line
+    # (e.g. a formula or footnote) prevented page-wide numeric alignment.
+    record['bold_caption_starts'] = sorted(set(captions))
     if not record['text']:
         # Empty text alone does not distinguish a blank page from a scan.
         # Confirm only an entirely white render; any visible ink still needs OCR/review.

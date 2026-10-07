@@ -1,5 +1,10 @@
 import pytest
-from services.rerank_protocol import ranked_ids
+from services.rerank_protocol import ranked_ids, ranking_schema
+
+
+def test_provider_schema_requires_one_rating_per_candidate():
+    ratings = ranking_schema({'S1':{}, 'S2':{}})['properties']['ratings']
+    assert ratings['minItems'] == ratings['maxItems'] == 2
 
 
 def rating(i,score):return {'id':i,'score':score,'reason':'Supports a required aspect'}

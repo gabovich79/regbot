@@ -56,6 +56,23 @@ def pack_sections(ranked, chunks, public_evidence, budget=24000):
             continue
         items = [public_evidence(c) for key in additions for c in groups[key]]
         if len(ENC.encode(json.dumps(items, ensure_ascii=False))) > budget:
+            # A large dependency set does not mean the selected source section
+            # itself is oversized. Keep that section whole, and report missing
+            # dependencies explicitly instead of truncating its qualifications.
+            existing = {e['id'] for e in selected}
+            complete_seed = [public_evidence(c) for c in members if c['id'] not in existing]
+            if len(ENC.encode(json.dumps(selected+complete_seed, ensure_ascii=False))) <= budget:
+                selected.extend(complete_seed)
+                selected_groups.add(seed)
+                missing_dependencies = [key for key in additions if key != seed]
+                unresolved.extend({'from_id':seed, 'reference':key,
+                                   'reason':'dependency_bundle_exceeds_context_budget'}
+                                  for key in missing_dependencies)
+                decisions.append({'seed':seed, 'included':True,
+                                  'reason':'complete_section_with_unresolved_dependencies',
+                                  'chunk_ids':[e['id'] for e in complete_seed],
+                                  'omitted_dependencies':missing_dependencies})
+                continue
             # Legacy indexes can label a whole chapter as one parent. Preserve
             # useful evidence but NEVER describe this fallback as a full section.
             hits = [c for c in ranked if membership[c['id']] == seed]

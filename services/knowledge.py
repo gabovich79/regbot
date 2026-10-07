@@ -111,6 +111,17 @@ def prepare_document(text, metadata, pages=None):
                 issues.append('pdf_hierarchy_inferred_from_typography_requires_review')
             headings = {position:label for position,label in headings.items()
                         if position not in numbered or position in confirmed}
+    captions = []
+    if pages:
+        for (start,_,_), page in zip(bounds,pages):
+            for position in page.get('bold_caption_starts') or []:
+                absolute=start+position
+                label=page['text'][position:].split('\n',1)[0]
+                headings[absolute]=label
+                captions.append(absolute)
+    if captions:
+        structure_review['source_caption_boundaries']=captions
+        issues.append('source_caption_hierarchy_requires_review')
     # Always include the preamble. Do not require an arbitrary count of sections.
     cuts = sorted({0, len(text), *headings})
     card = {
@@ -132,6 +143,7 @@ def prepare_document(text, metadata, pages=None):
     if (profile['draft_markers'] or 'marked_revisions_require_source_review' in issues) and card['lifecycle_status'] == 'current':
         card['lifecycle_status'] = 'unknown'
     chunks, chapter = [], ''
+    oversized = []
     for a, b in zip(cuts, cuts[1:]):
         section_text = text[a:b]
         if not section_text.strip():
@@ -140,6 +152,9 @@ def prepare_document(text, metadata, pages=None):
         if section.startswith(('פרק', 'נספח')):
             chapter = section
         path = ' / '.join(dict.fromkeys(x for x in (chapter, section) if x))
+        section_tokens = len(ENC.encode(section_text))
+        if section_tokens > 24000:
+            oversized.append({'section': path, 'start': a, 'end': b, 'tokens': section_tokens})
         card['section_map'].append({'section': path, 'first_chunk': len(chunks)})
         for left, right in split_spans(section_text):
             content = section_text[left:right]
@@ -150,6 +165,9 @@ def prepare_document(text, metadata, pages=None):
             chunks.append({'content': content, 'section': path, 'section_text': section_text,
                            'context': context, 'page_start': min(page_numbers) if page_numbers else None,
                            'page_end': max(page_numbers) if page_numbers else None})
+    if oversized:
+        card['structure_review']['oversized_sections'] = oversized
+        issues.append('oversized_source_sections_require_review')
     return source_hash, card, issues, chunks
 
 

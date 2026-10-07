@@ -6,7 +6,8 @@ def ranking_schema(ids):
         'id':{'type':'string','enum':list(ids)},
         'score':{'type':'integer','enum':[0,1,2,3]},
         'reason':{'type':'string'}},'required':['id','score','reason'],'additionalProperties':False}
-    return {'type':'object','properties':{'ratings':{'type':'array','items':item}},
+    return {'type':'object','properties':{'ratings':{'type':'array','items':item,
+            'minItems':len(ids),'maxItems':len(ids)}},
             'required':['ratings'],'additionalProperties':False}
 
 

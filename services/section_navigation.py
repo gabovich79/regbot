@@ -9,7 +9,7 @@ from itertools import zip_longest
 from services.knowledge import ENC
 
 
-def catalog(candidates, chunks, token_budget=8000):
+def catalog(candidates, chunks, token_budget=8000, question=''):
     versions=list(dict.fromkeys(c['version_id'] for c in candidates))[:5]
     queues=[];documents={}
     for index,version in enumerate(versions,1):
@@ -21,6 +21,12 @@ def catalog(candidates, chunks, token_budget=8000):
             groups[-1].append(c)
         if groups:
             documents[f'D{index}']={'title':json.loads(groups[0][0]['card'])['title']}
+        if question and groups:
+            from services.evidence_search import bm25
+            scores = bm25(question, [group[0]['section'] for group in groups])
+            # An early table of contents or long statute must not consume the
+            # menu before relevant late headings. Stable ties retain source order.
+            groups = [groups[i] for i in sorted(range(len(groups)), key=lambda i: -scores[i])]
         queues.append(groups)
     entries=[];lookup={};omitted=0
     for row in zip_longest(*queues):
@@ -62,7 +68,7 @@ def section_representatives(ids, lookup, question):
 
 
 async def discover_sections(candidates, chunks, plan, gateway, trace):
-    entries,lookup,omitted,documents=catalog(candidates,chunks)
+    entries,lookup,omitted,documents=catalog(candidates,chunks,question=plan.get('standalone_question',''))
     trace['section_navigation']={'catalog':entries,'documents':documents,'omitted_sections':omitted,'selected':[]}
     if not entries:return candidates
     raw=await gateway.json('section_navigation',{

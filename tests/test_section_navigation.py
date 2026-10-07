@@ -85,3 +85,13 @@ def test_identical_headings_from_different_versions_keep_distinct_documents():
     assert entries[0]['document']!=entries[1]['document']
     assert lookup[entries[0]['id']][0] is a
     assert lookup[entries[1]['id']][0] is b
+
+
+def test_relevant_late_heading_survives_catalog_cutoff():
+    chunks=[chunk(i, f'General provision {i}') for i in range(500)]
+    chunks[-1]['section']='Cooling notice exceptions'
+    entries,lookup,omitted,_=catalog([chunks[0]],chunks,token_budget=300,question='Cooling notice')
+    assert omitted > 0
+    assert lookup[entries[0]['id']][0] is chunks[-1]
+    # Heading relevance only changes navigation; it does not replace source text.
+    assert lookup[entries[0]['id']][0]['content'] == 'original chunk'

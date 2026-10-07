@@ -5,6 +5,27 @@ TABLE = re.compile(r'(?m)^\[(תחילת|סוף) טבלה במקור: (\d+)\]$')
 CONTENTS = re.compile(r'(?mi)^[ \t]*(?:תוכן(?:\s+עניינים)?|table of contents)\s*:?\s*$')
 
 
+def caption_words(line):
+    without_years = re.sub(r'תש[א-ת]{0,2}["\'״׳][א-ת]{1,2}|תש[א-ת]{1,3}(?=\d)', '', line)
+    without_years = re.sub(r'ת["״]ט', '', without_years)
+    return [word for word in re.findall(r'[א-ת]{2,}', without_years)
+            if word not in {'מס', 'תיקון', 'הוראת', 'שעה'}]
+
+
+def statutory_caption(line):
+    """Recognize a source caption alongside amendment metadata, not metadata alone.
+
+    Caller must independently verify bold typography and exact text alignment.
+    This detects navigation boundaries, not section numbers or legal scope.
+    """
+    if '(תיקון' not in line:
+        return False
+    # PDF visual ordering can place amendment metadata before the caption.
+    # Remove complete Hebrew years before tokenizing: splitting תשס"ה would
+    # otherwise leave a spurious word and turn metadata into a heading.
+    return bool(caption_words(line))
+
+
 def boundaries(text, heading_pattern):
     """Return offsets and navigation labels without deleting any source text.
 
@@ -49,4 +70,9 @@ def boundaries(text, heading_pattern):
     headings = {offset: label for offset, label in headings.items()
                 if not any(start <= offset < end for start, end in spans)}
     headings.update(additions)
+    # Explicit annex part labels are safe navigation boundaries. Do not split
+    # a table at text which happens to name a part inside a cell.
+    for match in re.finditer(r'(?m)^[ \t]*חלק\s+[0-9א-ת]+[\'׳]?[ \t]*$',text):
+        if not any(a<=match.start()<b for a,b in spans):
+            headings[match.start()]=match.group().strip()
     return headings

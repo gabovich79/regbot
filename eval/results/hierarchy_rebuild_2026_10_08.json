@@ -1,0 +1,200 @@
+{
+  "acceptance": false,
+  "tests_passed": 353,
+  "production_changed": false,
+  "original_stage": [
+    {
+      "document_id": 22,
+      "previous_version": "108112dcb9b04873b502e319243fba19",
+      "original_sha256": "ec619e00c62ae1dd039a239e18d99a3e712860c1d4027ffc7046a7b63cebc8a5",
+      "text_unchanged": false,
+      "source_hash": "87575e60414b8347759de34c2faad9e6c14fdff9df162c9c4e92739b0de5b4ff",
+      "sections": 36,
+      "chunks": 79,
+      "max_section_tokens": 5338,
+      "oversized_sections": 0,
+      "issues": [
+        "unresolved_source_numbering_requires_review"
+      ],
+      "lossless_section_and_chunk_coverage": true,
+      "activated": false,
+      "new_version": "726d2b7b60ff4be08c23448dfedd514a",
+      "cost": 0.017991349999999996
+    },
+    {
+      "document_id": 25,
+      "previous_version": "06cbbf44c5b04443b9965e7efd3e7ead",
+      "original_sha256": "19ad03cc4126b18a19621e100af2291eba8fcf6c5070bd33abef46598b648db7",
+      "text_unchanged": false,
+      "source_hash": "9562e0f939af5dfd2c3d64c37bbfeb4d393f15239a62d081be35ae8f4f4367f7",
+      "sections": 71,
+      "chunks": 81,
+      "max_section_tokens": 2248,
+      "oversized_sections": 0,
+      "issues": [
+        "marked_revisions_require_source_review"
+      ],
+      "lossless_section_and_chunk_coverage": true,
+      "activated": false,
+      "new_version": "b6d9ab3db94146979dba19a241ed54ca",
+      "cost": 0.01319199
+    },
+    {
+      "document_id": 37,
+      "previous_version": "e60005fc78224598a729386e96a4f001",
+      "original_sha256": "4d9d397e88b5931d843af15a78e82c064a6196795ccda80468e4bb72e376349d",
+      "text_unchanged": true,
+      "source_hash": "c1079396e4094a89c37066a9c48a0c10ce2ad9787c18382806769f99ae23cbc0",
+      "sections": 612,
+      "chunks": 1377,
+      "max_section_tokens": 87189,
+      "oversized_sections": 1,
+      "issues": [
+        "source_caption_hierarchy_requires_review",
+        "oversized_source_sections_require_review"
+      ],
+      "lossless_section_and_chunk_coverage": true,
+      "activated": false,
+      "new_version": "8ebbc43f26d54c09aab291393337c89d",
+      "cost": 0.21211977000000007
+    }
+  ],
+  "final_stage": [
+    {
+      "document_id": 37,
+      "previous_version": "8ebbc43f26d54c09aab291393337c89d",
+      "original_sha256": "4d9d397e88b5931d843af15a78e82c064a6196795ccda80468e4bb72e376349d",
+      "text_unchanged": true,
+      "source_hash": "c1079396e4094a89c37066a9c48a0c10ce2ad9787c18382806769f99ae23cbc0",
+      "sections": 585,
+      "chunks": 1355,
+      "max_section_tokens": 87189,
+      "oversized_sections": 1,
+      "issues": [
+        "source_caption_hierarchy_requires_review",
+        "oversized_source_sections_require_review"
+      ],
+      "lossless_section_and_chunk_coverage": true,
+      "activated": false,
+      "reused_identical_vectors": 1288,
+      "new_version": "a41dd862a88646f8a4514fc7e5d9653e",
+      "cost": 0.009745839999999999
+    }
+  ],
+  "manifest": {
+    "1": "0a7287fa711e43beb896ae7a1414e114",
+    "3": "abc7645a1a8b4ca9a012af39ff49009a",
+    "19": "75032f9acde04fae8e791bcaaae0678b",
+    "22": "726d2b7b60ff4be08c23448dfedd514a",
+    "25": "b6d9ab3db94146979dba19a241ed54ca",
+    "26": "8721195de89f46da950f90bb254a0723",
+    "34": "cedec2d59ec24a1098c529291b1975a1",
+    "36": "d74a10113c80465eb67bb563dfecb330",
+    "37": "a41dd862a88646f8a4514fc7e5d9653e",
+    "38": "c76ece695c78409e82945e8a7875be6d"
+  },
+  "live_attempts": [
+    {
+      "stage": "results",
+      "case": "employer-structure",
+      "seconds": 45.90700000000652,
+      "cost": 0.05087884999999999,
+      "error": null,
+      "status": "partial",
+      "partial_sections": 0,
+      "omitted_sections": 0
+    },
+    {
+      "stage": "results",
+      "case": "transfer-structure",
+      "seconds": 46.17200000002049,
+      "cost": 0.06467648,
+      "error": "ServerError",
+      "status": null,
+      "partial_sections": 0,
+      "omitted_sections": 6
+    },
+    {
+      "stage": "results",
+      "case": "withdrawal-structure",
+      "seconds": 42.625,
+      "cost": 0.036176,
+      "error": null,
+      "status": "partial",
+      "partial_sections": 1,
+      "omitted_sections": 1
+    },
+    {
+      "stage": "results-final",
+      "case": "employer-structure",
+      "seconds": 45.95300000003772,
+      "cost": 0.04532115,
+      "error": null,
+      "status": "partial",
+      "partial_sections": 0,
+      "omitted_sections": 0
+    },
+    {
+      "stage": "results-final",
+      "case": "transfer-structure",
+      "seconds": 61.71899999998277,
+      "cost": 0.06324247999999999,
+      "error": null,
+      "status": "partial",
+      "partial_sections": 0,
+      "omitted_sections": 10
+    },
+    {
+      "stage": "results-final",
+      "case": "withdrawal-structure",
+      "seconds": 14.25,
+      "cost": 0.0098922,
+      "error": "ValueError",
+      "status": null,
+      "partial_sections": 0,
+      "omitted_sections": 0
+    },
+    {
+      "stage": "results-rating-contract",
+      "case": "withdrawal-structure",
+      "seconds": 41.59399999998277,
+      "cost": 0.028127729999999997,
+      "error": null,
+      "status": "insufficient",
+      "partial_sections": 2,
+      "omitted_sections": 2
+    }
+  ],
+  "packing_replay": [
+    {
+      "case": "transfer-structure",
+      "old_count": 29,
+      "new_count": 29,
+      "tokens": 23743,
+      "partial_sections": 0,
+      "complete_sections": 15,
+      "unresolved_references": 0
+    },
+    {
+      "case": "employer-structure",
+      "old_count": 21,
+      "new_count": 21,
+      "tokens": 10014,
+      "partial_sections": 0,
+      "complete_sections": 19,
+      "unresolved_references": 3
+    },
+    {
+      "case": "withdrawal-structure",
+      "old_count": 4,
+      "new_count": 5,
+      "tokens": 4191,
+      "partial_sections": 0,
+      "complete_sections": 2,
+      "unresolved_references": 18
+    }
+  ],
+  "cumulative_cost_including_reservations": 9.470723099999999,
+  "unsettled_reservations": 1.03907171,
+  "budget_limit": 20
+}
