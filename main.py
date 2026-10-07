@@ -6,11 +6,13 @@ import csv
 import io
 import logging
 import secrets
+import asyncio
+import time
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Depends
-from fastapi.responses import StreamingResponse, FileResponse, Response
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query, Depends, Request
+from fastapi.responses import StreamingResponse, FileResponse, Response, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
@@ -43,6 +45,12 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("RegBot starting up...")
         await init_db()
+        from models.evidence_store import prune
+        cleanup_db = await get_db()
+        try:
+            await prune(cleanup_db)
+        finally:
+            await cleanup_db.close()
         os.makedirs(DOCUMENTS_DIR, exist_ok=True)
         logger.info("RegBot startup complete.")
     except Exception as e:
@@ -53,9 +61,20 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="RegBot", lifespan=lifespan)
 
+
+@app.middleware('http')
+async def origin_guard(request: Request, call_next):
+    if request.method in {'POST','PUT','PATCH','DELETE'}:
+        from services.public_access import same_origin
+        try:
+            same_origin(request)
+        except HTTPException as exc:
+            return JSONResponse({'detail':exc.detail}, status_code=exc.status_code)
+    return await call_next(request)
+
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
-BUILD_VERSION = "rag-embeddings-v1"
+BUILD_VERSION = "evidence-pipeline-v2"
 
 # --- Auth ---
 
@@ -64,7 +83,9 @@ security = HTTPBasic()
 
 def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
     if not ADMIN_PASSWORD:
-        return  # No password set = auth disabled (dev mode)
+        if os.getenv("ALLOW_INSECURE_DEV") == "1":
+            return
+        raise HTTPException(503, "Admin authentication is not configured")
     correct = secrets.compare_digest(credentials.password, ADMIN_PASSWORD)
     if not correct:
         raise HTTPException(status_code=401, detail="Unauthorized",
@@ -74,96 +95,258 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.get("/api/version")
 async def get_version():
+    from config import DEFAULT_MODEL, EMBEDDING_MODEL
     db = await get_db()
     try:
-        cursor = await db.execute("SELECT COUNT(*) as cnt FROM document_chunks")
-        row = await cursor.fetchone()
-        chunk_count = row["cnt"]
-    except Exception:
-        chunk_count = 0
+        row = await (await db.execute('SELECT release_id FROM active_index WHERE singleton=1')).fetchone()
+        count = await (await db.execute('SELECT COUNT(*) AS n FROM evidence_chunks')).fetchone()
+        return {"version": BUILD_VERSION, "commit": os.getenv('RENDER_GIT_COMMIT', os.getenv('BUILD_COMMIT', 'unknown')),
+                "active_index": row['release_id'] if row else None, "total_chunks": count['n'],
+                "generation_model": DEFAULT_MODEL, "embedding_model": EMBEDDING_MODEL}
     finally:
         await db.close()
-    return {
-        "version": BUILD_VERSION,
-        "total_chunks": chunk_count,
-    }
 
-
-# --- Chat API ---
 
 @app.post("/api/chat")
-async def chat(
-    question: str = Form(...),
-    conversation_id: int = Form(None),
-    session_id: str = Form(None),
-):
-    if not session_id:
-        session_id = str(uuid.uuid4())
-
-    if not conversation_id:
-        conversation_id = await create_conversation(session_id)
-
-    # Save user message
-    await save_message(conversation_id, "user", question)
-
-    # Load conversation history
-    history_rows = await get_conversation_messages(conversation_id)
-    conversation_history = []
-    for row in history_rows[:-1]:  # Exclude the just-saved user message
-        conversation_history.append({"role": row["role"], "content": row["content"]})
+async def chat(request: Request, question: str = Form(...), conversation_id: int = Form(None), session_id: str = Form(None)):
+    from services.public_access import identity, set_cookie, same_origin, client_ip, assert_owner, reserve, settle, RESERVATION
+    from services.providers import Gateway
+    from services.evidence_pipeline import run_pipeline
+    from models.evidence_store import save_trace, prune
+    same_origin(request)
+    question = question.strip()
+    if not question or len(question) > 4000:
+        raise HTTPException(422, 'Question must contain 1–4000 characters')
+    owner, cookie = identity(request)
+    request_id = uuid.uuid4().hex
+    db = await get_db()
+    reserved = False
+    try:
+        await prune(db)
+        if conversation_id:
+            await assert_owner(db, conversation_id, owner)
+        active = await (await db.execute('SELECT release_id FROM active_index WHERE singleton=1')).fetchone()
+        if not active:
+            raise HTTPException(503, 'האינדקס טרם נבדק והופעל.')
+        await reserve(db, request_id, owner, client_ip(request))
+        reserved = True
+        if not conversation_id:
+            conversation_id = await create_conversation('v2:' + owner)
+            await db.execute('INSERT INTO owned_conversations VALUES(?,?)', (conversation_id, owner))
+            await db.commit()
+        await save_message(conversation_id, 'user', question)
+        rows = await get_conversation_messages(conversation_id)
+        history = [{'role':r['role'], 'content':r['content']} for r in rows[:-1]][-8:]
+    except BaseException:
+        if reserved:
+            await settle(db, request_id, 0, 'failed_before_provider')
+        raise
+    finally:
+        await db.close()
 
     async def generate():
-        usage_data = None
-        db = await get_db()
+        queue = asyncio.Queue()
+        gateway = Gateway(request_id=request_id, limit=RESERVATION)
+        trace = {'question':question, 'request_id':request_id}
+        start = time.monotonic()
+        async def progress(message):
+            await queue.put({'type':'thinking', 'text':message, 'request_id':request_id})
+        async def work():
+            conn = await get_db()
+            status = 'failed'
+            try:
+                result = await asyncio.wait_for(run_pipeline(question, history, conn, gateway, trace, progress), timeout=90)
+                status = result['status']
+                elapsed = int((time.monotonic()-start)*1000)
+                await save_message(conversation_id, 'assistant', result['text'], confidence=status,
+                                   response_time_ms=elapsed, cost_usd=gateway.spent)
+                await queue.put({'type':'sources','sources':result['sources'], 'request_id':request_id})
+                await queue.put({'type':'text', 'text':result['text']})
+                await queue.put({'type':'usage','data':{'confidence':status,'response_time_ms':elapsed,'cost_usd':gateway.spent,'request_id':request_id}})
+            except asyncio.TimeoutError:
+                await queue.put({'type':'error','text':'הזמן הקצוב הסתיים ללא תשובה מאומתת. נסה למקד את השאלה.'})
+                trace['error'] = 'deadline_exceeded'
+            except asyncio.CancelledError:
+                status = 'cancelled'
+                trace['error'] = 'client_disconnected'
+                raise
+            except Exception as exc:
+                logger.exception('Evidence pipeline failed: %s',request_id)
+                trace['error'] = type(exc).__name__
+                await queue.put({'type':'error','text':'לא ניתן להשלים תשובה מאומתת כעת. מזהה בדיקה: ' + request_id})
+            finally:
+                trace['provider_calls'] = gateway.calls
+                trace['cost_usd'] = gateway.spent
+                trace['response_time_ms'] = int((time.monotonic()-start)*1000)
+                try:
+                    await save_trace(conn,request_id,owner,conversation_id,status,trace)
+                    await settle(conn,request_id,gateway.spent,status)
+                finally:
+                    await conn.close()
+                    await queue.put(None)
+        task = asyncio.create_task(work())
         try:
-            async for chunk in stream_chat(
-                question, db,
-                conversation_history,
-                top_k=RAG_TOP_K,
-                context_window=RAG_CONTEXT_WINDOW,
-            ):
-                if chunk["type"] == "text":
-                    yield f"data: {json.dumps({'type': 'text', 'text': chunk['text']})}\n\n"
-                elif chunk["type"] == "thinking":
-                    yield f"data: {json.dumps({'type': 'thinking', 'text': chunk['text']})}\n\n"
-                elif chunk["type"] == "usage":
-                    usage_data = chunk
-                    yield f"data: {json.dumps({'type': 'usage', 'data': chunk})}\n\n"
-                elif chunk["type"] == "error":
-                    yield f"data: {json.dumps({'type': 'error', 'text': chunk['text']})}\n\n"
+            while True:
+                item = await queue.get()
+                if item is None:
+                    break
+                yield 'data: ' + json.dumps(item,ensure_ascii=False) + '\n\n'
+            await task
+            yield 'data: ' + json.dumps({'type':'done','conversation_id':conversation_id,'request_id':request_id}) + '\n\n'
         finally:
-            await db.close()
-
-        if usage_data:
-            await save_message(
-                conversation_id, "assistant", usage_data["full_text"],
-                confidence=usage_data.get("confidence"),
-                response_time_ms=usage_data.get("response_time_ms"),
-                input_tokens=usage_data.get("input_tokens"),
-                output_tokens=usage_data.get("output_tokens"),
-                cache_read_tokens=usage_data.get("cache_read_tokens"),
-                cache_write_tokens=usage_data.get("cache_write_tokens"),
-                cost_usd=usage_data.get("cost_usd"),
-            )
-
-        yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation_id, 'session_id': session_id})}\n\n"
-
-    return StreamingResponse(generate(), media_type="text/event-stream")
+            if not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+    response = StreamingResponse(generate(), media_type='text/event-stream')
+    set_cookie(response,cookie)
+    response.headers['X-Request-ID'] = request_id
+    return response
 
 
-# --- Conversations API ---
+@app.get('/api/conversations')
+async def list_conversations(request: Request):
+    from services.public_access import identity, set_cookie
+    owner,cookie = identity(request)
+    db = await get_db()
+    try:
+        rows = await (await db.execute("""SELECT c.id,c.started_at,
+            (SELECT content FROM messages WHERE conversation_id=c.id AND role='user' ORDER BY id LIMIT 1) AS first_question
+            FROM conversations c JOIN owned_conversations o ON o.conversation_id=c.id
+            WHERE o.owner=? ORDER BY c.id DESC""",(owner,))).fetchall()
+        response = JSONResponse([dict(r) for r in rows])
+        set_cookie(response,cookie)
+        return response
+    finally:
+        await db.close()
 
-@app.get("/api/conversations")
-async def list_conversations():
-    return await get_conversations()
+
+@app.get('/api/conversations/{conv_id}')
+async def get_conversation(conv_id: int, request: Request):
+    from services.public_access import identity, assert_owner
+    owner,_ = identity(request)
+    db = await get_db()
+    try:
+        await assert_owner(db,conv_id,owner)
+        return await get_conversation_messages(conv_id)
+    finally:
+        await db.close()
 
 
-@app.get("/api/conversations/{conv_id}")
-async def get_conversation(conv_id: int):
-    messages = await get_conversation_messages(conv_id)
-    if not messages:
-        raise HTTPException(404, "שיחה לא נמצאה")
-    return messages
+@app.get('/api/admin/conversations/{conv_id}')
+async def admin_conversation(conv_id: int, _=Depends(verify_admin)):
+    return await get_conversation_messages(conv_id)
+
+
+@app.get('/api/admin/traces/{request_id}')
+async def request_trace(request_id: str, _=Depends(verify_admin)):
+    db = await get_db()
+    try:
+        row = await (await db.execute('SELECT * FROM request_traces WHERE id=?',(request_id,))).fetchone()
+        if not row:
+            raise HTTPException(404,'Trace not found')
+        return {**dict(row),'payload':json.loads(row['payload'])}
+    finally:
+        await db.close()
+
+
+@app.get('/api/admin/index/versions')
+async def index_versions(_=Depends(verify_admin)):
+    db = await get_db()
+    try:
+        rows = await (await db.execute('SELECT * FROM evidence_versions ORDER BY created_at DESC')).fetchall()
+        return [{**dict(r),'card':{k:v for k,v in json.loads(r['card']).items() if k!='embedding'},'issues':json.loads(r['issues'])} for r in rows]
+    finally:
+        await db.close()
+
+
+@app.get('/api/admin/index/versions/{version}')
+async def inspect_index(version: str, _=Depends(verify_admin)):
+    db = await get_db()
+    try:
+        row = await (await db.execute('SELECT * FROM evidence_versions WHERE id=?',(version,))).fetchone()
+        if not row:
+            raise HTTPException(404,'Version not found')
+        chunks = await (await db.execute('SELECT id,ordinal,content,context,section,page_start,page_end FROM evidence_chunks WHERE version_id=? ORDER BY ordinal',(version,))).fetchall()
+        return {'version':version,'card':{k:v for k,v in json.loads(row['card']).items() if k!='embedding'},
+                'issues':json.loads(row['issues']),'review_status':row['review_status'],'chunks':[dict(c) for c in chunks]}
+    finally:
+        await db.close()
+
+
+@app.post('/api/admin/index/versions/{version}/metadata')
+async def verify_index_metadata(version: str, metadata: dict, _=Depends(verify_admin)):
+    from datetime import date
+    allowed = {'effective_date','valid_until','lifecycle_status','source_quote'}
+    if set(metadata)-allowed or not isinstance(metadata.get('source_quote'),str) or len(metadata['source_quote']) < 10:
+        raise HTTPException(422,'Supply exact supporting source_quote and only validity fields')
+    for field in ('effective_date','valid_until'):
+        if metadata.get(field):
+            try:
+                date.fromisoformat(metadata[field])
+            except (TypeError,ValueError):
+                raise HTTPException(422,'Invalid ISO date')
+    if metadata.get('lifecycle_status') not in (None,'current','draft','superseded','expired','unknown'):
+        raise HTTPException(422,'Unknown lifecycle status')
+    db = await get_db()
+    try:
+        row = await (await db.execute('SELECT card,review_status FROM evidence_versions WHERE id=?',(version,))).fetchone()
+        if not row or row['review_status'] != 'pending':
+            raise HTTPException(422,'Only pending versions may be edited; re-index to change an approved version')
+        texts = await (await db.execute('SELECT section_text FROM evidence_chunks WHERE version_id=?',(version,))).fetchall()
+        if not any(metadata['source_quote'] in r['section_text'] for r in texts):
+            raise HTTPException(422,'Supporting quote is not present in the source')
+        card = json.loads(row['card'])
+        card.update(metadata)
+        card['metadata_verified'] = True
+        await db.execute('UPDATE evidence_versions SET card=? WHERE id=?',(json.dumps(card,ensure_ascii=False),version))
+        await db.commit()
+        return {'version':version,'metadata_verified':True}
+    finally:
+        await db.close()
+
+
+@app.get('/api/admin/runtime')
+async def runtime_snapshot(_=Depends(verify_admin)):
+    from config import DATA_DIR, DEFAULT_MODEL, EMBEDDING_MODEL
+    from services.providers import prices
+    from services.claude_service import get_system_instructions
+    db = await get_db()
+    try:
+        return {'version':await get_version(), 'data_dir':os.path.abspath(DATA_DIR),
+                'models':{'generation':DEFAULT_MODEL,'embeddings':EMBEDDING_MODEL},
+                'price_registry':prices(), 'legacy_system_instructions':await get_system_instructions(db),
+                'active_prompt_policy':'evidence_pipeline_v2 (legacy editable prompt is not used)',
+                'public_sessions_configured':len(os.getenv('DEMO_SESSION_SECRET',''))>=32}
+    finally:
+        await db.close()
+
+
+@app.post('/api/admin/index/{version}/review')
+async def review_index(version: str, accepted: bool = Form(...), note: str = Form(''), _=Depends(verify_admin)):
+    from models.evidence_store import review
+    db = await get_db()
+    try:
+        await review(db,version,accepted,note)
+        return {'version':version,'accepted':accepted}
+    except ValueError as exc:
+        raise HTTPException(422,str(exc))
+    finally:
+        await db.close()
+
+
+@app.post('/api/admin/index/activate')
+async def activate_index(versions: list[str], _=Depends(verify_admin)):
+    from models.evidence_store import activate
+    db = await get_db()
+    try:
+        return {'release_id':await activate(db,versions)}
+    except ValueError as exc:
+        raise HTTPException(422,str(exc))
+    finally:
+        await db.close()
 
 
 # --- Documents API ---
@@ -183,20 +366,20 @@ async def _index_document(
     """Chunk and embed a document for RAG retrieval."""
     db = await get_db()
     try:
-        doc_metadata = {
-            "id": doc_id,
-            "title": title,
-            "source_ref": source_ref,
-            "effective_date": None,
-            "topic": None,
-        }
-        chunks = (
-            chunk_regulatory_pages(pages, doc_metadata)
-            if pages is not None
-            else chunk_regulatory_document(text, doc_metadata)
-        )
-        num_chunks = await embed_and_store_chunks(chunks, db)
-        await update_document_index_status(doc_id, "ready", chunk_count=num_chunks)
+        from services.knowledge import stage_document
+        stored = await get_document(doc_id)
+        doc_metadata = {**(stored or {}), 'id':doc_id, 'title':title, 'source_ref':source_ref}
+        original = doc_metadata.get('original_path')
+        if pages is None and original and os.path.isfile(original):
+            if original.lower().endswith('.pdf'):
+                with open(original, 'rb') as handle:
+                    pages = extract_pdf_bytes_pages(handle.read())
+            elif original.lower().endswith('.docx'):
+                with open(original, 'rb') as handle:
+                    text = extract_docx_bytes(handle.read())
+        version, num_chunks = await stage_document(db, doc_metadata, text, pages)
+        logger.info('Staged document %s as version %s; activation requires review', doc_id, version)
+        await update_document_index_status(doc_id, "staged", chunk_count=num_chunks)
         logger.info(f"Document {doc_id} indexed: {num_chunks} chunks")
         return num_chunks
     except Exception as error:
@@ -265,7 +448,7 @@ async def upload_document(file: UploadFile = File(...), _=Depends(verify_admin))
         "token_count": token_count,
         "total_tokens": total,
         "num_chunks": num_chunks,
-        "index_status": "ready" if num_chunks else "failed",
+        "index_status": "staged" if num_chunks else "failed",
         "warning": warning,
         "message": (
             f"נוסף והוכן לחיפוש — {token_count:,} טוקנים, {num_chunks} קטעים"
@@ -329,7 +512,7 @@ async def add_document_url(url: str = Form(...), title: str = Form(None), _=Depe
         "token_count": token_count,
         "total_tokens": total,
         "num_chunks": num_chunks,
-        "index_status": "ready" if num_chunks else "failed",
+        "index_status": "staged" if num_chunks else "failed",
         "warning": warning,
         "message": (
             f"נוסף והוכן לחיפוש — {token_count:,} טוקנים, {num_chunks} קטעים"

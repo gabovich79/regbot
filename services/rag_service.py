@@ -12,7 +12,7 @@ from openai import AsyncOpenAI
 from config import OPENAI_API_KEY, EMBEDDING_MODEL, RAG_MAX_CONTEXT_TOKENS
 from services.validity import document_validity_status
 
-openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY or 'unconfigured-no-live-key')
 
 SECTION_PATTERN = re.compile(
     r'(?:^|\n)(?:סעיף\s+\d+|פרק\s+[א-ת]|\d+\.\s|\d+\)\s)',

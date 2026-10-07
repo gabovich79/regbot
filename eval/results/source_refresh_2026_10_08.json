@@ -1,0 +1,78 @@
+{
+  "acceptance": false,
+  "production_changed": false,
+  "sources": [
+    {
+      "name": "employer-2026-9-2",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-legislation-2026/he/Regulation-2026-9-2-the-manner-of-depositing-payments-to-the-provident-fund-draft-PDF.pdf",
+      "sha256": "981637c29b65962ce9d9648844cd7b845b6c0b4471cdf49d001e341295e256eb",
+      "retrieved_at": "2026-10-07T21:26:37.118799+00:00",
+      "status": "candidate_not_approved",
+      "layout_audit": {
+        "filename": "employer-2026-9-2.pdf",
+        "page_count": 20,
+        "table_pages": [
+          14,
+          18,
+          19
+        ],
+        "issues": [
+          "pdf_tables_require_structure_review"
+        ],
+        "approved": false,
+        "activated": false
+      }
+    },
+    {
+      "name": "employer-2025-9-6",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice_2025_54/he/Regulation-2025-9-6-the-manner-of-depositing-payments-to-the-provident-fund-update%20-PDF.pdf",
+      "sha256": "627f782a3913a188125cb084a9040b8c93681c2366732ab9e4c26dc7f6893af9",
+      "retrieved_at": "2026-10-07T21:26:37.283357+00:00",
+      "status": "candidate_not_approved",
+      "layout_audit": {
+        "filename": "employer-2025-9-6.pdf",
+        "page_count": 21,
+        "table_pages": [
+          14,
+          18,
+          19
+        ],
+        "issues": [
+          "pdf_tables_require_structure_review"
+        ],
+        "approved": false,
+        "activated": false
+      }
+    },
+    {
+      "name": "employer-2025-9-3",
+      "url": "https://www.gov.il/BlobFolder/dynamiccollectorresultitem/notice_2025_34/he/Regulation-2025-9-3-the-manner-of-depositing-payments-to-the-provident-fund-update%20-PDF.pdf",
+      "sha256": "d9251e849e2ea4de0972d8c362fd73d2157a5d8290a73f091886101dd970e190",
+      "retrieved_at": "2026-10-07T21:26:37.458120+00:00",
+      "status": "candidate_not_approved",
+      "layout_audit": {
+        "filename": "employer-2025-9-3.pdf",
+        "page_count": 23,
+        "table_pages": [
+          14,
+          15,
+          18,
+          19
+        ],
+        "issues": [
+          "pdf_tables_require_structure_review"
+        ],
+        "approved": false,
+        "activated": false
+      }
+    }
+  ],
+  "visual_findings": [
+    {
+      "source": "employer-2026-9-2",
+      "page": 19,
+      "issue": "Flat extracted text does not preserve header-to-cell relationships."
+    }
+  ],
+  "later_amendments_exhaustively_checked": false
+}

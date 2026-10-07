@@ -2,6 +2,7 @@
 let currentConversationId = null;
 let currentSessionId = null;
 let isStreaming = false;
+let sessionReady = Promise.resolve();
 
 // ==================== Sidebar Toggle (Mobile) ====================
 
@@ -45,7 +46,7 @@ function initChat() {
     }
 
     document.getElementById('new-chat-btn')?.addEventListener('click', newChat);
-    loadConversations();
+    sessionReady = loadConversations();
 }
 
 function autoResize() {
@@ -96,7 +97,10 @@ async function sendMessage() {
     if (currentSessionId) formData.append('session_id', currentSessionId);
 
     try {
+        // Finish the initial cookie response before starting another session request.
+        await sessionReady;
         const response = await fetch('/api/chat', { method: 'POST', body: formData });
+        if (!response.ok) { const error = await response.json(); throw new Error(error.detail || 'בקשה נדחתה'); }
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
@@ -117,6 +121,8 @@ async function sendMessage() {
                 if (data.type === 'thinking') {
                     contentSpan.innerHTML = `<span class="thinking-indicator">${escapeHtml(data.text)}</span>`;
                     scrollToBottom();
+                } else if (data.type === 'sources') {
+                    showEvidence(assistantDiv, data.sources || []);
                 } else if (data.type === 'text') {
                     if (!fullText) {
                         contentSpan.innerHTML = ''; // Clear thinking indicator
@@ -141,7 +147,7 @@ async function sendMessage() {
             }
         }
     } catch (err) {
-        contentSpan.textContent = 'שגיאה בחיבור לשרת';
+        contentSpan.textContent = err.message || 'שגיאה בחיבור לשרת';
         contentSpan.classList.remove('streaming-cursor');
         contentSpan.classList.add('text-red-600');
     }
@@ -169,7 +175,7 @@ function addConfidenceBadge(div, confidence) {
     const badge = document.createElement('span');
     const cls = confidence === 'HIGH' ? 'badge-high' : confidence === 'MEDIUM' ? 'badge-medium' : 'badge-low';
     badge.className = `inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium ${cls}`;
-    badge.textContent = confidence;
+    badge.textContent = ({supported:'נתמך — בדיקה אוטומטית',partial:'נתמך חלקית',insufficient:'מידע לא מספיק'})[confidence] || confidence;
     div.appendChild(badge);
 }
 
@@ -236,6 +242,7 @@ function renderIndexStatus(doc) {
     if (status === 'ready') {
         return '<span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">✓ מוכן לחיפוש</span>';
     }
+    if (status === 'staged') return '<span>ממתין לבדיקת מקור ולהפעלת אינדקס</span>';
     if (status === 'indexing') {
         return '<span class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">⏳ באינדוקס</span>';
     }
@@ -704,7 +711,7 @@ async function showLogDetail(conversationId) {
     if (!modal || !content) return;
 
     try {
-        const res = await fetch(`/api/conversations/${conversationId}`);
+        const res = await fetch(`/api/admin/conversations/${conversationId}`);
         const messages = await res.json();
 
         content.innerHTML = messages.map(msg => `
@@ -773,3 +780,64 @@ document.addEventListener('DOMContentLoaded', () => {
         initChat();
     }
 });
+
+
+function showEvidence(parent, sources) {
+    const section = document.createElement('div');
+    for (const source of sources) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = `${source.title} — ${source.id}`;
+        const quote = document.createElement('pre');
+        quote.style.whiteSpace = 'pre-wrap';
+        quote.textContent = source.content;
+        details.append(summary, quote);
+        if (source.url?.startsWith('https://')) {
+            const link = document.createElement('a');
+            link.href = source.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+            link.textContent = 'פתח מקור'; details.append(link);
+        }
+        section.append(details);
+    }
+    parent.append(section);
+}
+
+async function loadIndexVersions() {
+    const container = document.getElementById('index-versions');
+    if (!container) return;
+    const response = await fetch('/api/admin/index/versions');
+    if (!response.ok) { container.textContent = 'לא ניתן לקרוא גרסאות'; return; }
+    const versions = await response.json();
+    container.replaceChildren();
+    for (const version of versions) {
+        const row = document.createElement('div'); row.className = 'p-3 border-b';
+        const choice = document.createElement('input'); choice.type = 'radio';
+        choice.name = `index-document-${version.document_id}`; choice.value = version.id;
+        choice.disabled = version.review_status !== 'approved';
+        const label = document.createElement('span');
+        label.textContent = ` ${version.card.title} | ${version.review_status} | ${version.id.slice(0,8)} `;
+        const inspect = document.createElement('button'); inspect.textContent = 'בדוק טקסט ומקור';
+        const preview = document.createElement('pre'); preview.style.whiteSpace = 'pre-wrap';
+        inspect.onclick = async () => {
+            const data = await (await fetch(`/api/admin/index/versions/${version.id}`)).json();
+            preview.textContent = JSON.stringify(data, null, 2);
+        };
+        const note = document.createElement('input'); note.placeholder = 'הערת בדיקת מקור ומענה לאזהרות'; note.className = 'border p-2 w-full';
+        const approve = document.createElement('button'); approve.textContent = 'אשר בדיקת מקור';
+        approve.onclick = async () => {
+            const form = new FormData(); form.append('accepted','true'); form.append('note',note.value);
+            const result = await fetch(`/api/admin/index/${version.id}/review`,{method:'POST',body:form});
+            const value = await result.json();
+            if (!result.ok) { preview.textContent = value.detail; return; }
+            await loadIndexVersions();
+        };
+        row.append(choice,label,inspect,note,approve,preview); container.append(row);
+    }
+}
+
+async function activateSelectedIndex() {
+    const versions = [...document.querySelectorAll('#index-versions input[type=radio]:checked')].map(el=>el.value);
+    const response = await fetch('/api/admin/index/activate', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(versions)});
+    const result = await response.json();
+    document.getElementById('index-result').textContent = response.ok ? `האינדקס הופעל: ${result.release_id}` : result.detail;
+}

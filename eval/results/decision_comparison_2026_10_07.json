@@ -1,0 +1,392 @@
+{
+  "acceptance": false,
+  "correctness_scored": false,
+  "baseline_commit": "42b52e4",
+  "observations": [
+    {
+      "id": "withdrawal",
+      "arm": "current",
+      "seconds": 65.88,
+      "cost": 0.06315399000000001,
+      "error": null,
+      "characters": 12044,
+      "evidence_items": 24,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "withdrawal",
+      "arm": "simple",
+      "seconds": 9.73,
+      "cost": 0.008430179999999995,
+      "error": null,
+      "characters": 1110,
+      "evidence_items": 27,
+      "provenance_issues": 1,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "withdrawal",
+      "arm": "oracle",
+      "seconds": 15.17,
+      "cost": 0.0105806,
+      "error": null,
+      "characters": 2381,
+      "evidence_items": 2,
+      "provenance_issues": 7,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "fees",
+      "arm": "current",
+      "seconds": 40.14,
+      "cost": 0.03763008,
+      "error": null,
+      "characters": 8146,
+      "evidence_items": 8,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "fees",
+      "arm": "simple",
+      "seconds": 6.89,
+      "cost": 0.0072804299999999975,
+      "error": null,
+      "characters": 709,
+      "evidence_items": 29,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "fees",
+      "arm": "oracle",
+      "seconds": 9.72,
+      "cost": 0.007646199999999999,
+      "error": null,
+      "characters": 1565,
+      "evidence_items": 4,
+      "provenance_issues": 9,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "fees-old",
+      "arm": "current",
+      "seconds": 36.72,
+      "cost": 0.028197340000000008,
+      "error": null,
+      "characters": 4841,
+      "evidence_items": 4,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "fees-old",
+      "arm": "simple",
+      "seconds": 4.05,
+      "cost": 0.00534457,
+      "error": null,
+      "characters": 296,
+      "evidence_items": 29,
+      "provenance_issues": 1,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "fees-old",
+      "arm": "oracle",
+      "seconds": 2.38,
+      "cost": 0.0028363,
+      "error": null,
+      "characters": 268,
+      "evidence_items": 5,
+      "provenance_issues": 1,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "join",
+      "arm": "current",
+      "seconds": 44.14,
+      "cost": 0.06391817,
+      "error": "ServerError",
+      "characters": 0,
+      "evidence_items": 30,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "join",
+      "arm": "simple",
+      "seconds": 20.77,
+      "cost": 0.016059669999999998,
+      "error": null,
+      "characters": 3081,
+      "evidence_items": 31,
+      "provenance_issues": 1,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "join",
+      "arm": "oracle",
+      "seconds": 23.8,
+      "cost": 0.0387857,
+      "error": "ServerError",
+      "characters": 0,
+      "evidence_items": 20,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "transfer",
+      "arm": "current",
+      "seconds": 66.38,
+      "cost": 0.06565429,
+      "error": null,
+      "characters": 16916,
+      "evidence_items": 26,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "transfer",
+      "arm": "simple",
+      "seconds": 21.25,
+      "cost": 0.016460309999999995,
+      "error": null,
+      "characters": 3895,
+      "evidence_items": 31,
+      "provenance_issues": 3,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "transfer",
+      "arm": "oracle",
+      "seconds": 23.52,
+      "cost": 0.0206839,
+      "error": null,
+      "characters": 4596,
+      "evidence_items": 1,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "employer",
+      "arm": "current",
+      "seconds": 47.42,
+      "cost": 0.06519287,
+      "error": "ServerError",
+      "characters": 0,
+      "evidence_items": 25,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "employer",
+      "arm": "simple",
+      "seconds": 25.42,
+      "cost": 0.034141830000000005,
+      "error": "ServerError",
+      "characters": 0,
+      "evidence_items": 35,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "employer",
+      "arm": "oracle",
+      "seconds": 17.12,
+      "cost": 0.0128495,
+      "error": null,
+      "characters": 2239,
+      "evidence_items": 1,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "identity",
+      "arm": "current",
+      "seconds": 41.52,
+      "cost": 0.03400971999999999,
+      "error": null,
+      "characters": 7318,
+      "evidence_items": 6,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "identity",
+      "arm": "simple",
+      "seconds": 8.39,
+      "cost": 0.006500280000000001,
+      "error": null,
+      "characters": 1030,
+      "evidence_items": 33,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "identity",
+      "arm": "oracle",
+      "seconds": 7.0,
+      "cost": 0.004110100000000002,
+      "error": null,
+      "characters": 894,
+      "evidence_items": 1,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "annual-cost",
+      "arm": "current",
+      "seconds": 47.33,
+      "cost": 0.05013381,
+      "error": null,
+      "characters": 16905,
+      "evidence_items": 24,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "annual-cost",
+      "arm": "simple",
+      "seconds": 20.75,
+      "cost": 0.015254699999999996,
+      "error": null,
+      "characters": 2762,
+      "evidence_items": 29,
+      "provenance_issues": 1,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "annual-cost",
+      "arm": "oracle",
+      "seconds": 17.31,
+      "cost": 0.0131689,
+      "error": null,
+      "characters": 1790,
+      "evidence_items": 1,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "loan",
+      "arm": "current",
+      "seconds": 55.41,
+      "cost": 0.052613839999999995,
+      "error": null,
+      "characters": 179,
+      "evidence_items": 12,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "loan",
+      "arm": "simple",
+      "seconds": 12.27,
+      "cost": 0.010703249999999997,
+      "error": null,
+      "characters": 1713,
+      "evidence_items": 31,
+      "provenance_issues": 9,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "loan",
+      "arm": "oracle",
+      "seconds": 17.08,
+      "cost": 0.0118053,
+      "error": null,
+      "characters": 2561,
+      "evidence_items": 4,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "missing-personal",
+      "arm": "current",
+      "seconds": 2.17,
+      "cost": 0.0005842,
+      "error": null,
+      "characters": 229,
+      "evidence_items": 0,
+      "provenance_issues": null,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "missing-personal",
+      "arm": "simple",
+      "seconds": 20.25,
+      "cost": 0.014980219999999995,
+      "error": null,
+      "characters": 3324,
+      "evidence_items": 27,
+      "provenance_issues": 0,
+      "correctness": "ungraded"
+    },
+    {
+      "id": "missing-personal",
+      "arm": "oracle",
+      "seconds": 13.55,
+      "cost": 0.008418700000000001,
+      "error": null,
+      "characters": 1698,
+      "evidence_items": 2,
+      "provenance_issues": 4,
+      "correctness": "ungraded"
+    }
+  ],
+  "targeted_findings": [
+    {
+      "case": "withdrawal",
+      "arm": "simple",
+      "category": "retrieval",
+      "title": "משיכה: הסעיף על שכירים נשאר מחוץ לתשובה",
+      "finding": "סעיף C137 נמצא במקום 22 ברשימת המועמדים והושמט מתקציב ההקשר. התשובה טענה שחסר מידע על שכירים. מסלול הבקרה שקיבל את עמודים 43–44 כן פירט את חלופות השכירים.",
+      "trace_path": "results/withdrawal-simple.json",
+      "evidence_ids": [
+        "D37-Ve60005fc78224598a729386e96a4f001-C137"
+      ]
+    },
+    {
+      "case": "withdrawal",
+      "arm": "oracle",
+      "category": "temporal_scope",
+      "title": "משיכה: מקור זמין אינו מבטיח טיפול נכון בתקופה",
+      "finding": "מסלול הבקרה הציג תקרה של 14,140 שקלים לשנה ללא שנת תחולה או הסתייגות מתוקף נוכחי, והחזיר רשימת מידע חסר ריקה. הסכום אכן מופיע במקור השמור; הכשל הוא בהצגתו ללא התקופה הנדרשת, ולא בהמצאת המספר.",
+      "answer_quotes": [
+        "הפקדה מוטבת כוללת סכום ששולם לקרן השתלמות לחברי קיבוץ, כהגדרתה בסעיף 58א, עד לסכום השווה ל-14,140 שקלים חדשים לשנה.",
+        "לעניין משיכה מקרן השתלמות לעצמאים, \"ההפקדה המוטבת\" היא עד 14,140 שקלים חדשים לשנה."
+      ],
+      "reference_requirement": "withdrawal:period:0"
+    },
+    {
+      "case": "transfer",
+      "arm": "oracle",
+      "category": "synthesis_omission",
+      "title": "ניוד: השמטה גם כשהמסמך המלא זמין",
+      "finding": "בתשובת הבקרה חסרות הודעות ההשלמה לעמית בתוך 15 ימי עסקים, אף שסעיף 6 נכלל בקלט. גם מועד התחילה והחריג שלו אינם מפורטים. הרשימה missing ריקה.",
+      "source_quote": "עמית עובר\nא. הגוף המנהל של הקופה המעבירה ימציא לעמית העובר, לא יאוחר מחמישה עשר ימי עסקים מיום העברת הכספים, אישור על העברת הכספים שיכלול לפחות פרטים אלה: \n1) לגבי גוף מנהל שהוא חברה מנהלת, שם הקופה המעבירה, מספר אישור מס הכנסה של הקופה המעבירה ומספר החשבון של העמית בקופה. לגבי גוף מנהל שהוא חברת ביטוח, שם הקופה המעבירה, מספר הפוליסה;\n2) שם הגוף המנהל של הקופה המעבירה;\n3) כתובת הגוף המנהל, מספר טלפון, כתובת דואר אלקטרוני ומספר פקסימיליה לבירורים;\n4) מועד העברת הכספים;\n5) המועד הקובע, לרבות הסבר כי החל במו",
+      "source_id": "D22-X87575e60414b8347759de34c2faad9e6c14fdff9df162c9c4e92739b0de5b4ff-PNone",
+      "reference_requirement": "transfer:conditions:3"
+    },
+    {
+      "case": "employer",
+      "arm": "oracle",
+      "category": "synthesis_omission",
+      "title": "הפקדות מעסיק: החריג נשמט בסינתזה",
+      "finding": "תשובת הבקרה פירטה זמני היזון חוזר, אך לא הציגה את הפטור המותנה למעסיק עד חמישה עובדים ואת תנאיו, אף שסעיף 3(ג) נכלל בקלט.",
+      "source_quote": "בסעיף זה ובסעיף 4 להלן, בהתקיים כל התנאים המפורטים להלן:\n1. המעסיק אינו מעסיק מעל חמישה עובדים; \n2. המעסיק מסר לחברה המנהלת את הפרטים שנקבעו בסעיף קטן (א) פעם אחת, ולא חל שינוי בפרטים האמורים; לעניין פסקה זו, לא יראו בעדכון סכום ההפקדה כתוצאה מהצמדה למדד, כשינוי בפרטי הדיווח;\n3. סכום ההפקדה בשל עובד זהה לסכום שהופקד בשלו במועד שבו נמסרו הפרטים כאמור בפסקה (2);\n4. המעסיק הורה לחברה המנהלת לגבות את התשלומים באופן קבוע באמצעות כרטיס אשראי או הרשאה לחיוב חשבון;\n5. החברה המנהלת אישרה למעסיק שלא לדווח במועד ההפ",
+      "source_id": "D25-X9562e0f939af5dfd2c3d64c37bbfeb4d393f15239a62d081be35ae8f4f4367f7-PNone",
+      "reference_requirement": "employer:exceptions:0"
+    },
+    {
+      "case": "annual-cost",
+      "arm": "simple",
+      "category": "coverage",
+      "title": "עלות שנתית: רכיב בסיסי חסר בתשובה",
+      "finding": "המסלול הקצר מנה את ההוצאות הישירות אך לא מנה את דמי הניהול כמרכיב בעלות הכוללת. מסלול הבקרה ציין במפורש דמי ניהול מצבירה, מהפקדות והוצאות ישירות. הנוסחה הרלוונטית לא אותרה בהקשר הסופי של המסלול הקצר.",
+      "reference_requirement": "annual-cost:rule:0"
+    }
+  ],
+  "cost_including_reservations": 0.72712895,
+  "cumulative_cost_including_reservations": 8.68120178
+}

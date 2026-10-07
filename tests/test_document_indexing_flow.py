@@ -1,6 +1,14 @@
 import pytest
 
 import main
+from services import knowledge
+
+@pytest.fixture(autouse=True)
+def stored_document(monkeypatch):
+    async def get_document(doc_id):
+        return {"id":doc_id,"title":"מסמך","source_ref":"ref"}
+    monkeypatch.setattr(main,"get_document",get_document)
+
 
 
 class _Db:
@@ -9,12 +17,12 @@ class _Db:
 
 
 @pytest.mark.asyncio
-async def test_index_document_marks_document_ready_after_chunks_are_stored(monkeypatch):
+async def test_index_document_marks_document_staged_without_activation(monkeypatch):
     async def fake_get_db():
         return _Db()
 
-    async def fake_embed(_chunks, _db):
-        return 4
+    async def fake_embed(_db, _metadata, _text, _pages=None):
+        return "v1", 4
 
     status_updates = []
 
@@ -23,13 +31,13 @@ async def test_index_document_marks_document_ready_after_chunks_are_stored(monke
 
     monkeypatch.setattr(main, "get_db", fake_get_db)
     monkeypatch.setattr(main, "chunk_regulatory_document", lambda _text, _metadata: [{"content": "x"}])
-    monkeypatch.setattr(main, "embed_and_store_chunks", fake_embed)
+    monkeypatch.setattr(knowledge, "stage_document", fake_embed)
     monkeypatch.setattr(main, "update_document_index_status", capture_status, raising=False)
 
     chunks = await main._index_document(42, "מסמך", "ref", "תוכן")
 
     assert chunks == 4
-    assert status_updates == [((42, "ready"), {"chunk_count": 4})]
+    assert status_updates == [((42, "staged"), {"chunk_count": 4})]
 
 
 @pytest.mark.asyncio
@@ -37,7 +45,7 @@ async def test_index_document_marks_document_failed_when_embedding_fails(monkeyp
     async def fake_get_db():
         return _Db()
 
-    async def failing_embed(_chunks, _db):
+    async def failing_embed(_db, _metadata, _text, _pages=None):
         raise RuntimeError("embedding provider unavailable")
 
     status_updates = []
@@ -47,7 +55,7 @@ async def test_index_document_marks_document_failed_when_embedding_fails(monkeyp
 
     monkeypatch.setattr(main, "get_db", fake_get_db)
     monkeypatch.setattr(main, "chunk_regulatory_document", lambda _text, _metadata: [{"content": "x"}])
-    monkeypatch.setattr(main, "embed_and_store_chunks", failing_embed)
+    monkeypatch.setattr(knowledge, "stage_document", failing_embed)
     monkeypatch.setattr(main, "update_document_index_status", capture_status)
 
     with pytest.raises(RuntimeError, match="embedding provider unavailable"):
@@ -63,9 +71,9 @@ async def test_index_document_uses_page_aware_chunks_when_pages_are_available(mo
     async def fake_get_db():
         return _Db()
 
-    async def fake_embed(chunks, _db):
-        assert [(chunk["page_start"], chunk["page_end"]) for chunk in chunks] == [(4, 4)]
-        return 1
+    async def fake_embed(_db, metadata, text, pages=None):
+        assert pages == [{"page_number":4,"text":"טקסט בעמוד"}]
+        return "v1", 1
 
     async def ignore_status(*_args, **_kwargs):
         pass
@@ -77,7 +85,7 @@ async def test_index_document_uses_page_aware_chunks_when_pages_are_available(mo
         "page_end": pages[0]["page_number"],
     }], raising=False)
     monkeypatch.setattr(main, "chunk_regulatory_document", lambda *_args: (_ for _ in ()).throw(AssertionError("flat chunking used")))
-    monkeypatch.setattr(main, "embed_and_store_chunks", fake_embed)
+    monkeypatch.setattr(knowledge, "stage_document", fake_embed)
     monkeypatch.setattr(main, "update_document_index_status", ignore_status)
 
     result = await main._index_document(

@@ -66,4 +66,4 @@ def test_audit_corpus_reports_index_and_extraction_problems(tmp_path):
     }
     assert report["documents"][0]["chunk_count"] == 1
     assert report["documents"][0]["extraction_chars"] == len(extracted.read_text(encoding="utf-8"))
-    assert report["documents"][1]["issues"] == ["missing_text_file", "no_chunks"]
+    assert {"missing_text_file", "no_chunks", "missing_original"} <= set(report["documents"][1]["issues"])

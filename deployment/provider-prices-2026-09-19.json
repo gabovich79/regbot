@@ -1,0 +1,4 @@
+{
+  "gemini-2.5-flash": {"input": 0.30, "output": 2.50, "search_call_ceiling": 0.035},
+  "text-embedding-3-large": {"input": 0.13, "output": 0.0}
+}

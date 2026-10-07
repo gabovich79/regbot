@@ -1,0 +1,26 @@
+{
+  "source_id": "D37",
+  "document_title": "פקודת מס הכנסה [נוסח חדש]",
+  "annotations": [
+    {
+      "evidence_id": "D37-9-16A-A",
+      "section": "9(16א)(א)",
+      "page_start": 43,
+      "page_end": 43,
+      "start_anchor": "משיכת תשלומי מעביד מקרן השתלמות",
+      "end_exclusive_anchor": "משיכה מקרן השתלמות לעצמאים",
+      "verification_status": "machine_visual_observation_pending_human_review",
+      "verification_note": "The official PDF was visually inspected at page 43. The printed subsection is (16א)(א) under the stated title; the parent section 9 is confirmed by the official cross-reference in 125ג(ד)(5), page 204."
+    },
+    {
+      "evidence_id": "D37-125G-D-5",
+      "section": "125ג(ד)(5)",
+      "page_start": 204,
+      "page_end": 204,
+      "start_anchor": "שיעור המס על הכנסה מריבית ומדמי ניכיון",
+      "end_exclusive_anchor": "ניכוי מריבית",
+      "verification_status": "machine_visual_observation_pending_human_review",
+      "verification_note": "The official PDF was visually inspected at page 204. It visibly contains 125ג, 125ג(ד)'s reference to section 121, and item (5)'s cross-reference to 9(16א) or (16ב)."
+    }
+  ]
+}

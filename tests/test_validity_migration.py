@@ -6,7 +6,7 @@ from models import database
 
 
 @pytest.mark.asyncio
-async def test_init_db_adds_validity_columns_and_backfills_from_title(tmp_path, monkeypatch):
+async def test_init_db_does_not_infer_effective_date_from_circular_id(tmp_path, monkeypatch):
     db_path = tmp_path / "regbot.db"
     connection = sqlite3.connect(db_path)
     try:
@@ -53,5 +53,5 @@ async def test_init_db_adds_validity_columns_and_backfills_from_title(tmp_path, 
         await db.close()
 
     assert {"effective_date", "valid_until", "superseded_by"} <= columns
-    assert rows[1]["effective_date"] == "2024-09-08"
+    assert rows[1]["effective_date"] is None
     assert rows[2]["effective_date"] is None
