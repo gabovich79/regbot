@@ -36,6 +36,10 @@ def quality_issues(text, pages=None):
         issues.append('invalid_characters')
     if pages and any(not p['text'].strip() and p.get('blank_page_confirmed') is not True for p in pages):
         issues.append('empty_pages_require_visual_review_or_ocr')
+    if pages and any(p.get('table_regions') for p in pages):
+        issues.append('pdf_tables_require_structure_review')
+    if pages and any(p.get('table_detection_status') == 'failed' for p in pages):
+        issues.append('pdf_table_detection_failed_requires_review')
     if len(text.strip()) < 40:
         issues.append('very_short_extraction_requires_source_check')
     if '[מחוק במקור:' in text or '[תוספת מסומנת במקור:' in text:
@@ -96,6 +100,30 @@ def prepare_document(text, metadata, pages=None):
     from services.document_structure import boundaries
     headings = boundaries(text, SECTION)
     structure_review = {'mode':'text_patterns', 'suppressed_numbered_boundaries':[]}
+    original = metadata.get('original_path', '')
+    if not pages and str(original).lower().endswith('.docx'):
+        from pathlib import Path
+        if Path(original).is_file():
+            from services.document_service import extract_docx_structure
+            extracted, layout = extract_docx_structure(original)
+            if extracted == text:
+                if not layout['alignment_complete']:
+                    issues.append('docx_paragraph_alignment_requires_review')
+                numbered = {m.start() for m in SECTION.finditer(text) if re.match(r'\s*\d', m.group())}
+                records = {r['start']:r for r in layout['paragraphs']}
+                confirmed = {p for p in numbered if records.get(p, {}).get('bold') is True
+                             and records[p]['list_level'] in (None, '0')}
+                if len(confirmed) >= 3:
+                    suppressed = sorted(p for p in numbered if p in records and
+                                        (records[p]['bold'] is False or records[p]['list_level'] not in (None, '0')))
+                    headings = {p:label for p,label in headings.items() if p not in suppressed}
+                    structure_review = {'mode':'docx_typography', 'source_text_hash':layout['text_sha256'],
+                                        'suppressed_numbered_boundaries':suppressed,
+                                        'confirmed_numbered_boundaries':sorted(confirmed)}
+                    if suppressed:
+                        issues.append('docx_hierarchy_inferred_from_typography_requires_review')
+            else:
+                issues.append('docx_structure_source_mismatch_requires_reextraction')
     # Use original PDF typography only when every page aligned and there are
     # multiple concrete numbered headings. Plain-text imports keep the fallback.
     if pages and all(isinstance(p.get('bold_numbered_starts'),list) for p in pages):

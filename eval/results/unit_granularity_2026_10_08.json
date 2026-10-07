@@ -1,0 +1,275 @@
+{
+  "acceptance": false,
+  "production_changed": false,
+  "tests_passed": 366,
+  "runs": [
+    {
+      "stage": "results-focused-units",
+      "case": "employer-structure",
+      "seconds": 54.92200000002049,
+      "cost": 0.05478906,
+      "status": "partial",
+      "error": null,
+      "claims": 24,
+      "units": 15,
+      "unresolved_references": 3,
+      "omitted_sections": 0,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-focused-units",
+      "case": "transfer-structure",
+      "seconds": 42.68699999997625,
+      "cost": 0.06389972,
+      "status": null,
+      "error": "ServerError",
+      "claims": 0,
+      "units": 0,
+      "unresolved_references": 1,
+      "omitted_sections": 2,
+      "failed_calls": [
+        {
+          "stage": "evidence_units",
+          "model": "gemini-2.5-flash",
+          "status": "failed",
+          "seconds": 21.07799999997951,
+          "error_type": "ServerError",
+          "input_tokens": null,
+          "output_tokens": null,
+          "cost": 0.0453471,
+          "cost_status": "reservation_retained",
+          "request_bytes": 48757,
+          "max_output_tokens": 12288
+        }
+      ]
+    },
+    {
+      "stage": "results-focused-units",
+      "case": "withdrawal-structure",
+      "seconds": 50.67200000002049,
+      "cost": 0.04233353,
+      "status": "partial",
+      "error": null,
+      "claims": 17,
+      "units": 19,
+      "unresolved_references": 18,
+      "omitted_sections": 0,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-docx-final",
+      "case": "employer-structure",
+      "seconds": 59.07800000003772,
+      "cost": 0.06455325999999997,
+      "status": "partial",
+      "error": null,
+      "claims": 39,
+      "units": 13,
+      "unresolved_references": 0,
+      "omitted_sections": 0,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-compact-transfer",
+      "case": "transfer-structure",
+      "seconds": 62.95299999997951,
+      "cost": 0.062089180000000015,
+      "status": "partial",
+      "error": null,
+      "claims": 15,
+      "units": 15,
+      "unresolved_references": 0,
+      "omitted_sections": 6,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-generalization",
+      "case": "gemel-age-track-choice",
+      "seconds": 39.0,
+      "cost": 0.04133540000000001,
+      "status": "supported",
+      "error": null,
+      "claims": 9,
+      "units": 9,
+      "unresolved_references": 0,
+      "omitted_sections": 0,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-generalization",
+      "case": "gemel-kyc",
+      "seconds": 43.18699999997625,
+      "cost": 0.05591039,
+      "status": null,
+      "error": "ServerError",
+      "claims": 0,
+      "units": 0,
+      "unresolved_references": 0,
+      "omitted_sections": 0,
+      "failed_calls": [
+        {
+          "stage": "evidence_units",
+          "model": "gemini-2.5-flash",
+          "status": "failed",
+          "seconds": 23.81199999997625,
+          "error_type": "ServerError",
+          "input_tokens": null,
+          "output_tokens": null,
+          "cost": 0.0400755,
+          "cost_status": "reservation_retained",
+          "request_bytes": 31185,
+          "max_output_tokens": 12288,
+          "provider_code": 504,
+          "provider_status": "DEADLINE_EXCEEDED"
+        }
+      ]
+    },
+    {
+      "stage": "results-generalization",
+      "case": "gemel-pension-default",
+      "seconds": 49.01600000000326,
+      "cost": 0.04771280000000001,
+      "status": "partial",
+      "error": null,
+      "claims": 21,
+      "units": 20,
+      "unresolved_references": 1,
+      "omitted_sections": 0,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-date-origin",
+      "case": "gemel-age-track-choice",
+      "seconds": 36.42200000002049,
+      "cost": 0.04108149999999999,
+      "status": "partial",
+      "error": null,
+      "claims": 11,
+      "units": 11,
+      "unresolved_references": 0,
+      "omitted_sections": 0,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-unit-composition",
+      "case": "employer-structure",
+      "seconds": 8.23399999999674,
+      "cost": 0.012926899999999998,
+      "status": "partial",
+      "error": null,
+      "claims": 13,
+      "units": 13,
+      "unresolved_references": 0,
+      "omitted_sections": 0,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-unit-composition",
+      "case": "transfer-structure",
+      "seconds": 12.01500000001397,
+      "cost": 0.017689500000000004,
+      "status": "partial",
+      "error": null,
+      "claims": 15,
+      "units": 15,
+      "unresolved_references": 0,
+      "omitted_sections": 6,
+      "failed_calls": []
+    },
+    {
+      "stage": "results-unit-composition",
+      "case": "withdrawal-structure",
+      "seconds": 30.98399999999674,
+      "cost": 0.0324722,
+      "status": "partial",
+      "error": null,
+      "claims": 16,
+      "units": 19,
+      "unresolved_references": 18,
+      "omitted_sections": 0,
+      "failed_calls": []
+    }
+  ],
+  "docx_index": {
+    "manifest": {
+      "1": "0a7287fa711e43beb896ae7a1414e114",
+      "3": "abc7645a1a8b4ca9a012af39ff49009a",
+      "19": "75032f9acde04fae8e791bcaaae0678b",
+      "22": "726d2b7b60ff4be08c23448dfedd514a",
+      "25": "ced480b24b374458b781e334cffaabc0",
+      "26": "8721195de89f46da950f90bb254a0723",
+      "34": "cedec2d59ec24a1098c529291b1975a1",
+      "36": "d74a10113c80465eb67bb563dfecb330",
+      "37": "a41dd862a88646f8a4514fc7e5d9653e",
+      "38": "c76ece695c78409e82945e8a7875be6d"
+    },
+    "results": [
+      {
+        "document_id": 25,
+        "previous_version": "0f5ae81d372c44caa68fb5b96d48d2ae",
+        "original_sha256": "19ad03cc4126b18a19621e100af2291eba8fcf6c5070bd33abef46598b648db7",
+        "text_unchanged": true,
+        "source_hash": "9562e0f939af5dfd2c3d64c37bbfeb4d393f15239a62d081be35ae8f4f4367f7",
+        "sections": 22,
+        "chunks": 39,
+        "max_section_tokens": 2646,
+        "oversized_sections": 0,
+        "issues": [
+          "marked_revisions_require_source_review",
+          "docx_hierarchy_inferred_from_typography_requires_review"
+        ],
+        "lossless_section_and_chunk_coverage": true,
+        "activated": false,
+        "reused_identical_vectors": 32,
+        "new_version": "ced480b24b374458b781e334cffaabc0",
+        "cost": 0.00074464
+      }
+    ],
+    "acceptance": false
+  },
+  "reference_replay": [
+    {
+      "version": "b6d9ab3db94146979dba19a241ed54ca",
+      "unresolved": [
+        {
+          "from_id": "D25-Vb6d9ab3db94146979dba19a241ed54ca-C21",
+          "reference": "סעיף 3",
+          "reason": "missing_or_ambiguous_section"
+        }
+      ],
+      "included_sections": [
+        "1. הגדרות",
+        "14. תחולה",
+        "15. תחילה",
+        "4. פרטים שעל מעסיק למסור בעת הפסקת הפקדת תשלומים"
+      ],
+      "context_tokens": 2645
+    },
+    {
+      "version": "ced480b24b374458b781e334cffaabc0",
+      "unresolved": [],
+      "included_sections": [
+        "1. הגדרות",
+        "14. תחולה",
+        "15. תחילה",
+        "3. פרטים שעל מעסיק למסור לחברה מנהלת במועד הפקדת תשלומים",
+        "4. פרטים שעל מעסיק למסור בעת הפסקת הפקדת תשלומים"
+      ],
+      "context_tokens": 8783
+    }
+  ],
+  "date_replay": {
+    "provider_calls": 0,
+    "old_known_periods": 9,
+    "new_known_periods": 4,
+    "gaps": [
+      "תאריך תחולה יוחס ממסמך אחר ללא קשר מאומת למקור הכלל",
+      "תאריך תחולה יוחס ממסמך אחר ללא קשר מאומת למקור הכלל",
+      "תאריך תחולה יוחס ממסמך אחר ללא קשר מאומת למקור הכלל",
+      "תאריך תחולה יוחס ממסמך אחר ללא קשר מאומת למקור הכלל",
+      "תאריך תחולה יוחס ממסמך אחר ללא קשר מאומת למקור הכלל"
+    ]
+  },
+  "cumulative_cost_including_reservations": 10.01047898,
+  "unsettled_reservations": 1.12449431
+}

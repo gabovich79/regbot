@@ -1,5 +1,6 @@
 from services.date_provenance import date_present
 from services.evidence_contract import bind_units
+import pytest
 
 
 def test_regulatory_identifier_is_not_a_date():
@@ -22,3 +23,30 @@ def test_unattributed_date_never_enters_renderable_components():
     units,gaps=bind_units({'units':[unit],'missing':[]},[{'id':'E1','content':'חוזר 2021-9-5'}])
     assert not units[0]['period_known'] and gaps
     assert [c['kind'] for c in units[0]['components']]==['rule']
+
+
+@pytest.mark.parametrize('date_id,accepted', [
+    ('D1-Vversion1-C2', True),
+    ('D2-Vversion1-C2', False),
+    ('D1-Vversion2-C2', False),
+])
+def test_period_must_belong_to_rule_document_version(date_id, accepted):
+    rule_id='D1-Vversion1-C1'
+    unit=dict(rule={'text':'rule','source_ids':[rule_id]},scope=[],conditions=[],exceptions=[],requirements=[],
+              period={'text':'תחילה ביום 1 בספטמבר 2021','source_ids':[date_id],
+                      'start_date':'2021-09-01','end_date':None})
+    evidence=[{'id':rule_id,'content':'rule'}, {'id':date_id,'content':'תחילה ביום 1 בספטמבר 2021'}]
+    units,gaps=bind_units({'units':[unit],'missing':[]}, evidence)
+    assert units[0]['period_known'] is accepted
+    assert bool(gaps) is not accepted
+    if not accepted:
+        assert all(c['kind']!='period' for c in units[0]['components'])
+
+
+def test_extra_rule_pointer_cannot_launder_date_from_other_document():
+    unit=dict(rule={'text':'rule','source_ids':['D1-Vv-C1']},scope=[],conditions=[],exceptions=[],requirements=[],
+              period={'text':'תחילה ביום 1 בספטמבר 2021','source_ids':['D1-Vv-C1','D2-Vv-C1'],
+                      'start_date':'2021-09-01','end_date':None})
+    evidence=[{'id':'D1-Vv-C1','content':'rule'}, {'id':'D2-Vv-C1','content':'תחילה ביום 1 בספטמבר 2021'}]
+    units,gaps=bind_units({'units':[unit],'missing':[]}, evidence)
+    assert not units[0]['period_known'] and gaps

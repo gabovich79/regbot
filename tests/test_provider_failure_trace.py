@@ -7,8 +7,13 @@ from google import genai
 from services.providers import Gateway
 
 
+class ProviderUnavailable(Exception):
+    code = 503
+    status = 'UNAVAILABLE'
+
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize('failure',[TimeoutError,asyncio.CancelledError])
+@pytest.mark.parametrize('failure',[TimeoutError,asyncio.CancelledError,ProviderUnavailable])
 async def test_failed_call_keeps_reservation_and_reports_stage_without_sensitive_error(monkeypatch,failure):
     calls=[]
     class Client:
@@ -29,3 +34,5 @@ async def test_failed_call_keeps_reservation_and_reports_stage_without_sensitive
     assert trace['stage']=='evidence_units' and trace['cost_status']=='reservation_retained'
     assert trace['cost']==.07 and trace['seconds']>=0 and trace['input_tokens'] is None
     assert trace['error_type']==failure.__name__ and 'sensitive' not in str(trace)
+    if failure is ProviderUnavailable:
+        assert trace['provider_code'] == 503 and trace['provider_status'] == 'UNAVAILABLE'

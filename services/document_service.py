@@ -22,6 +22,18 @@ def clean_text(text: str) -> str:
 
 def _page_record(page, number):
     record = {'page_number':number, 'text':clean_text(page.get_text())}
+    # Flat PDF text preserves words but not the relationships between cells.
+    # Detection is advisory: absence of ruled tables is not a layout approval.
+    try:
+        tables = page.find_tables().tables
+        record['table_regions'] = [
+            {'bbox': list(table.bbox), 'rows': table.row_count, 'columns': table.col_count}
+            for table in tables if table.row_count >= 2 and table.col_count >= 2
+        ]
+        record['table_detection_status'] = 'completed'
+    except Exception:
+        record['table_regions'] = []
+        record['table_detection_status'] = 'failed'
     # Match the text stream in order; never guess offsets from visual positions.
     # Bold numeric heading markers distinguish section 13 from a plain nested
     # item 2 without imposing a document-specific numbering sequence.
@@ -95,12 +107,56 @@ def extract_docx(file_path: str) -> str:
     return _docx_body_text(doc)
 
 
+def extract_docx_structure(file_path):
+    """Return the same text plus independently aligned paragraph typography."""
+    from services.docx_numbering import Numbering
+    doc = Document(file_path)
+    records = []
+    text = clean_text(_docx_blocks_text(doc.element.body, Numbering(doc), [0], records, doc))
+    aligned, cursor = [], 0
+    for record in records:
+        value = clean_text(record.pop('text'))
+        if not value:
+            continue
+        position = text.find(value, cursor)
+        if position < 0:
+            # Never assign repeated paragraphs by guessing after misalignment.
+            return text, {'kind':'docx_typography', 'paragraphs':[], 'alignment_complete':False,
+                          'text_sha256':hashlib.sha256(text.encode()).hexdigest()}
+        cursor = position + len(value)
+        if not record.pop('in_table') and (position == 0 or text[position-1] == '\n'):
+            aligned.append(dict(record, start=position))
+    return text, {'kind':'docx_typography', 'text_sha256':hashlib.sha256(text.encode()).hexdigest(),
+                  'paragraphs':aligned, 'alignment_complete':True}
+
+
+def _docx_paragraph_bold(element, doc):
+    from docx.text.paragraph import Paragraph
+    paragraph = Paragraph(element, doc)
+    # Tracked revisions and unsupported inline objects are not typography proof.
+    if clean_text(''.join(r.text for r in paragraph.runs)) != clean_text(_docx_inline_text(element)):
+        return None
+    def bold(run):
+        if run.bold is not None:
+            return run.bold
+        for style in (run.style, paragraph.style):
+            seen = set()
+            while style is not None and style.style_id not in seen:
+                seen.add(style.style_id)
+                if style.font.bold is not None:
+                    return style.font.bold
+                style = style.base_style
+        return False
+    runs = [r for r in paragraph.runs if r.text.strip()]
+    return all(bold(r) for r in runs) if runs else None
+
+
 def _docx_body_text(doc) -> str:
     from services.docx_numbering import Numbering
     return clean_text(_docx_blocks_text(doc.element.body, Numbering(doc), [0]))
 
 
-def _docx_blocks_text(container, numbering=None, table_counter=None) -> str:
+def _docx_blocks_text(container, numbering=None, table_counter=None, records=None, doc=None, in_table=False) -> str:
     """Walk physical cells, not python-docx's expanded merged-cell grid.
 
     Keep merge locations explicit, including vertical continuations, so a
@@ -112,7 +168,12 @@ def _docx_blocks_text(container, numbering=None, table_counter=None) -> str:
         table_counter = [0]
     for child in container.iterchildren():
         if child.tag.endswith('}p'):
-            parts.append((numbering.prefix(child) if numbering else '') + _docx_inline_text(child))
+            value = (numbering.prefix(child) if numbering else '') + _docx_inline_text(child)
+            parts.append(value)
+            if records is not None:
+                props = numbering.properties(child) if numbering else {}
+                records.append({'text':value, 'bold':_docx_paragraph_bold(child, doc),
+                                'list_level':props.get('ilvl'), 'in_table':in_table})
         elif child.tag.endswith('}tbl'):
             table_counter[0] += 1
             table_id = table_counter[0]
@@ -129,7 +190,7 @@ def _docx_blocks_text(container, numbering=None, table_counter=None) -> str:
                         merge = properties.find(f'{{{_WORD_NS}}}vMerge')
                         if merge is not None:
                             marks.append('[מיזוג אנכי במקור: ' + ('התחלה' if merge.get(f'{{{_WORD_NS}}}val') == 'restart' else 'המשך התא מעל') + ']')
-                    cells.append(' '.join(marks + [_docx_blocks_text(cell, numbering, table_counter)]).strip())
+                    cells.append(' '.join(marks + [_docx_blocks_text(cell, numbering, table_counter, records, doc, True)]).strip())
                 parts.append(' | '.join(cells))
             parts.append(f'[סוף טבלה במקור: {table_id}]')
     return '\n'.join(parts)

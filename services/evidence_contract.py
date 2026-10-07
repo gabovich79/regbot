@@ -5,6 +5,7 @@ silently dropping a qualification that extraction has identified.
 """
 import hashlib
 import json
+import re
 from datetime import date
 
 FIELDS = ('scope', 'conditions', 'exceptions', 'requirements')
@@ -16,6 +17,17 @@ LABELS = {'scope': 'תחולה', 'conditions': 'תנאים', 'exceptions': 'חר
           'temporal_context':'מידע זמני מהמקור (אינו מאמת תקופת תחולה)'}
 UNIT_SEMANTICS = (
     'At most 20 focused rules; each component at most 120 words. '
+    'Use ONE independently assessable legal consequence per unit, not one unit per product, population or source section. '
+    'Distinguish eligibility tests, tax treatment, administrative consequences, procedural duties and definitions. '
+    'Attach only qualifications that actually govern that consequence, preserving ALL such qualifications. '
+    'A definition containing a monetary ceiling or percentage must be a separate unit when it is independently '
+    'answerable; do not append every definition in the source to every rule. If a conclusion depends on that '
+    'ceiling or percentage, keep the dependency and its limiting terms in that conclusion too. '
+    'Do not make a dependent entitlement appear unconditional by moving its financial condition into another unit. '
+    'When only a nonfinancial criterion is supported independently, describe it explicitly as that criterion only, '
+    'not as full entitlement or exemption. Keep unresolved quantitative eligibility in missing. '
+    'For example a notification deadline and an annual fee ceiling are distinct consequences even in one paragraph; '
+    'an exemption available only below a ceiling cannot be separated from the ceiling to evade temporal checks. '
     'Cover EVERY required question aspect, including source-backed aspects in plan.issues. '
     'For every procedural rule, use requirements to preserve mandatory contents, recipient, trigger, '
     'deadline and distinct alternatives from the source. A duty to send a notice is incomplete without '
@@ -27,6 +39,10 @@ UNIT_SEMANTICS = (
     'to the rules it governs, even when found in a different excerpt; a standalone exception unit '
     'does not replace qualifying the affected rule. Never assume all rules share a limitation '
     'unless the original evidence establishes that relationship. '
+    'Document-wide means the SAME source document and version, not every document in the evidence packet. '
+    'Do not borrow commencement, scope or exclusions from another document merely because both discuss the same product. '
+    'For a cross-document dependency, identify an explicit governing reference in the original source; '
+    'otherwise leave the applicability unknown and report the unresolved relationship in missing. '
     'If the unit budget prevents complete coverage, explicitly identify omitted aspects in missing. '
     'Bind every limiting condition, exception, population and effective period to its rule, '
     'including continuations and definitions in other excerpts. Do not conflate alternative '
@@ -46,6 +62,18 @@ UNIT_TASK = (
     'conditions:[{text,source_ids}],exceptions:[{text,source_ids}],requirements:[{text,source_ids}],period:{text,source_ids,start_date,end_date}|null}],'
     'missing:[short issues]}. ' + UNIT_SEMANTICS
 )
+
+
+def source_document(evidence):
+    """Stable source identity, never inferred from a shared title or topic."""
+    ident = evidence['id']
+    match = re.fullmatch(r'(D\d+-V[^-]+)-C\d+', ident)
+    if match:
+        return match[1]
+    if evidence.get('kind') in ('official_web', 'secondary_web') and evidence.get('source_hash'):
+        return ('web', evidence['source_hash'])
+    # Unknown legacy identity cannot establish cross-excerpt applicability.
+    return ident
 
 
 def bind_units(payload, evidence):
@@ -113,8 +141,18 @@ def bind_units(payload, evidence):
             bind(period, 'period' if calendar else 'temporal_context', 0)
             if calendar:
                 from services.date_provenance import date_present
-                if any(not any(date_present(value,lookup[i]['content']) for i in period['source_ids'])
-                       for value in calendar.values()):
+                rule_documents = {source_document(lookup[i]) for i in unit['rule']['source_ids']}
+                date_documents = {source_document(lookup[i]) for i in period['source_ids']}
+                if not rule_documents.issubset(date_documents):
+                    # An amendment can govern another document, but needs a
+                    # separately verified relationship. A model assertion is
+                    # not that relationship; retain unknown applicability.
+                    components.pop()
+                    calendar = {}
+                    missing.append('תאריך תחולה יוחס ממסמך אחר ללא קשר מאומת למקור הכלל')
+                elif any(not any(source_document(lookup[i]) == document and
+                                 date_present(value,lookup[i]['content']) for i in period['source_ids'])
+                         for document in rule_documents for value in calendar.values()):
                     # Do not render the unsupported date even as temporal text.
                     components.pop()
                     calendar={}
@@ -133,6 +171,18 @@ def generation_units(units):
     return [{'id':u['id'], 'period_known':u['period_known'],
              'components':[{k:c[k] for k in ('kind','text')} for c in u['components']]}
             for u in units]
+
+
+def compose_unit_claims(units, requested_year=None):
+    """Use extracted rules verbatim; normal binding and verification still apply.
+
+    The caller may supply an explicitly requested year, never an inferred
+    current year or a guessed threshold year. Unknown numeric periods stay blocked.
+    """
+    year = requested_year if type(requested_year) is int and 1900 <= requested_year <= 2100 else None
+    return {'claims':[{'text':next(c['text'] for c in u['components'] if c['kind']=='rule'),
+                       'unit_ids':[u['id']], 'applicable_year':year} for u in units],
+            'missing':[], 'conflicts':[]}
 
 
 def verification_units(units):

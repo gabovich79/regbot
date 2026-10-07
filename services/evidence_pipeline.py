@@ -15,7 +15,7 @@ from services.source_protocol import compact_sources,restore_source_ids,coverage
 from services.verification_protocol import verification_schema,decode_verification
 from services.evidence_contract import (UNIT_TASK, bind_units, bind_claim, qualified_text,
                                         check_contract, contract_fingerprint, generation_units, answer_schema, complete_candidates,
-                                        MAX_CANDIDATE_CLAIMS, verification_units)
+                                        MAX_CANDIDATE_CLAIMS, verification_units, compose_unit_claims)
 
 
 USER_FACTS = {'product':'סוג המוצר או החשבון', 'operation':'הפעולה המבוקשת',
@@ -184,7 +184,7 @@ def verifier_claims(resolved):
     return [dict({k:c.get(k) for k in keys},display_text=qualified_text(c)) for c in resolved]
 
 
-async def run_pipeline(question, history, db, gateway, trace, progress=None, enable_web=True):
+async def run_pipeline(question, history, db, gateway, trace, progress=None, enable_web=True, compose_units=False):
     started=time.monotonic()
     async def notify(message):
         if progress:
@@ -257,6 +257,8 @@ async def run_pipeline(question, history, db, gateway, trace, progress=None, ena
                   'missing [unanswered aspects], conflicts [unresolved source conflicts]. Each factual claim needs IDs. '
                   'unit_ids select complete units: conditions, exceptions, scope and period cannot be removed. '
                   'Do not invent units or reinterpret unknown periods as current. The renderer appends all qualifications. '
+                  'Prefer one concise operative claim per unit. Do not repeat each condition, exception or required field '
+                  'as another claim: all bound qualifications will be displayed in full with the operative claim. '
                   'IDs are pointers: do not transcribe or manufacture quotations. Separate rule, exceptions and procedure. '
                   'Amounts and rates require the applicable period in BOTH text and applicable_year. '
                   'Do not interpret an amendment identifier as a date. Secondary sources cannot silently override primary sources. '
@@ -267,11 +269,16 @@ async def run_pipeline(question, history, db, gateway, trace, progress=None, ena
     task['task'] += ' Selected excerpts are not necessarily the whole document. Never assert that a document has no rule merely because the selected excerpts do not show it; report insufficient evidence instead.'
     trace['pipeline_stage'] = 'answer'
     schema=answer_schema(units)
-    answer = await gateway.json('answer', task, max_output=8192, response_schema=schema)
+    trace['composition'] = 'extracted_rules' if compose_units else 'model'
+    answer = (compose_unit_claims(units, plan.get('tax_year')) if compose_units else
+              await gateway.json('answer', task, max_output=8192, response_schema=schema))
     attempts = []
     for attempt in range(2):
         generated_answer=answer
-        answer,added_units=complete_candidates(answer,units)
+        if compose_units and attempt == 0:
+            added_units = []  # Every validated extracted unit is already present.
+        else:
+            answer,added_units=complete_candidates(answer,units)
         resolved, structural = resolve_claims(answer, evidence, units)
         trace['pipeline_stage'] = 'verify'
         checked = await gateway.json('verify', {

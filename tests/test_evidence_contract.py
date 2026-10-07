@@ -168,6 +168,36 @@ def test_unknown_period_cannot_be_replaced_with_answer_model_year():
     assert not claims and errors == ['0:unscoped_numeric_parameter']
 
 
+def test_independent_procedure_survives_unverified_fee_unit_but_keeps_exception():
+    payload = extraction()
+    procedure = payload['units'][0]
+    procedure.update(rule=component('יש למסור הודעה בתוך 14 ימים'), period=None,
+                     conditions=[component('לאחר קבלת בקשה מלאה')],
+                     exceptions=[component('למעט בקשה שבוטלה')])
+    fee = deepcopy(procedure)
+    fee.update(rule=component('התקרה היא 100 שקלים'), conditions=[], exceptions=[])
+    payload['units'].append(fee)
+    units, _ = bind_units(payload, EVIDENCE)
+    claims, errors = resolve_claims({'claims':[
+        {'text':'יש למסור הודעה בתוך 14 ימים', 'unit_ids':['U1']},
+        {'text':'התקרה היא 100 שקלים', 'unit_ids':['U2']},
+    ]}, EVIDENCE, units)
+    assert [claim['index'] for claim in claims] == [0]
+    assert errors == ['1:unscoped_numeric_parameter']
+    assert 'למעט בקשה שבוטלה' in qualified_text(claims[0])
+    assert 'לאחר קבלת בקשה מלאה' in qualified_text(claims[0])
+
+
+def test_numeric_condition_still_blocks_dependent_entitlement():
+    payload = extraction()
+    payload['units'][0].update(rule=component('זכאי לפטור'), period=None,
+                              conditions=[component('רק אם הסכום אינו עולה על 100 שקלים')])
+    units, _ = bind_units(payload, EVIDENCE)
+    claims, errors = resolved(units)
+    assert claims == []
+    assert errors == ['0:unscoped_numeric_parameter']
+
+
 def test_notice_deadline_does_not_establish_legal_period_for_numeric_claim():
     payload=extraction()
     payload['units'][0]['period']={**component('בתוך 14 ימי עסקים'),'start_date':None,'end_date':None}
