@@ -111,6 +111,14 @@ def bind_units(payload, evidence):
             # parameter. Preserve its source-bound text, but fail closed on
             # period-known. Old saved contracts without dates remain unknown.
             bind(period, 'period' if calendar else 'temporal_context', 0)
+            if calendar:
+                from services.date_provenance import date_present
+                if any(not any(date_present(value,lookup[i]['content']) for i in period['source_ids'])
+                       for value in calendar.values()):
+                    # Do not render the unsupported date even as temporal text.
+                    components.pop()
+                    calendar={}
+                    missing.append('תאריך תחולה שחולץ לא אותר במקורות שאליהם יוחס')
         units.append({'id': uid, 'components': components, 'period_known': bool(calendar),
                       'applicability_dates':calendar})
     return units, missing

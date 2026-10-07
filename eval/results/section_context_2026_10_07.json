@@ -1,0 +1,159 @@
+{
+  "acceptance": false,
+  "professional_approval": false,
+  "thinking": [
+    {
+      "case": "annual-cost",
+      "thinking_budget": 0,
+      "seconds": 20.43699999997625,
+      "cost": 0.014397799999999999,
+      "error_type": null
+    },
+    {
+      "case": "annual-cost",
+      "thinking_budget": 1024,
+      "seconds": 19.39100000000326,
+      "cost": 0.0144303,
+      "error_type": null
+    },
+    {
+      "case": "employer",
+      "thinking_budget": 0,
+      "seconds": 23.79699999996228,
+      "cost": 0.0318791,
+      "error_type": "ServerError"
+    },
+    {
+      "case": "employer",
+      "thinking_budget": 1024,
+      "seconds": 23.81300000002375,
+      "cost": 0.0318791,
+      "error_type": "ServerError"
+    },
+    {
+      "case": "fees",
+      "thinking_budget": 0,
+      "seconds": 14.077999999979511,
+      "cost": 0.0093981,
+      "error_type": null
+    },
+    {
+      "case": "fees",
+      "thinking_budget": 1024,
+      "seconds": 18.06300000002375,
+      "cost": 0.012173100000000001,
+      "error_type": null
+    },
+    {
+      "case": "loan",
+      "thinking_budget": 0,
+      "seconds": 20.26500000001397,
+      "cost": 0.0144612,
+      "error_type": null
+    },
+    {
+      "case": "loan",
+      "thinking_budget": 1024,
+      "seconds": 20.90700000000652,
+      "cost": 0.0142837,
+      "error_type": null
+    }
+  ],
+  "pipeline": [
+    {
+      "case": "annual-cost",
+      "question": "לפי המסמך שבמאגר, כיצד מחברים את מרכיבי העלות השנתית הצפויה, מאיזו שנה נלקח כל רכיב, ואילו מוצרים או מסלולים דורשים טיפול שונה?",
+      "seconds": 46.18699999997625,
+      "cost": 0.051984890000000006,
+      "status": "partial",
+      "error": null
+    },
+    {
+      "case": "fees",
+      "question": "בהסדר שבו הובטחו לעמית דמי ניהול מוזלים, מתי אפשר לשנות אותם כלפי מעלה, מה צריך להודיע, ועל אילו הסדרים הכללים אינם חלים? התייחס לנוסח שבמאגר.",
+      "seconds": 48.48399999999674,
+      "cost": 0.04327019000000001,
+      "status": "partial",
+      "error": null
+    }
+  ],
+  "replay": [
+    {
+      "case": "annual-cost",
+      "old_count": 24,
+      "new_count": 21,
+      "tokens": 18706,
+      "partial_parents": 0,
+      "omitted_seeds": 0
+    },
+    {
+      "case": "employer",
+      "old_count": 25,
+      "new_count": 14,
+      "tokens": 13034,
+      "partial_parents": 1,
+      "omitted_seeds": 1
+    },
+    {
+      "case": "fees",
+      "old_count": 8,
+      "new_count": 12,
+      "tokens": 9498,
+      "partial_parents": 0,
+      "omitted_seeds": 0
+    },
+    {
+      "case": "fees-old",
+      "old_count": 4,
+      "new_count": 8,
+      "tokens": 6200,
+      "partial_parents": 0,
+      "omitted_seeds": 0
+    },
+    {
+      "case": "identity",
+      "old_count": 6,
+      "new_count": 6,
+      "tokens": 5931,
+      "partial_parents": 0,
+      "omitted_seeds": 0
+    },
+    {
+      "case": "join",
+      "old_count": 30,
+      "new_count": 29,
+      "tokens": 23817,
+      "partial_parents": 0,
+      "omitted_seeds": 8
+    },
+    {
+      "case": "loan",
+      "old_count": 12,
+      "new_count": 11,
+      "tokens": 8745,
+      "partial_parents": 0,
+      "omitted_seeds": 0
+    },
+    {
+      "case": "transfer",
+      "old_count": 26,
+      "new_count": 24,
+      "tokens": 22559,
+      "partial_parents": 1,
+      "omitted_seeds": 1
+    },
+    {
+      "case": "withdrawal",
+      "old_count": 24,
+      "new_count": 20,
+      "tokens": 19842,
+      "partial_parents": 6,
+      "omitted_seeds": 6
+    }
+  ],
+  "date_replay_blocked_components": 19,
+  "cumulative_cost_including_reservations": 8.91935926,
+  "tests_passed": 343,
+  "model_default_changed": false,
+  "production_changed": false
+}

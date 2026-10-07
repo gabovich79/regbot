@@ -184,20 +184,9 @@ async def retrieve(db, plan, gateway, trace):
     ids = ranked_ids(ranking, lookup)
     trace['rerank_ratings'] = [dict(r,source_id=lookup[r['id']]['id']) for r in ranking['ratings']]
     ranked = [lookup[i] for i in ids]
-    # Keep selected evidence first. Parent/neighbor expansion must not consume
-    # the budget before direct evidence. IDs remain unique to original chunks.
-    expanded = expand_candidates(ranked, chunks, query)
-    evidence, used = [], 0
-    trace['context_selection'] = []
-    for c, reason, source_id in expanded:
-        item = public_evidence(c)
-        size = len(ENC.encode(json.dumps(item, ensure_ascii=False)))
-        trace['context_selection'].append({'id': c['id'], 'reason': reason, 'from_id': source_id,
-                                           'included': used + size <= 24000, 'tokens': size})
-        if used + size <= 24000:
-            evidence.append(item)
-            used += size
+    from services.section_context import pack_sections
+    evidence, selection = pack_sections(ranked, chunks, public_evidence)
+    trace.update(selection)
     trace['reranked_ids'] = [c['id'] for c in ranked]
-    trace['context_tokens'] = used
     trace['final_evidence'] = evidence
     return evidence

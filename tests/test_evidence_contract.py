@@ -182,7 +182,8 @@ def test_notice_deadline_does_not_establish_legal_period_for_numeric_claim():
 def test_calendar_applicability_is_preserved_for_independent_source_verification():
     payload=extraction()
     payload['units'][0]['period']={**component('תחילה ביום 1 בינואר 2020'),'start_date':'2020-01-01','end_date':None}
-    units,_=bind_units(payload,EVIDENCE)
+    evidence=[dict(EVIDENCE[0],content=EVIDENCE[0]['content']+' תחילה ביום 1 בינואר 2020')]
+    units,_=bind_units(payload,evidence)
     assert units[0]['period_known'] is True
     assert units[0]['applicability_dates']=={'start_date':'2020-01-01'}
 
